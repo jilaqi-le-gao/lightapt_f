@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "LightAPT"
+version = "1.0.0" 
+description = "Light weight and Flexible Astro Photography Terminal"
+authors = ["Max Qian <astro_air@126.com>"]
+license = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/AstroAir-Develop-Team/lightapt"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/AstroAir-Develop-Team/lightapt/issues"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.28.1"
+colorama = "^0.4.6"
+Flask = "^2.2.2"
+Flask-SocketIO = "^5.3.1"
+Pillow = "^9.3.0"
+PyYAML = "6.0"
+tifffile = "^2022.10.10"
