@@ -31,6 +31,16 @@ Most of the codes are written in Python and JavaScript, and we will try to add m
 ### Build
 Just like the name of the project, only a few dependent libraries are needed to start
 
+### Requirements
+
++ colorama
++ requsets 
++ flask
++ flask-socketio
++ pyyaml
++ Pillow
++ tifffile
+
 ## Support
 +[QQ Group] 710622107
 +[Email] astro_air@126.com

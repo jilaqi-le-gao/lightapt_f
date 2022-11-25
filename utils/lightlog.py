@@ -51,6 +51,8 @@ logger.setLevel(logging.INFO)
 init(autoreset=True)
 sleep(0.5)
 
+DEBUG = False
+
 class lightlog():
     """
         Light weight log system for LightAPT
@@ -112,10 +114,11 @@ class lightlog():
                 msg: str # can be format string
             Return: None
         """
-        if self._check_(msg):
-            logger.info(f"[{self.uname}][DEBUG] - " + Fore.MAGENTA + f"{msg}" + Fore.RESET)
-        else:
-            logger.error(_("Invalid message type"))
+        if DEBUG:
+            if self._check_(msg):
+                logger.info(f"[{self.uname}][DEBUG] - " + Fore.MAGENTA + f"{msg}" + Fore.RESET)
+            else:
+                logger.error(_("Invalid message type"))
         
 
     def _check_(self,msg) -> bool:

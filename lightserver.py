@@ -18,3 +18,25 @@ Boston, MA 02110-1301, USA.
 
 """
 
+from server.wsserver import wsserver
+from utils.lightlog import lightlog
+
+log = lightlog(__name__)
+
+if __name__ == "__main__":
+
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--host', type=str, default='127.0.0.1')
+    parser.add_argument('--debug', type=bool, default=False)
+    parser.add_argument('--config', type=str, default='')
+    args = parser.parse_args()
+    if args.debug:
+        """Debug mode"""
+    if args.config:
+        """Change configuration file"""
+
+else:
+    log.loge(_("Please run this file in main thread"))
+    raise SystemError("Main Thread")
