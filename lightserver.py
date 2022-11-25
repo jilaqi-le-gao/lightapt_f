@@ -18,7 +18,7 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from server.wsserver import wsserver
+from server.wsserver import run_server
 from utils.lightlog import lightlog
 
 log = lightlog(__name__)
@@ -36,7 +36,8 @@ if __name__ == "__main__":
         """Debug mode"""
     if args.config:
         """Change configuration file"""
-
+    run_server()
+    
 else:
     log.loge(_("Please run this file in main thread"))
     raise SystemError("Main Thread")

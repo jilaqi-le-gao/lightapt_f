@@ -24,19 +24,27 @@ import json
 import gettext
 _ = gettext.gettext
 
-from flask import Flask
+from flask import Flask,render_template
 from flask_socketio import SocketIO,emit
 
 from server.wscamera import wscamera as camera
 from server.wstelescope import wstelescope as telescope
 from server.wsfocuser import wsfocuser as focuser
-from server.guider import wsguider as guider
+from server.wsguider import wsguider as guider
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
 IP_Address = '127.0.0.1'
 IP_Port = 5000
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/main.html')
+def main():
+    return render_template('main.html')
 
 @socketio.on('connect', namespace='/lightapt')
 def on_connect():
@@ -130,7 +138,7 @@ def run_server() -> None:
         Args: None
         Return: None
     """
-    socketio.run(app, host=IP_Address, port=IP_Port)
+    socketio.run(app, host=IP_Address, port=IP_Port,debug=True)
 
 class ws_device_info():
     """Websocket device infomation class"""

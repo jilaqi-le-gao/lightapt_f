@@ -59,8 +59,7 @@
 			$(window).trigger("resize"),		//通过jquery触发window resize事件
 			$(".alert").hide(),		//隐藏警告
 			$((function(){$('[data-toggle="tooltip"]').tooltip()})),		//提示框	
-			loadImg64("background.jpeg",1000,600),		//默认加载Background.jpg
-			//download("https://astroair.cn/version.txt"),		//自动更新
+			loadImg64("../static/textures/background.png",1000,600),		//默认加载Background.jpg
 			document.getElementById("connectBtn").addEventListener("click",startconn)		//监听按钮
 		});
 		
@@ -1264,7 +1263,7 @@
 			
 			windowWidth=document.documentElement.clientWidth,
 			$(".card-header").click((function(){
-				var expand='<img src="img/expandIcn.png" alt="xpand">',collapse='<img src="img/collapseIcn.png" alt="collapse">';
+				var expand='<img src="../static/textures/expandIcn.png" alt="xpand">',collapse='<img src="../static/textures/collapseIcn.png" alt="collapse">';
 				windowWidth<=960?($header=$(this),
 				$btn=$(this).find(".collapseBtn"),
 				$content=$header.next(),
@@ -1286,7 +1285,7 @@
 				newWidth=document.documentElement.clientWidth,
 				newWidth!=windowWidth&&(windowWidth=newWidth,
 				newWidth>960&&$(".card-body").slideDown(0,(function(){
-					$(".collapseBtn").html('<img src="img/expandIcn.png" alt="xpand">')
+					$(".collapseBtn").html('<img src="../static/textures/expandIcn.png" alt="xpand">')
 				})),
 				closeMiniMenu())
 			},
@@ -2493,8 +2492,8 @@
 		}
 		
 		//---------对焦------------
-		
-		document.querySelector("#afInjBtn").addEventListener("click",e=>{
+		/*
+		document.querySelector("#focuserPositionGoto").addEventListener("click",e=>{
 			sendInjectRemoteFocus()
 		});
 
@@ -2509,13 +2508,14 @@
 			getActualFilterforFocus()
 		}),
 
-		document.querySelectorAll(".autofocusBtn").forEach(btn=>{
+		document.querySelectorAll("#focuserPositionGoto").forEach(btn=>{
 			btn.addEventListener("click",(function(event){
 				let ckbx,goBack=!document.getElementById("gobackSwitch").checked,
 					action=event.currentTarget.getAttribute("data-param");
 				sendRemoteFocus(action,goBack)
 			}))
 		}),
+		*/
 
 		sendRemoteFocus=(mode,isGbk)=>{
 			var Req={
@@ -2849,7 +2849,7 @@
 					btn1.setAttribute("data-dest",dest),
 					btn1.setAttribute("title","Load target");
 				let ico1=document.createElement("img");
-				ico1.setAttribute("src","./img/paper-plane.png"),btn1.appendChild(ico1);
+				ico1.setAttribute("src","../static/textures/paper-plane.png"),btn1.appendChild(ico1);
 				let btn2=document.createElement("button");
 				btn2.classList="btn btn-sm btn-outline-info mx-1 flex-end px-2 py-1 btRoboClipLi",
 					btn2.setAttribute("type","button"),
@@ -2858,7 +2858,7 @@
 					btn2.setAttribute("data-dest",dest),
 					btn2.setAttribute("title","Edit target");
 				let ico2=document.createElement("img");
-				ico2.setAttribute("src","./img/edit.png"),
+				ico2.setAttribute("src","../static/textures/edit.png"),
 				btn2.appendChild(ico2);
 				let btn3=document.createElement("button");
 				btn3.classList="btn btn-sm btn-outline-danger mx-1 flex-end px-2 py-1 btRoboClipLi",
@@ -2868,7 +2868,7 @@
 					btn3.setAttribute("data-dest",dest),
 					btn3.setAttribute("title","Delete target");
 				let ico3=document.createElement("img");
-				ico3.setAttribute("src","./img/trash-alt.png"),
+				ico3.setAttribute("src","../static/textures/trash-alt.png"),
 				btn3.appendChild(ico3);
 				let btn4=document.createElement("button");
 				btn4.classList="btn btn-sm btn-outline-orange mx-1 flex-end px-2 py-1 btRoboClipLi",
@@ -2879,7 +2879,7 @@
 					btn4.setAttribute("id",target.guid),
 					btn4.setAttribute("data-dest",dest);
 				let ico4=document.createElement("img");
-				ico4.setAttribute("src","./img/showcsv.png"),
+				ico4.setAttribute("src","../static/textures/showcsv.png"),
 				btn4.appendChild(ico4),
 				col7.appendChild(btn1),
 				col7.appendChild(btn2),
