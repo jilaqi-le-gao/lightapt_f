@@ -132,3 +132,51 @@ class lightlog():
         if not isinstance(msg,str):
             return False
         return True
+
+    def return_success(info : str , params : dict) -> dict:
+        """
+            Return success message to the client 
+            Args :
+                info : str
+                params : dict
+            Returns :
+                dict
+        """
+        r = {
+            "status" : "success",
+            "message" : info,
+            "params" : params
+        }
+        return r
+
+    def return_error(info : str,params : dict) -> dict :
+        """
+            Return error message to the client | 获取客户端信息
+            Args:
+                info: str # Info message
+                params : dict # Container
+            Return:
+                dict
+        """
+        r = {
+            "status" : "error",
+            "message" : info,
+            "params" : params
+        }
+        return r
+
+    def return_warning(info : str,params : dict) -> dict:
+        """
+            Return warning message to the client | 获取客户端信息
+            Args:
+                info: str # Info message
+                params : dict # Container
+            Return:
+                None
+        """
+        r = {
+            "status" : "warning",
+            "message" : info,
+            "params" : params
+        }
+        return r

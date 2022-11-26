@@ -18,25 +18,24 @@ Boston, MA 02110-1301, USA.
 
 """
 
+from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 import json
+import logging
 import gettext
 _ = gettext.gettext
 
 from flask import Flask,render_template
-from flask_socketio import SocketIO,emit
-
+from websocket_server import WebsocketServer
 from server.wscamera import wscamera as camera
 from server.wstelescope import wstelescope as telescope
 from server.wsfocuser import wsfocuser as focuser
 from server.wsguider import wsguider as guider
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-
-IP_Address = '127.0.0.1'
-IP_Port = 5000
+thread = None
+server = None
 
 @app.route('/')
 def index():
@@ -46,70 +45,37 @@ def index():
 def main():
     return render_template('main.html')
 
-@socketio.on('connect', namespace='/lightapt')
-def on_connect():
+class wsserver(object):
     """
-        Initialize the connection with the client | 初始化与服务器的连接
-        Args: None
-        Return: None
+        Main Websocket Server Class based on websocket_server.
+        All comunication are finish here.
+        So this is the core part of the LightAPT
+        NOTE : Finish this first
     """
-    
 
-@socketio.on('disconnect', namespace='/lightapt')
-def on_disconnect():
-    """
-        Disconnect the client | 断开客户端的连接
-        Args: None
-        Return: None
-    """
-    
+    def remote_setdashboardmode(self):
+        """
+            Set the dashboard mode 
+            Args : None
+            Returns : None
+            Send : {
+                "result" : 1
+                "code" : error code # default is None
+                "Event" : event
+                "AIRVersion" : current version of LightAPT
+            }
+        """
+        result = {
+            "result" : "1",
+            "code" : "",
+            "Event" : "Version",
+            "AIRVersion" : "2.0.0"
+        }
+        server.send_message_to_all(json.dumps(result))
 
-@socketio.on('json')
-def on_message(data):
-    """"
-        Receive message from the client | 获取客户端信息
-        Args:
-            data:
-        Return:
-            None
-    """
-    log.logd(_(f"Receive message from client : {str(data)}"))
-    parser_json(data)
+ws_class = wsserver()
 
-def return_error(info : str,params : dict) -> dict :
-    """
-        Return error message to the client | 获取客户端信息
-        Args:
-            info: str # Info message
-            params : dict # Container
-        Return:
-            None
-    """
-    r = {
-        "status" : "error",
-        "message" : info,
-        "params" : params
-    }
-    return r
-
-def return_warning(info : str,params : dict) -> dict:
-    """
-        Return warning message to the client | 获取客户端信息
-        Args:
-            info: str # Info message
-            params : dict # Container
-        Return:
-            None
-    """
-    r = {
-        "status" : "warning",
-        "message" : info,
-        "params" : params
-    }
-    return r
-
-
-def parser_json(message) -> None:
+def parser_json(message : str) -> None:
     """
         Parser JSON message into dict format and execute functions called
         Args:
@@ -121,132 +87,69 @@ def parser_json(message) -> None:
         data = json.loads(message)
     except json.JSONDecodeError as exception:
         log.loge(_(f"Unknown format of message , error : {exception}"))
-        return return_error("Unknown format of message",{"error" : exception})
+        return log.return_error("Unknown format of message",{"error" : exception})
     method = data.get("method")
     if method is None:
         log.loge(_(f"Unknown method of message : {message}"))
-        return return_error("Unknown method of message",{"error" : "method is missing"})
+        return log.return_error("Unknown method of message",{"error" : "method is missing"})
+    # NOTE : If python version is above 3.10 , we can use "match" instead of "if elif"
+    for case in switch(method):
+        if case("RemoteSetDashboardMode"):
+            ws_class.remote_setdashboardmode()
+            break
+        break
     
+def on_connect(client, server) -> None:
+    """
+        Callback function for websocket connection
+        Args:
+            None
+        Return:
+            None
+    """
+    log.log(_("Established websocket connection with client successfully"))
 
+def on_disconnect(client, server) -> None:
+    """
+        Callback function for websocket disconnection
+        Args:
+            None
+        Return:
+            None
+    """
+    log.log(_("Disconnected websocket client successfully"))
 
+def on_message(client, server, message) -> None:
+    """
+        On message callback function | 获取客户端信息
+        Args : 
+            None
+        Return:
+            None
+    """
+    log.logd(_(f"Client({client['id']}) responded : {message}"))
+    if not isinstance(message , str) : 
+        log.loge(_("Unknown message format , please"))
+    parser_json(message)
 
-
-
-def run_server() -> None:
+def run_server(host : str , port : int) -> None:
     """
         Start the server | 启动服务器
         Args: None
         Return: None
     """
-    socketio.run(app, host=IP_Address, port=IP_Port,debug=True)
+    app.run(host=host, port=port)
 
-class ws_device_info():
-    """Websocket device infomation class"""
-
-    """Property Info"""
-    _device_name : str
-    _device_id : int
-    _device_type : str
-
-    _command : list
-
-    """Status Info"""
-    _is_connected = False
-    _is_operating = False
-
-class wsserver():
-    """Websocket Class"""
-
-    def __init__(self) -> None:
-        """Initialize"""
-        self.app = app
-        self.socketio = socketio
-        self.device = None
-
-    def __del__(self) -> None:
-        """Destructor"""
-
-    def connect(self,parmas : dict) -> dict:
-        """
-            Connect to the device | 连接设备
-            Args:
-                parmas : {
-                    "type" : str # "
-                    "name" : str # Device name you want to connect to
-                    "id" : int # Id of the device
-                    "debug" : bool # True if you want to debug
-                }
-            Return:
-                dict:
-                    "status" : str
-                    "message" : str
-                    "params" : Container
-        """
-
-    def disconnect(self,params : dict) -> dict:
-        """
-            Disconnect from the device | 与设备断开连接
-            Args:
-                params : None
-                dict:
-                    "status" : str
-                    "message" : str
-                    "params" : Container
-        """
-
-    def update_config(self) -> dict:
-        """
-            Update device configuration | 获取设备信息
-            Args:
-                None
-            Return:
-                dict:
-                    "status" : str
-                    "message" : str                    
-                    "params" : Container
-        """
-    
-    def scan_command(self) -> dict:
-        """
-            Scan command | 获取设备支持的命令
-            Args:
-                None
-            Return:
-                dict:
-                    "status" : str
-                    "message" : str
-                    "params" : {
-                        "type" : str # Device type
-                        "command" : dict
-                    }
-            Note : This function should be called when after update_config() called
-        """
-    
-    def check_command_support(self,params : dict) -> dict:
-        """
-            Check command support | 检查命令是否支持
-            Args:
-                params : {
-                    "command" : list
-                }
-            Return:
-                dict:
-                    "status" : str
-                    "message" : str
-        """
-
-    def run_command(self,params : dict) -> dict:
-        """
-            Run command on device | 运行命令
-            Args:
-                params : None
-                dict:
-                    "status" : str
-                    "message" : str
-                    "params" : {
-                        "error" : error message
-                    }
-        """
-
-    
+def run_ws_server(host : str , port : int) -> None:
+    """
+        Start websocket server | 启动Websocket服务器
+        Args: None
+        Return: None
+    """
+    global server
+    server = WebsocketServer(host = host , port = port , loglevel=logging.DEBUG)
+    server.set_fn_new_client(on_connect)
+    server.set_fn_client_left(on_disconnect)
+    server.set_fn_message_received(on_message)
+    server.run_forever()  
     

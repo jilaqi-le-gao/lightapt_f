@@ -319,16 +319,22 @@
 		}
 
 		function createWebSocket(){		//创建WebSocket连接
-			(websocket=new WebSocket(wsUri)).onopen=function(evt){onOpen(evt)},
+			//var url = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port: '');
+			//socket = io.connect(url);
+
+			(websocket=new WebSocket("ws://127.0.0.1:5000")).onopen=function(evt){onOpen(evt)},
 			websocket.onclose=function(evt){onClose(evt)},		//关闭WebSocket
 			websocket.onmessage=function(evt){onMessage(evt)},		//监听WebSocket
 			websocket.onerror=function(evt){onError(evt)},		//接收错误信息
+
 			connectingFire()
+			//sendRemoteDashboardMode()
 		}
 		
 		getWs_protocol=()=>{
 			let checkBox,wssProt;
-			return document.getElementById("wssCheck").checked?"wss://":"ws://"
+			//return document.getElementById("wssCheck").checked?"wss://":"ws://"
+			return "ws://"
 		},
 	
 		checkParamWssSwitch=()=>{		//判断是否可以使用wss，目前只支持ws
