@@ -23,7 +23,7 @@ Including many useful features , and build in many powerful repositories
 + Remote connection supported via noVNC
 + Small tools for image processing and star searching
 + Beautiful User interface and all platforms supported
-+ Open source and stable
++ Open source and stable , but also powerful
 
 ## Development
 Most of the codes are written in Python and JavaScript, and we will try to add more languages to be supported. No matter what languages you are good at, just join QQ group and discuss together.

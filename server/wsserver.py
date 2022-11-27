@@ -45,6 +45,12 @@ def index():
 def main():
     return render_template('main.html')
 
+# #################################################################
+# 
+# Main Websocket Server Class
+#
+# #################################################################
+
 class wsserver(object):
     """
         Main Websocket Server Class based on websocket_server.
@@ -135,7 +141,9 @@ def on_message(client, server, message) -> None:
 def run_server(host : str , port : int) -> None:
     """
         Start the server | 启动服务器
-        Args: None
+        Args: 
+            host : str # default is "127.0.0.1"
+            port : int # default is 5001
         Return: None
     """
     app.run(host=host, port=port)
@@ -143,11 +151,13 @@ def run_server(host : str , port : int) -> None:
 def run_ws_server(host : str , port : int) -> None:
     """
         Start websocket server | 启动Websocket服务器
-        Args: None
+        Args: 
+            host : str # default is "127.0.0.1"
+            port : int # default is 5000
         Return: None
     """
     global server
-    server = WebsocketServer(host = host , port = port , loglevel=logging.DEBUG)
+    server = WebsocketServer(host = host , port = port)
     server.set_fn_new_client(on_connect)
     server.set_fn_client_left(on_disconnect)
     server.set_fn_message_received(on_message)

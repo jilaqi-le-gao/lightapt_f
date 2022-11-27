@@ -41,11 +41,29 @@ if __name__ == "__main__":
     parser.add_argument('--whost', type=str, default='127.0.0.1')
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--config', type=str, default='')
+    parser.add_argument('--gui' , type=bool, default= False)
     args = parser.parse_args()
+
+    try:
+        from rich.table import Table
+
+        table = Table()
+        table.add_column('Parameter')
+        table.add_column('Value')
+        table.add_column('time')
+        table.add_row('yes')
+        table.add_row('no')
+
+    except ImportError:
+        log.logw(_("Could not import rich module , use old format of printout"))
+    
+    
     if args.debug:
         """Debug mode"""
     if args.config:
         """Change configuration file"""    
+    if args.gui:
+        """Open terminal ui based on """
     try:
         server_thread = threading.Thread(target=run_server,kwargs={"host" : args.host , "port" : args.port})
         server_thread.daemon = True
