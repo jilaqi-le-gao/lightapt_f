@@ -27,7 +27,7 @@ import gettext
 _ = gettext.gettext
 
 from flask import Flask,render_template
-from websocket_server import WebsocketServer
+from libs.websocket.websocket_server import WebsocketServer
 from server.wscamera import wscamera as camera
 from server.wstelescope import wstelescope as telescope
 from server.wsfocuser import wsfocuser as focuser

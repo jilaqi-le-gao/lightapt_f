@@ -1,0 +1,292 @@
+<!--
+
+   Copyright(c) 2022 Max Qian  <astroair.cn>
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+-->
+
+<!--
+    ChangeLog
+    2022/11/29 Create the file (Fork from AdminLTE)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<!-- HTML Head-->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LightAPT WebUI</title>
+
+    <!-- Google Font: Source Sans Pro 
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">-->
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="static/css/all.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="static/css/adminlte.min.css">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="static/css/plugins/OverlayScrollbars.min.css">
+</head>
+<!-- Body Part -->
+
+<body class="hold-transition sidebar-mini layout-fixed dark-mode" data-panel-auto-height-mode="height">
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-dark">
+            <!-- Left navbar links -->
+            <ul class="navbar-nav">
+                <!-- Control of Silder Bar -->
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i
+                            class="fa-solid fa-bars"></i></a>
+                </li>
+                <!-- Home -->
+                <li class="nav-item d-none d-sm-inline-block">
+                    <a href="#" class="nav-link">Home</a>
+                </li>
+            </ul>
+
+            <!-- Right navbar links -->
+            <ul class="navbar-nav ml-auto">
+                <!-- Notifications Dropdown Menu -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="fa-solid fa-bell"></i>
+                        <!-- Show Notifications Type and Number -->
+                        <span class="badge badge-warning navbar-badge" id="#notifications_number"></span>
+                    </a>
+                    <!-- Dropdown Menu Show Notification Messages -->
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                        <span class="dropdown-item dropdown-header">15 Notifications</span>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fa-solid fa-envelope mr-2"></i> 4 new messages
+                            <span class="float-right text-muted text-sm">3 mins</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fa-solid fa-users mr-2"></i> 8 friend requests
+                            <span class="float-right text-muted text-sm">12 hours</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fa-solid fa-file mr-2"></i> 3 new reports
+                            <span class="float-right text-muted text-sm">2 days</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+                    </div>
+                </li>
+                <!-- Notifications Dropdown Menu -->
+                <!-- Fullscreen Toggle -->
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                        <i class="fa-solid fa-expand-arrows-alt"></i>
+                    </a>
+                </li>
+                <!-- ./ Fullscreen Toggle -->
+            </ul>
+        </nav>
+
+        <!-- Main Sidebar Container -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <!-- LightAPT Logo -->
+            <a href="client.html" class="brand-link">
+                <!-- There we need a new logo
+                <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+                    style="opacity: .8">-->
+                <span class="brand-text font-weight-light">LightAPT</span>
+            </a>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Sidebar Menu -->
+                <nav class="mt-2">
+                    <!-- Don't forget this from doc -->
+                    <!-- Add icons to the links using the .nav-icon class
+                        with font-awesome or any other icon font library -->
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
+                        data-accordion="false">
+                        <!-- Sidebar Item Camera -->
+                        <li class="nav-item">
+                            <a href="pages/camera.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-camera"></i>
+                                <p>
+                                    Camera
+                                    <span class="right badge badge-info">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        <!-- ./ Sidebar Item Camera -->
+
+                        <!-- Sidebar Item Telescope -->
+                        <li class="nav-item">
+                            <a href="pages/telescope.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-telescope"></i>
+                                <p>
+                                    Telescope
+                                    <span class="right badge badge-info">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        <!-- ./ Sidebar Item Telescope -->
+
+                        <!-- Sidebar Item Focuser -->
+                        <li class="nav-item">
+                            <a href="pages/focuser.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-camera-viewfinder"></i>
+                                <p>
+                                    Focuser
+                                    <span class="right badge badge-info">New</span>
+                                </p>
+                            </a>
+                        </li>
+
+                        <!-- Sidebar Item Guider -->
+                        <li class="nav-item">
+                            <a href="pages/guider.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-star"></i>
+                                <p>
+                                    Guider
+                                    <span class="right badge badge-info">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        <!-- ./ Sidebar Item Guider -->
+
+                        <!-- Sidebar Item Solver -->
+                        <li class="nav-item">
+                            <a href="pages/solver.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-planet-moon"></i>
+                                <p>
+                                    Solver
+                                    <span class="right badge badge-info">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        <!-- ./ Sidebar Item Solver -->
+
+                        <!-- Sidebar Item Tools -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fa-solid fa-toolbox"></i>
+                                <p>
+                                    Tools
+                                    <i class="right fa-solid fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <!-- Items in Tools -->
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="pages/skymap.html" class="nav-link">
+                                        <i class="fa-solid fa-map nav-icon"></i>
+                                        <p>Skymap</p>
+                                    </a>
+                                </li>
+                                <!-- Tools -->
+                                <li class="nav-item">
+                                    <a href="pages/tools.html" class="nav-link">
+                                        <i class="fa-solid fa-tools nav-icon"></i>
+                                        <p>Tools</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- ./ Sidebar Item Tools -->
+
+                        <!-- Sidebar Item Setting -->
+                        <li class="nav-item">
+                            <a href="pages/setting.html" class="nav-link">
+                                <i class="nav-icon fa-solid fa-gear"></i>
+                                <p>
+                                    Setting
+                                    <span class="right badge badge-success">New</span>
+                                </p>
+                            </a>
+                        </li>
+                        <!-- ./ Sidebar Item Setting -->
+
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper iframe-mode bg-dark" data-widget="iframe" data-auto-dark-mode="true"
+            data-loading-screen="750">
+            <!-- Close button to close opened frames -->
+            <div class="nav navbar navbar-expand-lg navbar-dark border-bottom border-dark p-0">
+                <div class="nav-item dropdown">
+                    <a class="nav-link bg-danger dropdown-toggle" data-toggle="dropdown" href="#" role="button"
+                        aria-haspopup="true" aria-expanded="false">Close</a>
+                    <div class="dropdown-menu mt-0">
+                        <a class="dropdown-item" href="#" data-widget="iframe-close" data-type="all">Close All</a>
+                        <a class="dropdown-item" href="#" data-widget="iframe-close" data-type="all-other">Close All
+                            Other</a>
+                    </div>
+                </div>
+                <a class="nav-link bg-dark" href="#" data-widget="iframe-scrollleft"><i
+                        class="fa-solid fa-angle-double-left"></i></a>
+                <ul class="navbar-nav" role="tablist">
+                </ul>
+                <a class="nav-link bg-dark" href="#" data-widget="iframe-scrollright"><i
+                        class="fa-solid fa-angle-double-right"></i></a>
+                <a class="nav-link bg-dark" href="#" data-widget="iframe-fullscreen"><i
+                        class="fa-solid fa-expand"></i></a>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-empty">
+                    <h2 class="display-4">No tab selected!</h2>
+                </div>
+                <div class="tab-loading">
+                    <div>
+                        <h2 class="display-4">Tab is loading <i class="fa fa-sync fa-spin"></i></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="main-footer dark-mode">
+            <strong>Copyright &copy; 2022 <a href="https://astroair.cn">LightAPT</a>.</strong>
+            All rights reserved.
+            <div class="float-right d-none d-sm-inline-block">
+                <b>Version</b> 1.0.0
+            </div>
+        </footer>
+    </div>
+
+    <!-- jQuery -->
+    <script src="static/js/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="static/js/jquery-ui.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="static/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="static/js/adminlte.min.js"></script>
+
+</body>
+
+</html>

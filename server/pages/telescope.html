@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Telescope</title>
+
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="../static/css/all.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="../static/css/adminlte.min.css">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="../static/css/plugins/OverlayScrollbars.min.css">
+
+    <link rel="stylesheet" href="../static/css/plugins/jsgrid.min.css">
+
+    <link rel="stylesheet" href="../static/css/plugins/jsgrid-theme.min.css">
+</head>
+
+<body style="height: auto;" class="sidebar-mini sidebar-closed sidebar-collapse dark-mode">
+    <div class="wrapper">
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card card-default">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fa-solid fa-info-circle"></i>
+                                    Telescope Infomation
+                                </h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+
+                                <div id="jsGrid" class="jsgrid" style="position: relative; height: 100%; width: 100%;">
+
+                                    <div class="jsgrid-grid-body" style="height: 100%;">
+                                        <table class="jsgrid-table">
+                                            <tbody>
+                                                <tr class="jsgrid-row">
+                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">RA</td>
+                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
+                                                </tr>
+                                                <tr class="jsgrid-row">
+                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">DEC</td>
+                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
+                                                </tr>
+                                                <tr class="jsgrid-row">
+                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">AZ</td>
+                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
+                                                </tr>
+                                                <tr class="jsgrid-row">
+                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">ALT</td>
+                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
+                                                </tr>
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- jQuery -->
+    <script src="../static/js/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="../static/js/jquery-ui.min.js"></script>
+    <!-- jQuery Grid -->
+    <script src="../static/js/jsgrid.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="../static/js/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="../static/js/adminlte.min.js"></script>
+</body>
+
+</html>

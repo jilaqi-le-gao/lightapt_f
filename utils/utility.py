@@ -19,6 +19,7 @@ Boston, MA 02110-1301, USA.
 """
 
 class switch(object):
+    """switch function NOTE : must call break after all"""
     def __init__(self, value):
         self.value = value
         self.fall = False
