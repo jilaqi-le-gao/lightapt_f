@@ -33,45 +33,255 @@
                                     <i class="fa-solid fa-info-circle"></i>
                                     Telescope Infomation
                                 </h3>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                </div>
                             </div>
                             <!-- /.card-header -->
                             <div class="card-body">
+                                <div class="row">
+                                    <div id="jsGrid" class="jsgrid"
+                                        style="position: relative; height: 100%; width: 100%;">
 
-                                <div id="jsGrid" class="jsgrid" style="position: relative; height: 100%; width: 100%;">
-
-                                    <div class="jsgrid-grid-body" style="height: 100%;">
-                                        <table class="jsgrid-table">
-                                            <tbody>
-                                                <tr class="jsgrid-row">
-                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">RA</td>
-                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
-                                                </tr>
-                                                <tr class="jsgrid-row">
-                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">DEC</td>
-                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
-                                                </tr>
-                                                <tr class="jsgrid-row">
-                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">AZ</td>
-                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
-                                                </tr>
-                                                <tr class="jsgrid-row">
-                                                    <td class="jsgrid-cell" style="width: 50px; text-align: center;">ALT</td>
-                                                    <td class="jsgrid-cell jsgrid-align-right" style="width: 50px; text-align: center;">61</td>
-                                                </tr>
-
-
-                                            </tbody>
-                                        </table>
+                                        <div class="jsgrid-grid-body" style="height: 100%;">
+                                            <table class="jsgrid-table">
+                                                <tbody>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">赤经
+                                                            RA</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">赤纬
+                                                            DEC</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">AZ
+                                                        </td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">ALT
+                                                        </td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">
+                                                            TargetName</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">LAT
+                                                        </td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">LON
+                                                        </td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">
+                                                            Time</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">
+                                                            Rate</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                    <tr class="jsgrid-row">
+                                                        <td class="jsgrid-cell"
+                                                            style="width: 50px; text-align: center;">
+                                                            Mode</td>
+                                                        <td class="jsgrid-cell jsgrid-align-right"
+                                                            style="width: 50px; text-align: center;">--:--:--</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-
                             </div>
                             <!-- /.card-body -->
                         </div>
                     </div>
-                </div>
-                <!-- /.row -->
-            </div><!-- /.container-fluid -->
+                    <!-- /. Telescope Info -->
+                    <div class="col-md-6">
+                        <div class="card card-default">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fa-solid fa-joystick"></i>
+                                    Telescope Control
+                                </div>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                        <i class="fa-solid fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Goto Control -->
+                                    <div class="card card-default">
+                                        <div class="card-header">
+                                            <div class="card-title">
+                                                <i class="fa-solid fa-arrows-up-down-left-right"></i>
+                                                Goto
+                                            </div>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="goto_ra">RA</label>
+                                                        <input id="goto_ra" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="goto_dec">DEC</label>
+                                                        <input id="goto_dec" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="goto_az">Az</label>
+                                                        <input id="goto_az" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="goto_alt">Alt</label>
+                                                        <input id="goto_alt" class="form-control">
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <button type="button" class="btn btn-primary btn-block">
+                                                        <i class="fa-solid fa-globe"></i>
+                                                        Goto
+                                                    </button>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <button type="button" class="btn btn-danger btn-block">
+                                                        <i class="fa-solid fa-stop"></i>
+                                                        Abort
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /. Goto Control-->
+
+                                    <!-- Track Control-->
+
+                                    <div class="card card-default">
+                                        <div class="card-header">
+                                            <div class="card-title">
+                                                <i class="fa-solid fa-shuffle"></i>
+                                                Tracking
+                                            </div>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="tracking_rate">
+                                                            <i class="fa-solid fa-wave-pulse"></i>
+                                                            TrackingRate
+                                                        </label>
+                                                        <select
+                                                            class="form-control select2bs4 select2-hidden-accessible"
+                                                            style="width: 100%;" data-select2-id="17" tabindex="-1"
+                                                            aria-hidden="true">
+                                                            <option selected="selected" data-select2-id="1">1x</option>
+                                                            <option data-select2-id="2">2x</option>
+                                                            <option data-select2-id="3">4x</option>
+                                                            <option data-select2-id="4">8x</option>
+                                                            <option data-select2-id="5">16x</option>
+                                                            <option data-select2-id="6">32x</option>
+                                                            <option data-select2-id="7">64x</option>
+                                                            <option data-select2-id="8">128x</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="tracking_rate">
+                                                            <i class="fa-solid fa-sun"></i>
+                                                            TrackingMode
+                                                        </label>
+                                                        <select
+                                                            class="form-control select2bs4 select2-hidden-accessible"
+                                                            style="width: 100%;" data-select2-id="17" tabindex="-1"
+                                                            aria-hidden="true">
+                                                            <option selected="selected" data-select2-id="1">Star
+                                                            </option>
+                                                            <option data-select2-id="2">Sun</option>
+                                                            <option data-select2-id="3">Moon</option>
+                                                            <option data-select2-id="4">Custom</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6">
+                                                    <button type="button" class="btn btn-primary btn-block">
+                                                        <i class="fa-solid fa-globe"></i>
+                                                        Tracking
+                                                    </button>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <button type="button" class="btn btn-danger btn-block">
+                                                        <i class="fa-solid fa-stop"></i>
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- /. Track Control-->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                </div><!-- /.container-fluid -->
         </section>
         <!-- /.content -->
     </div>
@@ -87,6 +297,8 @@
     </script>
     <!-- Bootstrap 4 -->
     <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 4 Switch -->
+    <script src="../static/js/bootstrap-switch.min.js"></script>
     <!-- overlayScrollbars -->
     <script src="../static/js/jquery.overlayScrollbars.min.js"></script>
     <!-- AdminLTE App -->
