@@ -18,21 +18,25 @@ Boston, MA 02110-1301, USA.
 
 """
 
+import gettext
+import json
 from libs.websocket.websocket_server import WebsocketServer
 from driver.telescope.ascom import telescope as ascom
 
-from utils.utility import switch,ThreadPool
+from utils.utility import switch, ThreadPool
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 
-import json
-import gettext
 _ = gettext.gettext
 
 class wstelescope_info(object):
     """
         Websocket Telescope information
     """
+
+    _port = 5000
+    _host = '127.0.0.1'
+
     _started = False
     _connected = False
 
@@ -45,8 +49,14 @@ class wstelescope_info(object):
             Returns in a dictionary format
         """
         return {
-            "started": self._started,
-            "connected": self._connected,
+            "properties" : {
+                "port" : self._port,
+                "host" : self._host,
+            },
+            "status" : {
+                "started": self._started,
+                "connected": self._connected,
+            },
             "settings": {
                 "timeout": self._timeout,
                 "max_thread_num": self._max_thread_num,
@@ -54,26 +64,33 @@ class wstelescope_info(object):
             }
         }
 
+
 class wstelescope(object):
     """
-        Websocket Telescope Object
-        Each telescope will have a standard websocket server
-        This means that we can connect to the server flexible
-        However, we need to remove the websocket server on time
+        Websocket Telescope Object\n
+        Process:
+            WebUI -(websocket)- WsTelescope -(alpyca/pyindi)- ASCOM / INDI -- Driver
+        NOTE:
+        Every telescope will have a standard server . 
+        This means that you can start many different telescope and connect them flexibly.
+        However, may be this kind of method will use many system source.
+        But maybe we can have a try...
     """
 
     def __init__(self):
+        """Initialize"""
         self._ws = None
         self._info = wstelescope_info()
         self._device = None
         self._threadpool = ThreadPool(max_workers=3)
-    
+
     def __del__(self) -> None:
+        """Destructor"""
         if self._ws:
             self._ws.close()
             self._ws = None
 
-    def start_server(self, host : str, port : int, debug = False) -> dict:
+    def start_server(self, host: str, port: int, debug=False) -> dict:
         """
             Start the websocket server for telescope
             Args:
@@ -91,31 +108,35 @@ class wstelescope(object):
                         }
                     }
         """
-        _host,_port = host,port
-        if _host is None or not isinstance(_host,str):
+        _host, _port = host, port
+        if _host is None or not isinstance(_host, str):
             _host = "127.0.0.1"
-        if _port is None or not isinstance(_port,port):
+        if _port is None or not isinstance(_port, port):
             _port = 5000
         try:
-            self._ws = WebsocketServer(host = _host, port = _port)
+            self._ws = WebsocketServer(host=_host, port=_port)
             self._ws.set_fn_new_client(self.on_connect)
             self._ws.set_fn_client_left(self.on_disconnect)
             self._ws.set_fn_message_received(self.on_message)
             self._ws.run_forever(threaded=True)
+            self._info._port = port
+            self._info._host = host
         except Exception as exception:
-            log.loge(_(f"Faild to start websocket server , error : {exception}"))
+            log.loge(
+                _(f"Faild to start websocket server , error : {exception}"))
             return {
-                "status" : "error",
-                "message" : "Failed to start websocket server",
-                "params" : None
+                "status": "error",
+                "message": "Failed to start websocket server",
+                "params": None
             }
-        log.log(_(f"Started websocket server on host : {_host} port : {_port}"))
+        log.log(
+            _(f"Started websocket server on host : {_host} port : {_port}"))
         return {
-            "status" : "success",
-            "message" : "Started websocket server",
-            "params" : {
-                "host" : _host,
-                "port" : _port
+            "status": "success",
+            "message": "Started websocket server",
+            "params": {
+                "host": _host,
+                "port": _port
             }
         }
 
@@ -139,14 +160,14 @@ class wstelescope(object):
             self._ws.shutdown_gracefully()
             self._ws = None
             return {
-                "status" : "success",
-                "message" : "Stopped websocket server",
-                "params" : None
+                "status": "success",
+                "message": "Stopped websocket server",
+                "params": None
             }
         return {
-            "status" : "warning",
-            "message" : "No websocket server",
-            "params" : None
+            "status": "warning",
+            "message": "No websocket server",
+            "params": None
         }
 
     def restart_server(self) -> dict:
@@ -164,7 +185,7 @@ class wstelescope(object):
                     }
         """
 
-    def on_connect(self , client , server) -> None:
+    def on_connect(self, client, server) -> None:
         """
             Connect Event
             Called when a client connects to the server
@@ -177,7 +198,7 @@ class wstelescope(object):
         log.log(_("Established connection with client successfully"))
         self._info._connected = True
 
-    def on_disconnect(self,client, server) -> None:
+    def on_disconnect(self, client, server) -> None:
         """
             Disconnect Event
             Called when a client disconnects from the server
@@ -190,7 +211,7 @@ class wstelescope(object):
         log.log(_("Disconnected websocket client successfully"))
         self._info._connected = False
 
-    def on_message(self,client, server, message) -> None:
+    def on_message(self, client, server, message) -> None:
         """
             Message Event
             Called when a client sends a message to the server
@@ -202,11 +223,11 @@ class wstelescope(object):
                 None
         """
         log.logd(_(f"Client({client['id']}) responded : {message}"))
-        if not isinstance(message , str) : 
+        if not isinstance(message, str):
             log.loge(_("Unknown message format , please"))
         self.parser_json(message)
 
-    def parser_json(self,message) -> dict:
+    def parser_json(self, message) -> dict:
         """
             Parser JSON message into dict format and execute functions called
             Args:
@@ -218,11 +239,11 @@ class wstelescope(object):
             data = json.loads(message)
         except json.JSONDecodeError as exception:
             log.loge(_(f"Unknown format of message , error : {exception}"))
-            return log.return_error("Unknown format of message",{"error" : exception})
+            return log.return_error("Unknown format of message", {"error": exception})
         method = data.get("method")
         if method is None:
             log.loge(_(f"Unknown method of message : {message}"))
-            return log.return_error("Unknown method of message",{"error" : "method is missing"})
+            return log.return_error("Unknown method of message", {"error": "method is missing"})
         # NOTE : If python version is above 3.10 , we can use "match" instead of "if elif"
         for case in switch(method):
             if case("RemoteConnected"):
@@ -232,7 +253,7 @@ class wstelescope(object):
             log.loge(_("No method matched"))
             break
 
-    def on_send(self, message : dict) -> dict | None:
+    def on_send(self, message: dict) -> dict | None:
         """
             Send a message to client
             Args:
@@ -244,7 +265,7 @@ class wstelescope(object):
             self._ws.send_message_to_all(json.dumps(message))
         except json.JSONDecodeError as exception:
             log.loge(_(f"Unknown format of message, error : {exception}"))
-            return log.return_error("Unknown format of message",{"error" : exception})
+            return log.return_error("Unknown format of message", {"error": exception})
 
     def remote_setup(self) -> dict:
         """
@@ -280,10 +301,10 @@ class wstelescope(object):
         """
         log.log(_(f"Remote server setup successfully"))
         res = {
-            "event" : "RemoteServerSetup",
-            "status" : "success",
-            "params" : {
-                "message" : "Remote server setup successfully"
+            "event": "RemoteServerSetup",
+            "status": "success",
+            "params": {
+                "message": "Remote server setup successfully"
             }
         }
         if self.on_send(res) is not None:
@@ -291,7 +312,7 @@ class wstelescope(object):
             return log.return_error(_("Some error occurred when sending message to client"))
         return log.return_success("Remote server setup successfully")
 
-    def remote_init(self , params : dict) -> dict:
+    def remote_init(self, params: dict) -> dict:
         """
             Remote Init Event\n
             Return the result of the remote server init process
@@ -334,9 +355,9 @@ class wstelescope(object):
                     }
                 }
         """
-        def check_params(name : str , params : any,_type : type) -> bool:
+        def check_params(name: str, params: any, _type: type) -> bool:
             if params is not None:
-                if isinstance(params,_type):
+                if isinstance(params, _type):
                     try:
                         exec(f"self._{name} = {params}")
                     except TypeError as exception:
@@ -344,27 +365,28 @@ class wstelescope(object):
                         return False
             return True
         flag = False
-        flag = check_params("timeout", params.get("timeout"),int)
-        flag = check_params("max_thread_num", params.get("max_thread_num"),int)
-        flag = check_params("debug", params.get("debug"),bool)
+        flag = check_params("timeout", params.get("timeout"), int)
+        flag = check_params(
+            "max_thread_num", params.get("max_thread_num"), int)
+        flag = check_params("debug", params.get("debug"), bool)
 
         res = {
-            "event" : "RemoteInit",
-            "status" : "success",
-            "params" : {
-                "message" : "Remote server init successfully",
-                "timeout" : self._info._timeout,
-                "max_thread_num" : self._info._max_thread_num,
-                "debug" : self._info._debug
+            "event": "RemoteInit",
+            "status": "success",
+            "params": {
+                "message": "Remote server init successfully",
+                "timeout": self._info._timeout,
+                "max_thread_num": self._info._max_thread_num,
+                "debug": self._info._debug
             }
         }
         if flag is False:
             res = {
-                "event" : "RemoteInit",
-                "status" : "error",
-                "params" : {
-                    "message" : "Remote server init with error",
-                    "error" : "Invalid parameters was given",
+                "event": "RemoteInit",
+                "status": "error",
+                "params": {
+                    "message": "Remote server init with error",
+                    "error": "Invalid parameters was given",
                 }
             }
         else:
@@ -373,8 +395,8 @@ class wstelescope(object):
             log.logw(_("Some error occurred when sending message to client"))
             return log.return_error(_("Some error occurred when sending message to client"))
         return log.return_success("Remote server init successfully")
-         
-    def remote_connect(self,params : dict) -> dict:
+
+    def remote_connect(self, params: dict) -> dict:
         """
             Remote Connect Event\n
             Return the result of the remote device connect process\n
@@ -411,11 +433,11 @@ class wstelescope(object):
         """
         if params.get("type") is None:
             res = {
-                "event" : "RemoteConnect",
-                "status" : "error",
-                "params" : {
-                    "message" : "Remote connect with error",
-                    "error" : "Invalid parameters was given , not specified what type of telescope you want to connect to"
+                "event": "RemoteConnect",
+                "status": "error",
+                "params": {
+                    "message": "Remote connect with error",
+                    "error": "Invalid parameters was given , not specified what type of telescope you want to connect to"
                 }
             }
             if self.on_send(res) is not None:
@@ -423,7 +445,7 @@ class wstelescope(object):
                 return log.return_error(_("Some error occurred when sending message to client"))
             log.loge(_("No type specified"))
             return log.return_error("Invalid parameters type")
-        
+
         _type = params.get("type")
         flag = False
 
@@ -431,34 +453,37 @@ class wstelescope(object):
             for case in switch(str(_type).lower()):
                 if case("ascom"):
                     self._device = ascom()
-                    res = self._device.connect(params.get("info").get("host"),params.get("info").get("port"),0)
+                    res = self._device.connect(params.get("info").get(
+                        "host"), params.get("info").get("port"), 0)
                     if res.get("status") != "success":
-                        log.loge(_(f"Error connecting to telescope , error : {res.get('message')}"))
+                        log.loge(
+                            _(f"Error connecting to telescope , error : {res.get('message')}"))
                         return log.return_error(res.get("message"))
                     log.log(_("Connected to ASCOM telescope successfully"))
                     flag = True
                     break
                 if case("indi"):
                     break
-                log.loge(_(f"Unknown type of telescope was given , parameter : {_type}"))
+                log.loge(
+                    _(f"Unknown type of telescope was given , parameter : {_type}"))
                 return log.return_error(_(f"Unknown type of telescope was given, parameter : {_type}"))
         except TypeError as exception:
             pass
         if flag is False:
             res = {
-                "event" : "RemoteConnect",
-                "status" : "error",
-                "params" : {
-                    "message" : "Remote connect to telescope with error",
-                    "error" : ""
+                "event": "RemoteConnect",
+                "status": "error",
+                "params": {
+                    "message": "Remote connect to telescope with error",
+                    "error": ""
                 }
             }
         else:
             res = {
-                "event" : "RemoteConnect",
-                "status" : "success",
-                "params" : {
-                    "message" : "Remote connect to telescope successfully",
+                "event": "RemoteConnect",
+                "status": "success",
+                "params": {
+                    "message": "Remote connect to telescope successfully",
                 }
             }
         if self.on_send(res) is not None:
@@ -495,7 +520,7 @@ class wstelescope(object):
                 }
         """
 
-    def remote_reconnect(self,params : dict) -> dict:
+    def remote_reconnect(self, params: dict) -> dict:
         """
             Remote reconnect event
             Return the result of the remote device reconnect process
@@ -524,5 +549,100 @@ class wstelescope(object):
                 }
         """
 
+    def remote_goto(self, params: dict) -> dict:
+        """
+            Remote goto event\n
+            This function is called when client send command to server and want to execute goto function
+            Args:
+                {
+                    "event" : "RemoteGoto",
+                    "uuid" : str,
+                    "params" : None
+                }
+            ClientRequest:
+            {
+                "event" : "RemoteGoto",
+                "uuid" : str,
+                "params" : {
+                    "j2000" : boolean # True if the coordinates given are in the format of J2000
+                    "ra" : str
+                    "dec" : str
+                }
+            }
+            Return:
+                {
+                    "status" : "success","error","warning","debug",
+                    "message" : str
+                    "params" : None
+                }
+            ClientReturn
+                {
+                    "event" : "RemoteGoto",
+                    "status" : "success","error","warning","debug",
+                    "params" : {
+                        "message" : str,
+                    }
+                }
+        """
 
-        
+    def remote_abort(self) -> dict:
+        """
+            Remote abort event
+            Return the result of the remote device abort process
+            Args: None
+            ClientRequest:
+                {
+                    "event" : "RemoteAbort",
+                    "uuid" : str,
+                    "params" : None
+                }
+            Return:
+                {
+                    "status" : "success","error","warning","debug",
+                    "message" : str
+                    "params" : None
+                }
+            ClientReturn
+                {
+                    "event" : "RemoteAbort",
+                    "status" : "success","error","warning","debug",
+                    "params" : {
+                        "message" : str,
+                    }
+                }
+        """
+
+    def remote_sync(self, params: dict) -> dict:
+        """
+            Remote sync event
+            Return the result of the remote device sync process
+            Args:
+                {
+                    "event" : "RemoteSync",
+                    "uuid" : str,
+                    "params" : None
+                }
+            ClientRequest:
+                {
+                    "event" : "RemoteSync",
+                    "uuid" : str,
+                    "params" : {
+                        "ra" : str
+                        "dec" : str
+                    }
+                }
+            Return:
+                {
+                    "status" : "success","error","warning","debug",
+                    "message" : str
+                    "params" : None
+                }
+            ClientReturn
+                {
+                    "event" : "RemoteSync",
+                    "status" : "success","error","warning","debug",
+                    "params" : {
+                        "message" : str,
+                    }
+                }
+        """

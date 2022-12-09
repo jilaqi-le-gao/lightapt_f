@@ -36,11 +36,10 @@ Just like the name of the project, only a few dependent libraries are needed to 
 + colorama
 + requsets 
 + flask
-+ flask-socketio
 + pyyaml
 + Pillow
 + tifffile
 
 ## Support
-+[QQ Group] 710622107
-+[Email] astro_air@126.com
++ QQ Group 710622107
++ Email astro_air@126.com
