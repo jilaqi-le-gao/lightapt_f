@@ -37,7 +37,7 @@ def check_port(host : str, port : int) -> bool:
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.connect((host, port))
+        s.bind((host, port))
         s.shutdown(2)
         return True
     except socket.error as e:

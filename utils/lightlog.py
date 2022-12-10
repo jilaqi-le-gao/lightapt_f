@@ -133,7 +133,7 @@ class lightlog():
             return False
         return True
 
-    def return_success(info : str , params : dict) -> dict:
+    def return_success(self,info : str , params = {}) -> dict:
         """
             Return success message to the client 
             Args :
@@ -149,7 +149,7 @@ class lightlog():
         }
         return r
 
-    def return_error(info : str,params : dict) -> dict :
+    def return_error(self,info : str,params = {}) -> dict :
         """
             Return error message to the client | 获取客户端信息
             Args:
@@ -165,7 +165,7 @@ class lightlog():
         }
         return r
 
-    def return_warning(info : str,params : dict) -> dict:
+    def return_warning(self,info : str,params = {}) -> dict:
         """
             Return warning message to the client | 获取客户端信息
             Args:

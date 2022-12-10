@@ -14,10 +14,6 @@ class ThreadWithLoggedException(threading.Thread):
     DIVIDER = "*"*80
 
     def __init__(self, *args, **kwargs):
-        try:
-            self.logger = kwargs.pop("logger")
-        except KeyError:
-            raise Exception("Missing 'logger' in kwargs")
         super().__init__(*args, **kwargs)
         self.exception = None
 

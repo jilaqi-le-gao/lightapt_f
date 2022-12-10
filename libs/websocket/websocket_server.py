@@ -6,7 +6,6 @@ import struct
 import ssl
 from base64 import b64encode
 from hashlib import sha1
-import logging
 from socket import error as SocketError
 import errno
 import threading
@@ -14,8 +13,6 @@ from socketserver import ThreadingMixIn, TCPServer, StreamRequestHandler
 
 from libs.websocket.thread import WebsocketServerThread
 
-logger = logging.getLogger(__name__)
-logging.basicConfig()
 
 '''
 +-+-+-+-+-------+-+-------------+-------------------------------+
@@ -124,8 +121,7 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
     allow_reuse_address = True
     daemon_threads = True  # comment to keep threads alive until finished
 
-    def __init__(self, host='127.0.0.1', port=0, loglevel=logging.WARNING, key=None, cert=None):
-        logger.setLevel(loglevel)
+    def __init__(self, host='127.0.0.1', port=0, key=None, cert=None):
         TCPServer.__init__(self, (host, port), WebSocketHandler)
         self.host = host
         self.port = self.socket.getsockname()[1]
@@ -142,21 +138,16 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
     def _run_forever(self, threaded):
         cls_name = self.__class__.__name__
         try:
-            logger.info("Listening on port %d for clients.." % self.port)
             if threaded:
                 self.daemon = True
-                self.thread = WebsocketServerThread(target=super().serve_forever, daemon=True, logger=logger)
-                logger.info(f"Starting {cls_name} on thread {self.thread.getName()}.")
+                self.thread = WebsocketServerThread(target=super().serve_forever, daemon=True)
                 self.thread.start()
             else:
                 self.thread = threading.current_thread()
-                logger.info(f"Starting {cls_name} on main thread.")
                 super().serve_forever()
         except KeyboardInterrupt:
             self.server_close()
-            logger.info("Server terminated.")
         except Exception as e:
-            logger.error(str(e), exc_info=True)
             sys.exit(1)
 
     def _message_received_(self, handler, msg):
@@ -267,7 +258,7 @@ class WebSocketHandler(StreamRequestHandler):
             try:
                 socket = ssl.wrap_socket(socket, server_side=True, certfile=server.cert, keyfile=server.key)
             except: # Not sure which exception it throws if the key/cert isn't found
-                logger.warning("SSL not available (are the paths {} and {} correct for the key and cert?)".format(server.key, server.cert))
+                pass
         StreamRequestHandler.__init__(self, socket, addr, server)
 
     def setup(self):
@@ -291,7 +282,6 @@ class WebSocketHandler(StreamRequestHandler):
             b1, b2 = self.read_bytes(2)
         except SocketError as e:  # to be replaced with ConnectionResetError for py3
             if e.errno == errno.ECONNRESET:
-                logger.info("Client closed connection.")
                 self.keep_alive = 0
                 return
             b1, b2 = 0, 0
@@ -304,18 +294,14 @@ class WebSocketHandler(StreamRequestHandler):
         payload_length = b2 & PAYLOAD_LEN
 
         if opcode == OPCODE_CLOSE_CONN:
-            logger.info("Client asked to close connection.")
             self.keep_alive = 0
             return
         if not masked:
-            logger.warning("Client must always be masked.")
             self.keep_alive = 0
             return
         if opcode == OPCODE_CONTINUATION:
-            logger.warning("Continuation frames are not supported.")
             return
         elif opcode == OPCODE_BINARY:
-            logger.warning("Binary frames are not supported.")
             return
         elif opcode == OPCODE_TEXT:
             opcode_handler = self.server._message_received_
@@ -324,7 +310,6 @@ class WebSocketHandler(StreamRequestHandler):
         elif opcode == OPCODE_PONG:
             opcode_handler = self.server._pong_received_
         else:
-            logger.warning("Unknown opcode %#x." % opcode)
             self.keep_alive = 0
             return
 
@@ -378,10 +363,8 @@ class WebSocketHandler(StreamRequestHandler):
         if isinstance(message, bytes):
             message = try_decode_UTF8(message)  # this is slower but ensures we have UTF-8
             if not message:
-                logger.warning("Can\'t send message, message is not valid UTF-8")
                 return False
         elif not isinstance(message, str):
-            logger.warning('Can\'t send message, message has to be a string or bytes. Got %s' % type(message))
             return False
 
         header  = bytearray()
@@ -438,7 +421,6 @@ class WebSocketHandler(StreamRequestHandler):
         try:
             key = headers['sec-websocket-key']
         except KeyError:
-            logger.warning("Client tried to connect but was missing a key")
             self.keep_alive = False
             return
 
@@ -472,7 +454,6 @@ def encode_to_UTF8(data):
     try:
         return data.encode('UTF-8')
     except UnicodeEncodeError as e:
-        logger.error("Could not encode data to UTF-8 -- %s" % e)
         return False
     except Exception as e:
         raise(e)
