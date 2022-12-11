@@ -22,7 +22,6 @@ __version__ = "1.0.0"
 __author__ = "Max Qian"
 __license__ = "GPL3"
 __class__ = "lightlog"
-__all__ = ["log", "loge", "logw" ,"logd"]
 
 import logging
 from colorama import Fore,init
@@ -76,8 +75,6 @@ class lightlog():
         """
         if self._check_(msg):
             logger.info(f"[{self.uname}][INFO] - {msg}")
-        else:
-            logger.error(_("Invalid message type"))
 
     # 错误日志
     def loge(self,msg : str) -> None:
@@ -89,9 +86,6 @@ class lightlog():
         """
         if self._check_(msg):
             logger.info(f"[{self.uname}][ERROR] - " + Fore.RED + f"{msg}" + Fore.RESET)
-        else:
-            logger.error(_("Invalid message type"))
-
     # 警告日志
     def logw(self,msg : str) -> None:
         """
@@ -102,8 +96,6 @@ class lightlog():
         """
         if self._check_(msg):
             logger.info(f"[{self.uname}][WARNING] - " + Fore.YELLOW + f"{msg}" + Fore.RESET)
-        else:
-            logger.error(_("Invalid message type"))
         
 
     # 调试日志
@@ -114,11 +106,8 @@ class lightlog():
                 msg: str # can be format string
             Return: None
         """
-        if DEBUG:
-            if self._check_(msg):
-                logger.info(f"[{self.uname}][DEBUG] - " + Fore.MAGENTA + f"{msg}" + Fore.RESET)
-            else:
-                logger.error(_("Invalid message type"))
+        if DEBUG and self._check_(msg):
+            logger.info(f"[{self.uname}][DEBUG] - " + Fore.MAGENTA + f"{msg}" + Fore.RESET)
         
 
     def _check_(self,msg) -> bool:
@@ -143,9 +132,9 @@ class lightlog():
                 dict
         """
         r = {
-            "status" : "success",
-            "message" : info,
-            "params" : params
+            "status" : 0,
+            "message" : info if info is not None else None,
+            "params" :  params if params is not None else {}
         }
         return r
 
@@ -159,9 +148,9 @@ class lightlog():
                 dict
         """
         r = {
-            "status" : "error",
-            "message" : info,
-            "params" : params
+            "status" : 1,
+            "message" : info if info is not None else None,
+            "params" : params if params is not None else {} 
         }
         return r
 
@@ -175,8 +164,8 @@ class lightlog():
                 None
         """
         r = {
-            "status" : "warning",
-            "message" : info,
-            "params" : params
+            "status" : 2,
+            "message" : info if info is not None else None,
+            "params" : params if params is not None else {}
         }
         return r

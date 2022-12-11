@@ -27,6 +27,10 @@ import json
 import gettext
 _ = gettext.gettext
 
+__success__ = 0
+__error__ = 1
+__warning__ = 2
+
 class basic_ws_info(object):
     """
         Basic information containers,read with calling get_dict() and will recieve a dictionary
@@ -40,7 +44,7 @@ class basic_ws_info(object):
     connected = False
     
     def get_dict(self) -> dict:
-        pass
+        """Return dictionary"""
 
 class wsdevice(object):
     """
@@ -114,7 +118,7 @@ class wsdevice(object):
         try:
             self.ws.send_message_to_all(json.dumps(message))
         except json.JSONDecodeError as exception:
-            log.loge(_("Failed to parse message into JSON format"))
+            log.loge(_(f"Failed to parse message into JSON format , error {exception}"))
             return False
         return True 
 
@@ -132,7 +136,7 @@ class wsdevice(object):
                 }
             Returns: dict
                 {
-                    "status": "success","error","warning","debug",
+                    "status": __success__,__error__,__warning__,
                     "message": str,
                     "params": {
                         "host": host,
@@ -151,13 +155,15 @@ class wsdevice(object):
         while check_port(host,port):
             log.logw(_("Websocket server port had been used,try to choose a different port"))
             port += 1
+        if ssl is not None:
+            log.logw(_("SSL Mode is still not supported"))
         try:
             self.ws = WebsocketServer(host=host, port=port)
             self.ws.set_fn_new_client(self.on_connect)
             self.ws.set_fn_client_left(self.on_disconnect)
             self.ws.set_fn_message_received(self.on_message)
             self.ws.run_forever(threaded=True)
-        except:
+        except Exception:
             log.loge(_("Some error occurred while creating websocket server"))
             log.return_error(_("Some error occurred while creating websocket server"),{})
         log.log(_(f"Start websocket server successfully and listen on {host}:{port}"))
@@ -170,7 +176,7 @@ class wsdevice(object):
             Args: None
             Returns:
                 {
-                    "status" : "success","error","warning","debug",
+                    "status" : __success__,__error__,__warning__,
                     "message" : str
                     "params" : None
                 }
@@ -180,20 +186,23 @@ class wsdevice(object):
         log.log(_("Shutting down websocket server gracefully"))
         return log.return_success(_("Shutting down websocket server gracefully")) 
 
-    def restart_server(self) -> dict:
+    def restart_server(self, host : str, port : int, debug = False, ssl = {}) -> dict:
         """
             Restart server | 重启服务器\n
             Restart current server and reconnect with the device and client.\n
             Args: None
             Returns:
                 {
-                    "status" : "success","error","warning","debug",
+                    "status" : __success__,__error__,__warning__,
                     "message" : str,
                     "params" : {
                         "device" : self.device
                     }
                 }
         """
+        self.stop_server()
+        self.start_server(host,port,debug,ssl)
+        return log.return_success(_("Restart websocket server successfully"),{})
 
     def remote_dashboard_setup(self) -> None:
         """

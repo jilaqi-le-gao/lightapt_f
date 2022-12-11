@@ -32,15 +32,16 @@ __success__ = 0
 __error__ = 1
 __warning__ = 2
 
-
-class wsguider_info(basic_ws_info):
+class wsdome_info(basic_ws_info):
     """
-        Websocket guider information container
-        Public basic_ws_info and GuiderInfo
+        Websocket Dome information container
+        Public basic_ws_info and DomeInfo
     """
 
-class wsguider(wsdevice):
-    """Websocket Guider Main Class"""
+class wsdome(wsdevice):
+    """
+        Websocket Dome Main Class
+    """
 
     def __init__(self,_type : str, name : str, host : str, port : int, debug : bool, threaded : bool, ssl : dict) -> None:
         """
@@ -58,7 +59,7 @@ class wsguider(wsdevice):
             Returns: None
             NOTE: This function override the parent function!
         """
-        self.info = wsguider_info()
+        self.info = wsdome_info()
 
         self.info.host = host if host is not None else "127.0.0.1"
         self.info.port = port if port is not None else 5000
