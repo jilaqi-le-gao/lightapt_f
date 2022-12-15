@@ -150,3 +150,36 @@ class ThreadPool:
             self.cond.release()
             # 返回结果集
             return self.results
+
+# #################################################################
+# JSON Processing
+# #################################################################
+
+import json
+
+def json2python(_json) -> object:
+    """
+        Convert a JSON message to Python object
+        Args: _json
+        Returns: Python object
+    """
+    if not isinstance(_json,str):
+        print("Given message is not a JSON object")
+        return None
+    try:
+        return json.loads(_json)
+    except json.JSONDecodeError as exception:
+        print(exception)
+        return None
+
+def python2json(_python) -> object:
+    """
+        Convert a Python object to JSON message
+        Args: _python
+        Returns: JSON message
+    """
+    try:
+        return json.dumps(_python)
+    except json.JSONDecodeError as exception:
+        print(exception)
+        return None

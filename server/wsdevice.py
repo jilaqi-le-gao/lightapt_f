@@ -163,6 +163,10 @@ class wsdevice(object):
             self.ws.set_fn_client_left(self.on_disconnect)
             self.ws.set_fn_message_received(self.on_message)
             self.ws.run_forever(threaded=True)
+            self.info = basic_ws_info()
+            self.info.host = host
+            self.info.port = port
+            self.info.debug = debug
         except Exception:
             log.loge(_("Some error occurred while creating websocket server"))
             log.return_error(_("Some error occurred while creating websocket server"),{})

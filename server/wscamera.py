@@ -18,6 +18,7 @@ Boston, MA 02110-1301, USA.
 
 """
 
+import base64
 import json
 from driver.basiccamera import CameraInfo
 from server.wsdevice import wsdevice,basic_ws_info
@@ -225,6 +226,12 @@ class wscamera(wsdevice):
             log.loge(_(f"No event found from message , {message}"))
         # There may need a thread pool to execute some functions which will cause a little time
         for case in switch(event):
+            if case("RemoteStartServer"):
+                self.remote_start_server(_message.get("params"))
+                break
+            if case("RemoteShutdownServer"):
+                self.remote_shutdown_server()
+                break
             if case("RemoteDashboardSetup"):
                 self.remote_dashboard_setup()
                 break
@@ -279,6 +286,26 @@ class wscamera(wsdevice):
     # Following methods have no return value and just send results to client
     #
     # #################################################################
+
+    def remote_start_server(self, params: dict) -> None:
+        """
+            Remote start server | 远程启动服务器
+            Args:
+                params : dict
+            Returns:
+                None
+            NOTE: This can only start other servers not self restart
+        """
+
+    def remote_shutdown_server(self) -> None:
+        """
+            Remote shutdown server | 远程关闭服务器
+            Args:
+                None
+            Returns:
+                None
+            NOTE : After shutdown server , you will lose connection with client , and can only be restart!
+        """
 
     def remote_dashboard_setup(self) -> None:
         """
@@ -335,8 +362,8 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteConnect",
                 "id" : randbelow(1000),
-                "status" : __error__,
-                "message" : "Failed to connect to Camera",
+                "status" : res.get('status'),
+                "message" : res.get('message'),
                 "params" : {
                     "reason" : self.info._latest_error
                 }
@@ -365,12 +392,13 @@ class wscamera(wsdevice):
                 "params" : None
             }
         """
-        if self.disconnect().get('status')!= __success__:
+        res = self.disconnect()
+        if res.get('status')!= __success__:
             r = {
                 "event" : "RemoteDisconnect",
                 "id" : randbelow(1000),
-                "status" : __error__,
-                "message" : "Failed to disconnect from Camera",
+                "status" : res.get('status'),
+                "message" : res.get('message'),
                 "params" : None
             }
         else:
@@ -378,7 +406,7 @@ class wscamera(wsdevice):
                 "event" : "RemoteDisconnect",
                 "id" : randbelow(1000),
                 "status" : __success__,
-                "message" : "Disconnected from Camera",
+                "message" : res.get('message'),
                 "params" : None
             }
         if self.on_send(r) is not True:
@@ -398,6 +426,25 @@ class wscamera(wsdevice):
             }
             NOTE : This function will automatically be called when camera is disconnected suddenly
         """
+        res = self.reconnect()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteReconnect",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteReconnect",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_reconnect() function"))
 
     def remote_scanning(self) -> None:
         """
@@ -414,6 +461,27 @@ class wscamera(wsdevice):
                 }
             }
         """
+        res = self.scanning()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteScanning",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteScanning",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : {
+                    "camera" : res.get('params').get('camera')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_scanning() function"))
 
     def remote_polling(self) -> None:
         """
@@ -430,6 +498,27 @@ class wscamera(wsdevice):
                 }
             }
         """
+        res = self.polling()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemotePolling",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemotePolling",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : {
+                    "info" : res.get('params').get('info')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_polling() function"))
 
     def remote_start_exposure(self,params : dict) -> None:
         """
@@ -459,8 +548,27 @@ class wscamera(wsdevice):
                 "message" : str,
                 "params" : None
                 }
-            NOTE : This function is a blocking function,will return exposure results
+            NOTE : This function is a non-blocking function,will return exposure results
         """
+        res = self.start_exposure(params)
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteStartExposure",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteStartExposure",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_start_exposure() function"))
 
     def remote_abort_exposure(self) -> None:
         """
@@ -478,6 +586,27 @@ class wscamera(wsdevice):
             }
             NOTE : This is a blocking function
         """
+        res = self.abort_exposure()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteAbortExposure",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteAbortExposure",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : {
+                    "result" : res.get('params').get('result')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_abort_exposure() function"))
 
     def remote_get_exposure_status(self) -> None:
         """
@@ -494,6 +623,27 @@ class wscamera(wsdevice):
                 }
             }
         """
+        res = self.get_exposure_status()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteGetExposureStatus",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteGetExposureStatus",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : {
+                    "status" : res.get('params').get('status')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_exposure_status() function"))
 
     def remote_get_exposure_result(self) -> None:
         """
@@ -513,6 +663,28 @@ class wscamera(wsdevice):
             }
             NOTE : This function will be executing when the exposure is finished , don't need to call
         """
+        res = self.get_exposure_result()
+        if res.get('status')!= __success__:
+            r = {
+                "event" : "RemoteGetExposureResult",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteGetExposureResult",
+                "id" : randbelow(1000),
+                "status" : __success__,
+                "message" : res.get('message'),
+                "params" : {
+                    "image" : res.get('params').get('image'),
+                    "histogram" : res.get('params').get('histogram'),
+                    "info" : res.get('params').get('info')
+                }
+            }
+        
 
     def remote_cooling(self , params : dict) -> None:
         """
@@ -721,6 +893,19 @@ class wscamera(wsdevice):
             NOTE : This function must be called before connection
         """
 
+    def polling(self) -> dict:
+        """
+            Refresh the camera infomation | 刷新相机信息
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "info" : Camera Info object
+                }
+            }
+        """
+
     def update_config(self) -> dict:
         """
             Update the configuration of the camera | 更新相机信息
@@ -884,6 +1069,10 @@ class wscamera(wsdevice):
     #
     # #############################################################
 
+    # ----------------------------------------------------------------
+    # Exposure functions
+    # ----------------------------------------------------------------
+    
     @property
     def _gain(self) -> dict:
         """
@@ -893,9 +1082,14 @@ class wscamera(wsdevice):
                 "status" : __success__,__error__,__warning__,
                 "message" : str,
                 "params" : {
-                    "gain" : float
+                    "gain" : float,
+                    "max_gain" : float,
+                    "min_gain" : float
                 }
             }
+            Call Functions:
+                __max_gain()
+                __min_gain()
         """
 
     @property.setter
@@ -920,9 +1114,14 @@ class wscamera(wsdevice):
                 "status" : __success__,__error__,__warning__,
                 "message" : str,
                 "params" : {
-                    "offset" : float
+                    "offset" : float,
+                    "max_offset" : float,
+                    "min_offset" : float
                 }
             }
+            Call Functions:
+                __max_offset()
+                __min_offset()
         """
 
     @property.setter
@@ -989,5 +1188,273 @@ class wscamera(wsdevice):
                 "status" : __success__,__error__,__warning__,
                 "message" : str,
                 "params" : None
+            }
+        """
+
+    @property
+    def _temperature(self) -> dict:
+        """
+            Get the temperature | 获取温度
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "temperature" : float
+                }
+            }
+            NOTE : This function needs camera support
+        """
+
+    @property.setter
+    def _temperature(self, temperature : float) -> dict:
+        """
+            Set the temperature | 设置相机温度
+            Args :
+                temperature : float
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : This function needs camera support
+        """
+
+    # ----------------------------------------------------------------
+    # Camera Properties
+    # ----------------------------------------------------------------
+    
+    @property
+    def _frame(self) -> dict:
+        """
+            Get the frame of camera | 获取相机画幅
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "height" : int # height of sensor
+                    "width" : int # width of sensor
+                    "pixel_height" : int # pixel height of sensor
+                    "pixel_width" : int # pixel width of sensor
+                    "start_x" : int # start x
+                    "start_y" : int # start y
+                    "subframe_x" : int # subframe x position
+                    "subframe_y" : int # subframe y position
+                    "sensor_name" : str 
+                    "sensor_type" : str
+                }
+            }
+            Call Functions:
+                __frame_height()
+                __frame_width()
+                __frame_pixel_height()
+                __frame_pixel_width()
+                __frame_start_x()
+                __frame_start_y()
+                __frame_subframe_x()
+                __frame_subframe_y()
+                __frame_sensor_name()
+                __frame_sensor_type()
+        """
+
+    @property
+    def __frame_height(self) -> dict:
+        """
+            Get the frame height of camera | 获取相机画幅高
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "height" : int # height of sensor
+                }
+            }
+        """
+
+    @property
+    def __frame_width(self) -> dict:
+        """
+            Get the frame width of camera | 获取相机画幅宽
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "width" : int # width of sensor
+                }
+            }
+        """
+
+    @property
+    def __frame_pixel_height(self) -> dict:
+        """
+            Get the frame pixel height of camera | 获取相机像素高度
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "pixel_height" : int # pixel height of sensor
+                }
+            }
+        """
+
+    @property
+    def __frame_pixel_width(self) -> dict:
+        """
+            Get the frame pixel width of camera | 获取相机像素宽度
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "pixel_width" : int # pixel width of sensor
+                }
+            }
+        """
+
+    @property
+    def __frame_start_x(self) -> dict:
+        """
+            Get the frame start x position of camera | 获取相机起始位置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "start_x" : int # start x
+                }
+            }
+        """
+
+    @property
+    def __frame_start_y(self) -> dict:
+        """
+            Get the frame start y position of camera | 获取相机起始位置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "start_y" : int # start y
+                }
+            }
+        """
+
+    @property
+    def __frame_subframe_x(self) -> dict:
+        """
+            Get the frame subframe x position of camera | 获取相机子画幅起始位置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "subframe_x" : int # subframe x position
+                }
+            }
+        """
+
+    @property
+    def __frame_subframe_y(self) -> dict:
+        """
+            Get the frame subframe y position of camera | 获取相机子画幅起始位置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "subframe_y" : int # subframe y position
+                }
+            }
+        """
+
+    @property
+    def __frame_sensor_type(self) -> dict:
+        """
+            Get the frame sensor type of camera | 获取相机芯片类型
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "sensor_type" : int # sensor type
+                }
+            }
+            NOTE : This function needs software support
+        """
+
+    @property
+    def __frame_sensor_name(self) -> dict:
+        """
+            Get the frame sensor name of camera | 获取相机芯片名称
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "sensor_name" : str # sensor name
+                }
+            }
+        """
+
+    # ----------------------------------------------------------------
+    # Exposure Setting Limitations
+    # ----------------------------------------------------------------
+
+    @property
+    def __max_gain(self) -> dict:
+        """
+            Get the max gain setting of camera | 获取最大相机增益
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "max_gain" : int # max gain setting
+                }
+            }
+        """
+
+    @property
+    def __min_gain(self) -> dict:
+        """
+            Get the min gain setting of camera | 获取最小相机增益
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "min_gain" : int # min gain setting
+                }
+            }
+        """
+
+    @property
+    def __max_offset(self) -> dict:
+        """
+            Get the max offset setting of camera | 获取最大相机偏置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "max_offset" : int # max offset setting
+                }
+            }
+        """
+
+    @property
+    def __min_offset(self) -> dict:
+        """
+            Get the minimum offset of camera | 获取最小相机偏置
+            Args : None
+            Returns : {
+                "status" : __success__,__error__,__warning__,
+                "message" : str,
+                "params" : {
+                    "min_offset" : int # min offset setting
+                }
             }
         """
