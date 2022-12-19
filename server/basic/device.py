@@ -144,7 +144,7 @@ class BasicDeviceAPI(object):
             NOTE : This function usually is called when initial the device
         """
 
-    def set_configration(self) -> dict:
+    def set_configration(self, params : dict) -> dict:
         """
             Set configration of device | 修改设备配置\n
             Args:

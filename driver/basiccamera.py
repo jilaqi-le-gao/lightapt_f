@@ -417,7 +417,7 @@ class BasicCamera(Device):
         log.loge(_("The parent function should not be called"))
         return self.return_message("error",_("The parent function should not be called"))
 
-    def get_exposure_data(self) -> dict:
+    def get_exposure_result(self) -> dict:
         """
             Get exposure data | 获取图像数据
             Args:

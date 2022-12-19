@@ -43,10 +43,8 @@ Just like the name of the project, only a few dependent libraries are needed to 
 
 ### Requirements
 
-+ colorama
 + requsets 
 + flask
-+ pyyaml
 + Pillow
 + tifffile
 

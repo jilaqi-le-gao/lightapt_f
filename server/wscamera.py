@@ -18,10 +18,10 @@ Boston, MA 02110-1301, USA.
 
 """
 
-import base64
 import json
 from driver.basiccamera import CameraInfo
-from server.wsdevice import wsdevice,basic_ws_info
+from .basic.camera import BasicCameraAPI
+from .basic.wsdevice import wsdevice,basic_ws_info
 from utils.utility import switch, ThreadPool
 from utils.lightlog import lightlog
 log = lightlog(__name__)
@@ -31,10 +31,6 @@ import gettext
 _ = gettext.gettext
 
 __version__ = '1.0.0'
-
-__success__ = 0
-__error__ = 1
-__warning__ = 2
 
 class wscamera_info(basic_ws_info,CameraInfo):
     """
@@ -128,7 +124,7 @@ class wscamera_info(basic_ws_info,CameraInfo):
         }
         return r
 
-class wscamera(wsdevice):
+class wscamera(wsdevice,BasicCameraAPI):
     """
         Websocket Camera Main Class
     """
@@ -155,9 +151,11 @@ class wscamera(wsdevice):
         self.info.port = port if port is not None else 5000
         self.info.debug = debug if debug is not None else False
         self.info.threaded = threaded if threaded is not None else True
-
-        if self.start_server(self.info.host,self.info.port,False,True).get('status') != __success__:
-            log.loge(_(""))
+        res = self.start_server(self.info.host,self.info.port,False,True)
+        if res.get('status') == 1:
+            log.loge(_("Failed to start websocket server"))
+        elif res.get("status") == 2:
+            log.logw(_("Start websocket server with warning"))
         self.info._name = name
         self.info._type = _type
         self.info.running = True
@@ -229,8 +227,14 @@ class wscamera(wsdevice):
             if case("RemoteStartServer"):
                 self.remote_start_server(_message.get("params"))
                 break
+            if case("RemoteStopServer"):
+                self.remote_stop_server()
+                break
             if case("RemoteShutdownServer"):
                 self.remote_shutdown_server()
+                break
+            if case("RemoteRestartServer"):
+                self.remote_restart_server()
                 break
             if case("RemoteDashboardSetup"):
                 self.remote_dashboard_setup()
@@ -262,14 +266,26 @@ class wscamera(wsdevice):
             if case("RemoteGetExposureResult"):
                 self.remote_get_exposure_result()
                 break
+            if case("RemoteStartSequenceExposure"):
+                self.remote_start_sequence_exposure(_message.get("params"))
+                break
+            if case("RemoteAbortSequenceExposure"):
+                self.remote_abort_sequence_exposure()
+                break
+            if case("RemotePauseSequenceExposure"):
+                self.remote_pause_sequence_exposure()
+                break
+            if case("RemoteContinueSequenceExposure"):
+                self.remote_continue_sequence_exposure()
+                break
             if case("RemoteCooling"):
                 self.remote_cooling(_message.get("params"))
                 break
+            if case("RemoteCoolingTo"):
+                self.remote_cooling_to(_message.get("params"))
+                break
             if case("RemoteGetCoolingStatus"):
                 self.remote_get_cooling_status()
-                break
-            if case("RemoteSetCoolingTemperature"):
-                self.remote_set_cooling_temperature(_message.get("params"))
                 break
             if case("RemoteGetConfiguration"):
                 self.remote_get_configuration()
@@ -296,6 +312,54 @@ class wscamera(wsdevice):
                 None
             NOTE: This can only start other servers not self restart
         """
+        res = self.start_server(params.get("host"),params.get("port"),params.get("debug"),params.get("ssl"))
+        if res.get('status') != 0:
+            r = {
+                "event" : "RemoteStartServer",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteStartServer",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge(_(f"Failed to send remote start server event"))
+        
+    def remote_stop_server(self) -> None:
+        """
+            Remote stop server | 停止服务器
+            Args:
+                None
+            Returns:
+                None
+            NOTE: This can only stop other servers not self restart
+        """
+        res = self.stop_server()
+        if res.get('status')!= 0:
+            r = {
+                "event" : "RemoteStopServer",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteStopServer",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge(_(f"Failed to send remote stop server event"))
 
     def remote_shutdown_server(self) -> None:
         """
@@ -306,6 +370,25 @@ class wscamera(wsdevice):
                 None
             NOTE : After shutdown server , you will lose connection with client , and can only be restart!
         """
+        res = self.shutdown_server()
+        if res.get('status')!= 0:
+            r = {
+                "event" : "RemoteShutdownServer",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteShutdownServer",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge(_(f"Failed to send remote shutdown server event"))
 
     def remote_dashboard_setup(self) -> None:
         """
@@ -315,7 +398,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteDashboardSetup",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "version" : __version__
@@ -326,7 +409,7 @@ class wscamera(wsdevice):
         r = {
             "event" : "RemoteDashboardSetup",
             "id" : randbelow(1000),
-            "status" : __success__,
+            "status" : 0,
             "message" : "Established connection successfully",
             "params" : {
                 "version" : __version__
@@ -350,7 +433,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteConnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : CameraInfo object
@@ -358,7 +441,7 @@ class wscamera(wsdevice):
             }
         """
         res = self.connect(params)
-        if res.get('status') != __success__:
+        if res.get('status') != 0:
             r = {
                 "event" : "RemoteConnect",
                 "id" : randbelow(1000),
@@ -372,7 +455,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteConnect",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get("message"),
                 "params" : res.get('params')
             }
@@ -387,13 +470,13 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteDisconnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
         """
         res = self.disconnect()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteDisconnect",
                 "id" : randbelow(1000),
@@ -405,7 +488,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteDisconnect",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : None
             }
@@ -420,14 +503,14 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteReconnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
             NOTE : This function will automatically be called when camera is disconnected suddenly
         """
         res = self.reconnect()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteReconnect",
                 "id" : randbelow(1000),
@@ -439,7 +522,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteReconnect",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : None
             }
@@ -454,7 +537,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteScanning",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "camera" : list # list of found cameras
@@ -462,7 +545,7 @@ class wscamera(wsdevice):
             }
         """
         res = self.scanning()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteScanning",
                 "id" : randbelow(1000),
@@ -474,7 +557,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteScanning",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : {
                     "camera" : res.get('params').get('camera')
@@ -491,7 +574,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemotePolling",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : CameraInfo object
@@ -499,7 +582,7 @@ class wscamera(wsdevice):
             }
         """
         res = self.polling()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemotePolling",
                 "id" : randbelow(1000),
@@ -511,7 +594,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemotePolling",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : {
                     "info" : res.get('params').get('info')
@@ -544,14 +627,14 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteStartExposure",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
                 }
             NOTE : This function is a non-blocking function,will return exposure results
         """
         res = self.start_exposure(params)
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteStartExposure",
                 "id" : randbelow(1000),
@@ -563,7 +646,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteStartExposure",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : None
             }
@@ -578,7 +661,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteAbortExposure",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "result" : str
@@ -587,7 +670,7 @@ class wscamera(wsdevice):
             NOTE : This is a blocking function
         """
         res = self.abort_exposure()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteAbortExposure",
                 "id" : randbelow(1000),
@@ -599,7 +682,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteAbortExposure",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : {
                     "result" : res.get('params').get('result')
@@ -616,7 +699,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetExposureStatus",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "status" : Camera Exposure Status Object
@@ -624,7 +707,7 @@ class wscamera(wsdevice):
             }
         """
         res = self.get_exposure_status()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteGetExposureStatus",
                 "id" : randbelow(1000),
@@ -636,7 +719,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteGetExposureStatus",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : {
                     "status" : res.get('params').get('status')
@@ -653,7 +736,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetExposureResult",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "image" : Base64 encoded image,
@@ -664,7 +747,7 @@ class wscamera(wsdevice):
             NOTE : This function will be executing when the exposure is finished , don't need to call
         """
         res = self.get_exposure_result()
-        if res.get('status')!= __success__:
+        if res.get('status')!= 0:
             r = {
                 "event" : "RemoteGetExposureResult",
                 "id" : randbelow(1000),
@@ -676,7 +759,7 @@ class wscamera(wsdevice):
             r = {
                 "event" : "RemoteGetExposureResult",
                 "id" : randbelow(1000),
-                "status" : __success__,
+                "status" : 0,
                 "message" : res.get('message'),
                 "params" : {
                     "image" : res.get('params').get('image'),
@@ -684,7 +767,93 @@ class wscamera(wsdevice):
                     "info" : res.get('params').get('info')
                 }
             }
-        
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_exposure_result() function"))
+    
+    def remote_start_sequence_exposure(self, params : dict) -> None:
+        """
+            Remote start exposure function | 开始录屏
+            Args :
+                params : {
+                    "sequence_number" : int
+                    "sequence" : dict
+                }
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteStartSequenceExposure",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+        res = self.start_sequence_exposure(params)
+        if res.get('status')!= 0:
+            r = {
+                "event" : "RemoteStartSequenceExposure",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteStartSequenceExposure",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : None
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_start_sequence_exposure() function"))
+
+    def remote_abort_sequence_exposure(self) -> None:
+        """
+            Remote abort exposure function | 停止计划拍摄
+            Args :
+                None
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteAbortSequenceExposure",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : After executing this command , we will totally cancel the sequence exposure
+        """
+
+    def remote_pause_sequence_exposure(self) -> None:
+        """
+            Remote pause exposure function | 停止计划拍摄
+            Args :
+                None
+            Returns : None
+            ServerResult : {
+                "event" : "RemotePauseSequenceExposure",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : After executing this command, you can still continue sequence exposures
+        """
+
+    def remote_continue_sequence_exposure(self) -> None:
+        """
+            Remote continue sequence exposure | 继续计划拍摄
+            Args :
+                None
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteContinueSequenceExposure",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : After executing this command, you will continue sequence exposures
+        """
 
     def remote_cooling(self , params : dict) -> None:
         """
@@ -700,7 +869,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteCooling",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "result" : str
@@ -708,6 +877,27 @@ class wscamera(wsdevice):
             }
             NOTE : This function needs camera support , if camera is not a cooling camera , something terrible will happen 
         """
+        res = self.cooling(params)
+        if res.get('status') != 0:
+            r = {
+                "event" : "RemoteCooling",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteCooling",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : {
+                    "result" : res.get('params').get('result')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_cooling() function"))
 
     def remote_get_cooling_status(self) -> None:
         """
@@ -717,7 +907,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetCoolingStatus",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "status" : Camera Cooling Status Object
@@ -725,27 +915,27 @@ class wscamera(wsdevice):
             }
             NOTE : This function needs camera support, if camera is not a cooling camera, something ter
         """
-
-    def remote_set_cooling_temperature(self,params : dict) -> None:
-        """
-            Remote set cooling temperature function | 设置相机制冷温度
-            Args : {
+        res = self.get_cooling_status()
+        if res.get('status') != 0:
+            r = {
+                "event" : "RemoteGetCoolingStatus",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteGetCoolingStatus",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
                 "params" : {
-                    "temperature" : float,
+                    "status" : res.get('params').get('status')
                 }
             }
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteSetCoolingTemperature",
-                "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "result" : str
-                }
-            }
-            NOTE : This function needs camera support
-        """
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_cooling_status() function"))
 
     def remote_get_configuration(self) -> None:
         """
@@ -755,7 +945,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetConfiguration",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : CameraInfo object
@@ -763,6 +953,27 @@ class wscamera(wsdevice):
             }
             NOTE : This function is blocking function, will return result to client
         """
+        res = self.get_configration()
+        if res.get('status') != 0:
+            r = {
+                "event" : "RemoteGetConfiguration",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteGetConfiguration",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : {
+                    "info" : res.get('params').get('info')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_configuration() function"))
 
     def remote_set_configuration(self, params : dict) -> None:
         """
@@ -777,7 +988,7 @@ class wscamera(wsdevice):
             ServerResult : {
                 "event" : "RemoteSetConfiguration",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "result" : str
@@ -785,6 +996,27 @@ class wscamera(wsdevice):
             }
             NOTE : This function is blocking function , will return result to client
         """
+        res = self.set_configration(params)
+        if res.get('status')!= 0:
+            r = {
+                "event" : "RemoteSetConfiguration",
+                "id" : randbelow(1000),
+                "status" : res.get('status'),
+                "message" : res.get('message'),
+                "params" : None
+            }
+        else:
+            r = {
+                "event" : "RemoteSetConfiguration",
+                "id" : randbelow(1000),
+                "status" : 0,
+                "message" : res.get('message'),
+                "params" : {
+                    "result" : res.get('params').get('result')
+                }
+            }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_set_configuration() function"))
 
     # #################################################################
     #
@@ -804,7 +1036,7 @@ class wscamera(wsdevice):
                 }
             }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "name" : str # name of the camera
@@ -826,7 +1058,7 @@ class wscamera(wsdevice):
                 if case("ascom"):
                     from driver.camera.ascom import camera as ascom
                     self.device = ascom()
-                    if self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0}) != __success__:
+                    if self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0}).get("status") != 0:
                         log.loge(_("Failed to connect to the camera"))
                         return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
                     log.log(_("Connected to the camera successfully"))
@@ -834,12 +1066,27 @@ class wscamera(wsdevice):
                 if case("indi"):
                     from driver.camera.indi import camera as indi
                     self.device = indi()
+                    if self.device.connect({"host" : params.get('host'),"port" : params.get('port')}).get("status") != 0:
+                        log.loge(_("Failed to connect to the camera"))
+                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
+                    log.log(_("Connected to the camera successfully"))
+                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
                 if case("asi"):
                     from driver.camera.zwoasi import camera as asi
                     self.device = asi()
+                    if self.device.connect({"name" : params.get("name")}).get("status") != 0:
+                        log.loge(_("Failed to connect to the camera"))
+                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
+                    log.log(_("Connected to the camera successfully"))
+                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
                 if case("qhy"):
                     from driver.camera.qhyccd import camera as qhy
                     self.device = qhy()
+                    if self.device.connect({"name" : params.get("name")}).get("status") != 0:
+                        log.loge(_("Failed to connect to the camera"))
+                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
+                    log.log(_("Connected to the camera successfully"))
+                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
                 log.loge(_("Unknown camera type , please provide a correct camera type"))
                 return log.return_error(_("Unknown camera type, please provide a correct camera type"),{})
         except Exception:
@@ -851,7 +1098,7 @@ class wscamera(wsdevice):
             Disconnect from the camera | 与相机断开连接
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -859,10 +1106,15 @@ class wscamera(wsdevice):
         if not self.info._is_connected:
             log.logw(_("The camera is not connected , please do not execute disconnect command"))
             return log.return_warning(_("The camera is not connected, please do not execute disconnect command"),{})
-        if self.device.disconnect()!= __success__:
+        res = self.device.disconnect()
+        if res.get("status") == 1:
             log.loge(_("Failed to disconnect from the camera"))
             return log.return_error(_("Failed to disconnect from the camera"),{"advice" : _("Disconnect again")})
+        elif res.get("status") == 2:
+            log.logw(_("Disconnect with the camera with warning"))
+            return log.return_warning(_("Disconnect with the camera with warning"),{"warning" : res.get("params").get("warning")})
         self.info._is_connected = False
+        log.log(_("Disconnect from the camera successfully"))
         return log.return_success(_("Disconnected from the camera successfully"))
 
     def reconnect(self) -> dict:
@@ -870,7 +1122,7 @@ class wscamera(wsdevice):
             Reconnect to the camera | 重连相机
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "result" : str
@@ -878,13 +1130,25 @@ class wscamera(wsdevice):
             }
             NOTE : This function will automatically execute when camera disconnect in suddenly
         """
+        if not self.info._is_connected:
+            log.logw(_("The camera is not connected, please do not execute reconnect command"))
+            return log.return_warning(_("The camera is not connected, please do not execute reconnect command"),{})
+        res = self.device.reconnect()
+        if res.get("status") == 1:
+            log.loge(_("Failed to reconnect to the camera"))
+            return log.return_error(_("Failed to reconnect to the camera"),{"advice" : _("Reconnect again")})
+        elif res.get("status") == 2:
+            log.logw(_("Reconnect with the camera with warning"))
+            return log.return_warning(_("Reconnect with the camera with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Reconnect to camera successfully"))
+        return log.return_success(_("Reconnect to camera successfully"),{})
 
     def scanning(self) -> dict:
         """
             Scanning the camera | 扫描所有相机
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "list" : Camera List
@@ -892,26 +1156,45 @@ class wscamera(wsdevice):
             }
             NOTE : This function must be called before connection
         """
+        res = self.device.scanning()
+        if res.get("status") == 1:
+            log.loge(_("Failed to scan the camera"))
+            return log.return_error(_("Failed to scan the camera"),{"advice" : _("Scan again")})
+        elif res.get("status") == 2:
+            log.logw(_("Scan with the camera with warning"))
+            return log.return_warning(_("Scan with the camera with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_(f"Scanning the camera successfully , Found : {res.get('params').get('list')}"))
+        return log.return_success(_("Scanning the camera successfully"),{"list" : res.get("params").get("list")})
+
 
     def polling(self) -> dict:
         """
             Refresh the camera infomation | 刷新相机信息
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : Camera Info object
                 }
             }
         """
+        res = self.device.polling()
+        if res.get("status") == 1:
+            log.loge(_("Failed to refresh the camera infomation"))
+            return log.return_error(_("Failed to refresh the camera infomation"),{"advice" : _("Refresh again")})
+        elif res.get("status") == 2:
+            log.logw(_("Refresh the camera infomation with warning"))
+            return log.return_warning(_("Refresh the camera infomation with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Refresh the camera infomation successfully"))
+        return log.return_success(_("Refresh the camera infomation successfully"),{"info" : res.get('params').get('info')})
 
     def update_config(self) -> dict:
         """
             Update the configuration of the camera | 更新相机信息
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : CameraInfo object
@@ -919,6 +1202,15 @@ class wscamera(wsdevice):
             }
             NOTE : This function must be called after initialization
         """
+        res = self.device.update_config()
+        if res.get("status") == 1:
+            log.loge(_("Failed to update the camera configuration"))
+            return log.return_error(_("Failed to update the camera configuration"),{"advice" : _("Update the camera configuration again")})
+        elif res.get("status") == 2:
+            log.logw(_("Update the camera configuration with warning"))
+            return log.return_warning(_("Update the camera configuration with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Update camera configuration successfully"))
+        return log.return_success(_("Update camera configuration successfully"),{"info" : res.get("info")})
 
     def start_exposure(self, params : dict) -> dict:
         """
@@ -936,33 +1228,60 @@ class wscamera(wsdevice):
                 }
             Returns :
                 {
-                    "status" : __success__,__error__,__warning__,
+                    "status" : int,
                     "message" : str,
                     "params" : {
                         "result" : str
                     }
                 }
-            NOTE : This function is blocking
+            NOTE : This function is a blocking function
         """
+        if params.get("exposure") is None or not 0 < params.get('exposure') < 1000000:
+            log.loge(_("Unreasonable exposure time was given , please give a possible number"))
+        if params.get("gain") is None or not 0 < params.get('gain'):
+            log.loge(_("Unreasonable gain was given, please give a possible number"))
+        if params.get("offset") is None or not 0 < params.get('offset'):
+            log.loge(_("Unreasonable offset was given, please give a possible number"))
+        if params.get("binning") is None or not 1 <= params.get('bin') <= 8:
+            log.loge(_("Unreasonable binning was given, please give a possible number"))
+        res = self.device.start_exposure(params)
+        if res.get("status") == 1:
+            log.loge(_("Failed to start the exposure"))
+            return log.return_error(_("Failed to start the exposure"),{"advice" : _("Start exposure again")})
+        elif res.get("status") == 2:
+            log.logw(_("Start exposure with warning"))
+            return log.return_warning(_("Start exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Exposure started successfully"))
+        return log.return_success(_("Exposure started successfully"),{"result" : res.get("params").get("result")})
+        
 
     def abort_exposure(self) -> dict:
         """
             Abort the exposure | 停止曝光
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
             NOTE : This function is blocking
         """
+        res = self.device.abort_exposure()
+        if res.get("status") == 1:
+            log.loge(_("Failed to abort the exposure"))
+            return log.return_error(_("Failed to abort the exposure"),{"advice" : _("Abort exposure again")})
+        elif res.get("status") == 2:
+            log.logw(_("Abort exposure with warning"))
+            return log.return_warning(_("Abort exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Exposure aborted successfully"))
+        return log.return_success(_("Exposure aborted successfully"),{})
 
     def get_exposure_status(self) -> dict:
         """
             Get the exposure status | 获取曝光状态
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "status" : Camera Exposure Status Object
@@ -970,13 +1289,22 @@ class wscamera(wsdevice):
             }
             NOTE : This function should be called while exposuring
         """
+        res = self.device.get_exposure_status()
+        if res.get("status") == 1:
+            log.loge(_("Failed to get the exposure status"))
+            return log.return_error(_("Failed to get the exposure status"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get exposure status with warning"))
+            return log.return_warning(_("Get exposure status with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Get exposure status successfully"))
+        return log.return_success(_("Get exposure status successfully"),{"params" : res.get("params").get("status")})
 
     def get_exposure_result(self) -> dict:
         """
             Get the exposure result | 获取曝光结果
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "image" : Base64 encoded image
@@ -986,10 +1314,115 @@ class wscamera(wsdevice):
             }
             NOTE : This function must be called after exposure is finished
         """
+        res = self.device.get_exposure_result()
+        if res.get("status") == 1:
+            log.loge(_("Failed to get the exposure result"))
+            return log.return_error(_("Failed to get the exposure result"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get exposure result with warning"))
+            return log.return_warning(_("Get exposure result with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Get exposure result successfully"))
+        return log.return_success(_("Get exposure result successfully"),{"params" : res.get("params")})
+
+    def start_sequence_exposure(self, params: dict) -> dict:
+        """
+            Start the sequence exposure | 计划拍摄
+            Args : 
+                params : {
+                    "sequence_number" : int, # number of sequences
+                    "sequence" : {
+                        {
+                            "name" : str # name of the sequence
+                            "type" : str # type of the sequence , light dark flat
+                            "exposure" : float # exposure time of each image
+                            "repeat" : int # number of times to repeat
+                            "start_time" : int # start time of the sequence
+                            "duration" : int # duration of the sequence
+                        }
+                    }
+                }
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            TODO : This function should be considered carefully
+        """
+        if params.get("sequence_number") is None:
+            return log.return_error(_("Sequence number is required"),{})
+        if params.get("sequence") is None:
+            return log.return_error(_("Sequence is required"),{})
+        res = self.device.start_sequence_exposure(params.get("sequence_number"))
+        if res.get("status") == 1:
+            log.loge(_("Failed to start sequence exposure"))
+            return log.return_error(_("Failed to start sequence exposure"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Start sequence exposure with warning"))
+            return log.return_warning(_("Start sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Finish sequence exposure successfully"))
+        return log.return_success(_("Finish sequence exposure successfully"),{"params" : res.get("params")})
+
+    def abort_sequence_exposure(self) -> dict:
+        """
+            Abort the sequence exposure | 停止计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+        res = self.device.abort_sequence_exposure()
+        if res.get("status") == 1:
+            log.loge(_("Failed to abort sequence exposure"))
+            return log.return_error(_("Failed to abort sequence exposure"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Abort sequence exposure with warning"))
+            return log.return_warning(_("Abort sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Abort sequence exposure successfully"))
+        return log.return_success(_("Abort sequence exposure successfully"),{})
+
+    def pause_sequence_exposure(self) -> dict:
+        """
+            Pause the sequence exposure | 中止计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+        """
+        res = self.device.pause_sequence_exposure()
+        if res.get("status") == 1:
+            log.loge(_("Failed to pause sequence exposure"))
+            return log.return_error(_("Failed to pause sequence exposure"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Pause sequence exposure with warning"))
+            return log.return_warning(_("Pause sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Pause sequence exposure successfully"))
+        return log.return_success(_("Pause sequence exposure successfully"),{})
+
+    def continue_sequence_exposure(self) -> dict:
+        """
+            Continue the sequence exposure | 继续计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+        """
+        res = self.device.continue_sequence_exposure()
+        if res.get("status") == 1:
+            log.loge(_("Failed to continue sequence exposure"))
+            return log.return_error(_("Failed to continue sequence exposure"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Continue sequence exposure with warning"))
+            return log.return_warning(_("Continue sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Continue sequence exposure successfully"))
+        return log.return_success(_("Continue sequence exposure successfully"),{})
 
     def cooling(self , params : dict) -> dict:
         """
-            Cooling the camera | 打开拍摄
+            Cooling the camera | 相机制冷
             Args :
                 params : {
                     "enable" : boolean # enable or disable
@@ -997,19 +1430,66 @@ class wscamera(wsdevice):
                     "power" : float
                 }
             Returns :{
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
             NOTE : This function needs camera support
         """
+        if not self.info._can_set_temperature:
+            log.loge(_("Camera does not support temperature control"))
+            return log.return_error(_("Camera does not support temperature control"),{})
+        if params.get('enable') is None:
+            params['enable'] = False
+        if params.get('temperature') is None:
+            return log.return_error(_("Please provide a temperature"),{})
+        if params.get('power') is None:
+            pass
+        res = self.device.cooling(params)
+        if res.get("status") == 1:
+            log.loge(_("Failed to set the cooling"))
+            return log.return_error(_("Failed to set the cooling"),{"advice" : _("Set cooling failed")})
+        elif res.get("status") == 2:
+            log.logw(_("Set cooling with warning"))
+            return log.return_success(_("Set cooling with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Set cooling successfully"))
+        return log.return_success(_("Set cooling successfully"),{})
+
+    def cooling_to(self, params: dict) -> dict:
+        """
+            Cooling the camera | 打开拍摄
+            Args :
+                params : {
+                    "temperature" : float # temperature
+                }
+            Returns:
+                {
+                    "status" : int,
+                    "message" : str,
+                    "params" : None
+                }
+        """
+        if not self.info._can_set_temperature:
+            log.loge(_("Camera does not support temperature control"))
+            return log.return_error(_("Camera does not support temperature control"),{})
+        if params.get('temperature') is None or not -100 < params.get('temperature') < 50:
+            return log.return_error(_("Please provide a valid temperature"),{})
+        res = self.device.cooling_to(params)
+        if res.get("status") == 1:
+            log.loge(_("Failed to set the cooling"))
+            return log.return_error(_("Failed to set the cooling"),{"advice" : _("Set cooling failed")})
+        elif res.get("status") == 2:
+            log.logw(_("Set cooling with warning"))
+            return log.return_warning(_("Set cooling with warning"),{"warning" : res.get("params").get("warning")})
+        log.log(_("Set cooling successfully"))
+        return log.return_success(_("Set cooling successfully"),{})
 
     def get_cooling_status(self) -> dict:
         """
             Get the cooling status | 获取制冷状态
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "status" : Camera Cooling Status Object
@@ -1017,28 +1497,25 @@ class wscamera(wsdevice):
             }
             NOTE : This function is suggested to be called while cooling
         """
+        res = self.device.get_cooling_status()
+        if res.get("status") == 1:
+            log.loge(_("Failed to get the cooling status"))
+            return log.return_error(_("Failed to get the cooling status"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get cooling status with warning"))
+            return log.return_warning(_("Get cooling status with warning"),{})
+        log.log(_("Get cooling status successfully"))
+        return log.return_success(_("Get cooling status successfully"),{"params" : res.get("params").get("status")})
 
-    def set_cooling_temperature(self , params : dict) -> dict :
-        """
-            Set cooling temperature | 设置相机制冷温度
-            Args :
-                params : {
-                    "temperature" : float
-                }
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : This function needs camera support
-        """
-
-    def get_configration(self) -> dict:
+    def get_configration(self , params : dict) -> dict:
         """
             Get the configration | 获取配置信息
-            Args : None
+            Args : 
+                params:{
+                    "type" : str
+                }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : Camera Configuration Object
@@ -1046,6 +1523,17 @@ class wscamera(wsdevice):
             }
             NOTE : This function is suggested to be called before setting configuration
         """
+        if params.get("type") is None:
+            return log.return_error(_("Please provide a type"),{})
+        res = self.device.get_configration(params)
+        if res.get("status") == 1:
+            log.loge(_("Failed to get the configration"))
+            return log.return_error(_("Failed to get the configration"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get configration with warning"))
+            return log.return_warning(_("Get configration with warning"),{})
+        log.log(_("Get configration successfully"))
+        return log.return_success(_("Get configration successfully"),{"params" : res.get("params").get("configration")})
 
     def set_configration(self, params : dict) -> dict :
         """
@@ -1056,405 +1544,20 @@ class wscamera(wsdevice):
                     "value" : str # value of configuration
                 }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
             NOTE : After executing this function , we suggest to call get_configration()
         """
-    
-    # #############################################################
-    #
-    # Following functions should not be called directly by clients
-    #
-    # #############################################################
-
-    # ----------------------------------------------------------------
-    # Exposure functions
-    # ----------------------------------------------------------------
-    
-    @property
-    def _gain(self) -> dict:
-        """
-            Get the gain | 获取相机增益
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "gain" : float,
-                    "max_gain" : float,
-                    "min_gain" : float
-                }
-            }
-            Call Functions:
-                __max_gain()
-                __min_gain()
-        """
-
-    @property.setter
-    def _gain(self , gain : float) -> dict:
-        """
-            Set the gain | 设置相机增益
-            Args :
-                gain : float
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-        """
-
-    @property
-    def _offset(self) -> dict:
-        """
-            Get the offset | 获取相机偏置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "offset" : float,
-                    "max_offset" : float,
-                    "min_offset" : float
-                }
-            }
-            Call Functions:
-                __max_offset()
-                __min_offset()
-        """
-
-    @property.setter
-    def _offset(self, offset : float) -> dict:
-        """
-            Set the offset | 设置相机偏置
-            Args :
-                offset : float
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-        """
-
-    @property
-    def _binning(self) -> dict:
-        """
-            Get the binning | 获取相机像素合并
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "binning" : int
-                }
-            }
-        """
-
-    @property.setter
-    def _binning(self, binning : int) -> dict:
-        """
-            Set the binning | 设置相机像素合并数
-            Args :
-                binning : int
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-        """
-
-    @property
-    def _exposure(self) -> dict:
-        """
-            Get exposure time | 获取曝光时间
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "exposure" : float
-                }
-            }
-        """
-    
-    @property.setter
-    def _exposure(self, exposure : float) -> dict:
-        """
-            Set the exposure | 设置曝光时间
-            Args :
-                exposure : float
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-        """
-
-    @property
-    def _temperature(self) -> dict:
-        """
-            Get the temperature | 获取温度
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "temperature" : float
-                }
-            }
-            NOTE : This function needs camera support
-        """
-
-    @property.setter
-    def _temperature(self, temperature : float) -> dict:
-        """
-            Set the temperature | 设置相机温度
-            Args :
-                temperature : float
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : This function needs camera support
-        """
-
-    # ----------------------------------------------------------------
-    # Camera Properties
-    # ----------------------------------------------------------------
-    
-    @property
-    def _frame(self) -> dict:
-        """
-            Get the frame of camera | 获取相机画幅
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "height" : int # height of sensor
-                    "width" : int # width of sensor
-                    "pixel_height" : int # pixel height of sensor
-                    "pixel_width" : int # pixel width of sensor
-                    "start_x" : int # start x
-                    "start_y" : int # start y
-                    "subframe_x" : int # subframe x position
-                    "subframe_y" : int # subframe y position
-                    "sensor_name" : str 
-                    "sensor_type" : str
-                }
-            }
-            Call Functions:
-                __frame_height()
-                __frame_width()
-                __frame_pixel_height()
-                __frame_pixel_width()
-                __frame_start_x()
-                __frame_start_y()
-                __frame_subframe_x()
-                __frame_subframe_y()
-                __frame_sensor_name()
-                __frame_sensor_type()
-        """
-
-    @property
-    def __frame_height(self) -> dict:
-        """
-            Get the frame height of camera | 获取相机画幅高
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "height" : int # height of sensor
-                }
-            }
-        """
-
-    @property
-    def __frame_width(self) -> dict:
-        """
-            Get the frame width of camera | 获取相机画幅宽
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "width" : int # width of sensor
-                }
-            }
-        """
-
-    @property
-    def __frame_pixel_height(self) -> dict:
-        """
-            Get the frame pixel height of camera | 获取相机像素高度
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "pixel_height" : int # pixel height of sensor
-                }
-            }
-        """
-
-    @property
-    def __frame_pixel_width(self) -> dict:
-        """
-            Get the frame pixel width of camera | 获取相机像素宽度
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "pixel_width" : int # pixel width of sensor
-                }
-            }
-        """
-
-    @property
-    def __frame_start_x(self) -> dict:
-        """
-            Get the frame start x position of camera | 获取相机起始位置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "start_x" : int # start x
-                }
-            }
-        """
-
-    @property
-    def __frame_start_y(self) -> dict:
-        """
-            Get the frame start y position of camera | 获取相机起始位置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "start_y" : int # start y
-                }
-            }
-        """
-
-    @property
-    def __frame_subframe_x(self) -> dict:
-        """
-            Get the frame subframe x position of camera | 获取相机子画幅起始位置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "subframe_x" : int # subframe x position
-                }
-            }
-        """
-
-    @property
-    def __frame_subframe_y(self) -> dict:
-        """
-            Get the frame subframe y position of camera | 获取相机子画幅起始位置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "subframe_y" : int # subframe y position
-                }
-            }
-        """
-
-    @property
-    def __frame_sensor_type(self) -> dict:
-        """
-            Get the frame sensor type of camera | 获取相机芯片类型
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "sensor_type" : int # sensor type
-                }
-            }
-            NOTE : This function needs software support
-        """
-
-    @property
-    def __frame_sensor_name(self) -> dict:
-        """
-            Get the frame sensor name of camera | 获取相机芯片名称
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "sensor_name" : str # sensor name
-                }
-            }
-        """
-
-    # ----------------------------------------------------------------
-    # Exposure Setting Limitations
-    # ----------------------------------------------------------------
-
-    @property
-    def __max_gain(self) -> dict:
-        """
-            Get the max gain setting of camera | 获取最大相机增益
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "max_gain" : int # max gain setting
-                }
-            }
-        """
-
-    @property
-    def __min_gain(self) -> dict:
-        """
-            Get the min gain setting of camera | 获取最小相机增益
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "min_gain" : int # min gain setting
-                }
-            }
-        """
-
-    @property
-    def __max_offset(self) -> dict:
-        """
-            Get the max offset setting of camera | 获取最大相机偏置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "max_offset" : int # max offset setting
-                }
-            }
-        """
-
-    @property
-    def __min_offset(self) -> dict:
-        """
-            Get the minimum offset of camera | 获取最小相机偏置
-            Args : None
-            Returns : {
-                "status" : __success__,__error__,__warning__,
-                "message" : str,
-                "params" : {
-                    "min_offset" : int # min offset setting
-                }
-            }
-        """
+        if params.get('type') is None or params.get('value') is None:
+            return log.return_error(_("Please provide a valid configration"),{})
+        res = self.device.set_configration(params)
+        if res.get("status") == 1:
+            log.loge(_("Failed to set the configration"))
+            return log.return_error(_("Failed to set the configration"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Set configration with warning"))
+            return log.return_warning(_("Set configration with warning"),{})
+        log.log_("Set configration successfully")
+        return log.return_success(_("Set configration successfully"),{})

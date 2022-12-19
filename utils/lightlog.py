@@ -24,7 +24,6 @@ __license__ = "GPL3"
 __class__ = "lightlog"
 
 import logging
-from colorama import Fore,init
 from os import mkdir, path
 from time import sleep, strftime
 
@@ -47,25 +46,19 @@ logger.addHandler(file_handle)
 # Set logger level | 设置日志级别
 logger.setLevel(logging.INFO)
 
-init(autoreset=True)
-sleep(0.5)
-
-DEBUG = False
+DEBUG = True
 
 class lightlog():
     """
         Light weight log system for LightAPT
         Initial : log = lightlog(__name__)
-        Mode : "info","warning","error","debug"
-        Return : None (All logger functions)
-        Note: Nearly every file needs to include this
+        NOTE : Every file should include this.
     """
 
     def __init__(self,name : str) -> None:
         """Initialize logger"""
         self.uname = name
-        
-    #日志
+
     def log(self,msg : str) -> None:
         """
             Log normal message | 普通信息日志\n
@@ -76,7 +69,6 @@ class lightlog():
         if self._check_(msg):
             logger.info(f"[{self.uname}][INFO] - {msg}")
 
-    # 错误日志
     def loge(self,msg : str) -> None:
         """
             Log error message | 错误信息日志\n
@@ -85,8 +77,8 @@ class lightlog():
             Return: None
         """
         if self._check_(msg):
-            logger.info(f"[{self.uname}][ERROR] - " + Fore.RED + f"{msg}" + Fore.RESET)
-    # 警告日志
+            logger.info(f"[{self.uname}][ERROR] - "+ f"{msg}")
+
     def logw(self,msg : str) -> None:
         """
             Log warning message | 警告信息日志\n
@@ -95,10 +87,8 @@ class lightlog():
             Return: None
         """
         if self._check_(msg):
-            logger.info(f"[{self.uname}][WARNING] - " + Fore.YELLOW + f"{msg}" + Fore.RESET)
+            logger.info(f"[{self.uname}][WARNING] - " + f"{msg}")
         
-
-    # 调试日志
     def logd(self,msg) -> None:
         """
             Log debug message | 调试日志\n
@@ -107,8 +97,7 @@ class lightlog():
             Return: None
         """
         if DEBUG and self._check_(msg):
-            logger.info(f"[{self.uname}][DEBUG] - " + Fore.MAGENTA + f"{msg}" + Fore.RESET)
-        
+            logger.info(f"[{self.uname}][DEBUG] - " + f"{msg}")
 
     def _check_(self,msg) -> bool:
         """
@@ -124,48 +113,42 @@ class lightlog():
 
     def return_success(self,info : str , params = {}) -> dict:
         """
-            Return success message to the client 
+            Return success message | 返回信息
             Args :
                 info : str
                 params : dict
-            Returns :
-                dict
+            Returns : dict
         """
-        r = {
+        return {
             "status" : 0,
             "message" : info if info is not None else None,
             "params" :  params if params is not None else {}
         }
-        return r
 
     def return_error(self,info : str,params = {}) -> dict :
         """
-            Return error message to the client | 获取客户端信息
+            Return error message | 返回错误
             Args:
                 info: str # Info message
                 params : dict # Container
-            Return:
-                dict
+            Return : dict
         """
-        r = {
+        return {
             "status" : 1,
             "message" : info if info is not None else None,
             "params" : params if params is not None else {} 
         }
-        return r
 
     def return_warning(self,info : str,params = {}) -> dict:
         """
-            Return warning message to the client | 获取客户端信息
+            Return warning message | 返回警告
             Args:
                 info: str # Info message
                 params : dict # Container
-            Return:
-                None
+            Return : dict
         """
-        r = {
+        return {
             "status" : 2,
             "message" : info if info is not None else None,
             "params" : params if params is not None else {}
         }
-        return r
