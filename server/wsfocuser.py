@@ -440,6 +440,34 @@ class wsfocuser(wsdevice,BasicFocuserAPI):
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_move_to() function"))
 
+    def remote_abort_movement(self) -> None:
+        """
+            Remote abort movement function | 取消指定位置
+            Args : None
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteAbortMovement",
+                "id" : int # just a random number,
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "position" : int # current position
+                }
+            }
+        """
+        res = self.abort_movement()
+        r = {
+            "event" : "RemoteAbortMovement",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "position" : res.get('params').get('position')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_abort_movement() function"))
+
     def remote_get_movement_status(self) -> None:
         """
             Get the status of movement | 获取电调状态
@@ -667,6 +695,18 @@ class wsfocuser(wsdevice,BasicFocuserAPI):
                 "message" : str,
                 "params" : None
             }
+        """
+
+    def abort_movement(self) -> dict:
+        """
+            Abort the movement | 停止
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : Please keep thread-safe
         """
 
     def get_temperature(self) -> dict:

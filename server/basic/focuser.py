@@ -43,6 +43,7 @@ class BasicFocuserInfo(object):
     
     _is_connected = False
     _is_moving = False
+    _is_compensation = False
 
     _can_temperature = False
 
@@ -118,6 +119,16 @@ class BasicFocuserAPI(BasicDeviceAPI):
                 params : {
                     "position" : int
                 }
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def abort_movement(self) -> dict:
+        """
+            Abort movement | 停止
             Returns : {
                 "status" : int,
                 "message" : str,
