@@ -20,8 +20,8 @@ Boston, MA 02110-1301, USA.
 
 
 from secrets import randbelow
-from server.wsdevice import wsdevice,basic_ws_info
-from driver.basicfocuser import FocuserInfo
+from server.basic.wsdevice import wsdevice,basic_ws_info
+from server.basic.focuser import BasicFocuserAPI,BasicFocuserInfo
 import gettext
 import json
 from driver.focuser.ascom import focuser as ascom
@@ -34,11 +34,7 @@ _ = gettext.gettext
 
 __version__ = '1.0.0'
 
-__success__ = 0
-__error__ = 1
-__warning__ = 2
-
-class wsfocuser_info(basic_ws_info,FocuserInfo):
+class wsfocuser_info(basic_ws_info,BasicFocuserInfo):
     """
         Websocket Focuser information container
         Each Focuser has a standard one
@@ -74,7 +70,7 @@ class wsfocuser_info(basic_ws_info,FocuserInfo):
             }
         }
 
-class wsfocuser(wsdevice):
+class wsfocuser(wsdevice,BasicFocuserAPI):
     """
         Websocket Focuser Object
     """
@@ -102,7 +98,7 @@ class wsfocuser(wsdevice):
         self.info.debug = debug if debug is not None else False
         self.info.threaded = threaded if threaded is not None else True
 
-        if self.start_server(self.info.host,self.info.port,False,True).get('status') != __success__:
+        if self.start_server(self.info.host,self.info.port,False,True).get('status') != 0:
             log.loge(_(""))
         self.info._name = name
         self.info._type = _type
@@ -190,7 +186,21 @@ class wsfocuser(wsdevice):
             if case("RemotePolling"):
                 self.remote_polling()
                 break
-            
+            if case("RemoteMoveStep"):
+                self.remote_move_step(_message.get("params"))
+                break
+            if case("RemoteMoveTo"):
+                self.remote_move_to(_message.get("params"))
+                break
+            if case("RemoteGetTemperature"):
+                self.remote_get_temperature()
+                break
+            if case("RemoteGetConfiguration"):
+                self.remote_get_configuration()
+                break
+            if case("RemoteSetConfiguration"):
+                self.remote_set_configuration(_message.get("params"))
+                break
             log.loge(_("Unknown event received from remote client"))
             break
     
@@ -208,7 +218,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteDashboardSetup",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "version" : __version__
@@ -219,7 +229,7 @@ class wsfocuser(wsdevice):
         r = {
             "event" : "RemoteDashboardSetup",
             "id" : randbelow(1000),
-            "status" : __success__,
+            "status" : 0,
             "message" : "Established connection successfully",
             "params" : {
                 "version" : __version__
@@ -243,7 +253,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteConnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : FocuserInfo object
@@ -251,24 +261,13 @@ class wsfocuser(wsdevice):
             }
         """
         res = self.connect(params)
-        if res.get('status') != __success__:
-            r = {
-                "event" : "RemoteConnect",
-                "id" : randbelow(1000),
-                "status" : __error__,
-                "message" : "Failed to connect to Focuser",
-                "params" : {
-                    "reason" : self.info._latest_error
-                }
-            }
-        else:
-            r = {
-                "event" : "RemoteConnect",
-                "id" : randbelow(1000),
-                "status" : __success__,
-                "message" : res.get("message"),
-                "params" : res.get('params')
-            }
+        r = {
+            "event" : "RemoteConnect",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get("message"),
+            "params" : res.get('params')
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_connect() function"))
 
@@ -280,27 +279,19 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteDisconnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
         """
-        if self.disconnect().get('status')!= __success__:
-            r = {
-                "event" : "RemoteDisconnect",
-                "id" : randbelow(1000),
-                "status" : __error__,
-                "message" : "Failed to disconnect from Focuser",
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteDisconnect",
-                "id" : randbelow(1000),
-                "status" : __success__,
-                "message" : "Disconnected from Focuser",
-                "params" : None
-            }
+        res = self.disconnect()
+        r = {
+            "event" : "RemoteDisconnect",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get("message"),
+            "params" : res.get("params")
+         }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_disconnect() function"))
 
@@ -312,12 +303,22 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteReconnect",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
             NOTE : This function will automatically be called when Focuser is disconnected suddenly
         """
+        res = self.reconnect()
+        r = {
+            "event" : "RemoteReconnect",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : res.get('params'),
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_reconnect() function"))
 
     def remote_scanning(self) -> None:
         """
@@ -327,13 +328,25 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteScanning",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "Focuser" : list # list of found Focusers
                 }
             }
         """
+        res = self.scanning()
+        r = {
+            "event" : "RemoteScanning",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : {
+                "focuser" : res.get("params").get("list")
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_scanning() function"))
 
     def remote_polling(self) -> None:
         """
@@ -343,13 +356,25 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemotePolling",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : FocuserInfo object
                 }
             }
         """
+        res = self.polling()
+        r = {
+            "event" : "RemotePolling",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : {
+                "info" : res.get('params').get('info')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_polling() function"))
 
     def remote_move_step(self, params : dict) -> None:
         """
@@ -362,7 +387,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteMoveStep",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "target" : int 
@@ -370,6 +395,18 @@ class wsfocuser(wsdevice):
             }
             NOTE : We suggest to execute get_movement_status() after executing this function
         """
+        res = self.move_step(params)
+        r = {
+            "event" : "RemoteMoveStep",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "target" : res.get('params').get('target')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_move_step() function"))
 
     def remote_move_to(self ,params : dict) -> None:
         """
@@ -382,7 +419,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteMoveTo",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "target" : int 
@@ -390,6 +427,18 @@ class wsfocuser(wsdevice):
             }
             NOTE : We suggest to execute get_movement_status() after executing this function
         """
+        res = self.move_to(params)
+        r = {
+            "event" : "RemoteMoveTo",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "target" : res.get('params').get('target')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_move_to() function"))
 
     def remote_get_movement_status(self) -> None:
         """
@@ -399,15 +448,27 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetMovementStatus",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "status" : Focuser Movement Status
                 }
             }
         """
+        res = self.get_movement_status()
+        r = {
+            "event" : "RemoteGetMovementStatus",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "status" : res.get("params").get('status'),
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_movement_status() function"))
 
-    def remote_get_focuser_temperature(self) -> None:
+    def remote_get_temperature(self) -> None:
         """
             Get the focuser temperature | 获取电调温度
             Args : None
@@ -415,7 +476,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetFocuserTemperature",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "temperature" : float
@@ -423,6 +484,18 @@ class wsfocuser(wsdevice):
             }
             NOTE : This function needs focuser support
         """
+        res = self.get_temperature()
+        r = {
+            "event" : "RemoteGetFocuserTemperature",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "temperature" : res.get('params').get('temperature')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_temperature() function"))
 
     def remote_get_configuration(self) -> None:
         """
@@ -432,7 +505,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteGetConfiguration",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : FocuserInfo object
@@ -440,6 +513,18 @@ class wsfocuser(wsdevice):
             }
             NOTE : This function wiil be automatically called after executing remote_set_configuration()
         """
+        res = self.get_configuration()
+        r = {
+            "event" : "RemoteGetConfiguration",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "info" : res.get('params').get('info')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_get_configuration() function"))
 
     def remote_set_configuration(self, params : dict) -> None:
         """
@@ -453,7 +538,7 @@ class wsfocuser(wsdevice):
             ServerResult : {
                 "event" : "RemoteSetConfiguration",
                 "id" : int # just a random number,
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "type" : str,
@@ -462,6 +547,19 @@ class wsfocuser(wsdevice):
             }
             NOTE : We suggest after executing this function , you should call get_configration()
         """
+        res = self.set_configuration(params)
+        r = {
+            "event" : "RemoteSetConfiguration",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "type" : res.get('params').get('type'),
+                "value" : res.get('params').get('value')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_set_configuration() function"))
 
     # #################################################################
     #
@@ -481,7 +579,7 @@ class wsfocuser(wsdevice):
                 }
             }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "name" : str # name of the focuser
@@ -496,7 +594,7 @@ class wsfocuser(wsdevice):
             Disconnect from the focuser | 断开连接
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -507,7 +605,7 @@ class wsfocuser(wsdevice):
             Reconnect to the focuser | 重连电调
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "result" : str
@@ -521,7 +619,7 @@ class wsfocuser(wsdevice):
             Scanning the focuser | 扫描所有电调
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "list" : focuser List
@@ -530,18 +628,17 @@ class wsfocuser(wsdevice):
             NOTE : This function must be called before connection
         """
 
-    def update_config(self) -> dict:
+    def polling(self) -> dict:
         """
-            Update the configuration of the focuser | 更新电调信息
+            Polling the focuser newest infomation | 获取电调最新信息
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
-                    "info" : focuserInfo object
+                    "info" : BasicFocuserInfo object
                 }
             }
-            NOTE : This function must be called after initialization
         """
 
     def move_step(self, params : dict) -> dict:
@@ -552,7 +649,7 @@ class wsfocuser(wsdevice):
                     "step" : int
                 }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -566,7 +663,7 @@ class wsfocuser(wsdevice):
                     "position" : int
                 }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -577,7 +674,7 @@ class wsfocuser(wsdevice):
             Get focuser temperature | 获取电调温度
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "temperature" : float
@@ -591,7 +688,7 @@ class wsfocuser(wsdevice):
             Get the configration | 获取配置信息
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "info" : Camera Configuration Object
@@ -609,7 +706,7 @@ class wsfocuser(wsdevice):
                     "value" : str # value of configuration
                 }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -628,7 +725,7 @@ class wsfocuser(wsdevice):
             Get current step
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "step" : int
@@ -645,7 +742,7 @@ class wsfocuser(wsdevice):
                     "step" : int
                 }
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : None
             }
@@ -657,7 +754,7 @@ class wsfocuser(wsdevice):
             Get current temperature | 获取电调当前温度
             Args : None
             Returns : {
-                "status" : __success__,__error__,__warning__,
+                "status" : int,
                 "message" : str,
                 "params" : {
                     "temperature" : float

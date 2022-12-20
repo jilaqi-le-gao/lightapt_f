@@ -313,22 +313,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE: This can only start other servers not self restart
         """
         res = self.start_server(params.get("host"),params.get("port"),params.get("debug"),params.get("ssl"))
-        if res.get('status') != 0:
-            r = {
-                "event" : "RemoteStartServer",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteStartServer",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteStartServer",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
         if self.on_send(r) is not True:
             log.loge(_(f"Failed to send remote start server event"))
         
@@ -342,22 +333,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE: This can only stop other servers not self restart
         """
         res = self.stop_server()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteStopServer",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteStopServer",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteStopServer",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
         if self.on_send(r) is not True:
             log.loge(_(f"Failed to send remote stop server event"))
 
@@ -371,22 +353,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : After shutdown server , you will lose connection with client , and can only be restart!
         """
         res = self.shutdown_server()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteShutdownServer",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteShutdownServer",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteShutdownServer",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
         if self.on_send(r) is not True:
             log.loge(_(f"Failed to send remote shutdown server event"))
 
@@ -441,24 +414,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.connect(params)
-        if res.get('status') != 0:
-            r = {
-                "event" : "RemoteConnect",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : {
-                    "reason" : self.info._latest_error
-                }
-            }
-        else:
-            r = {
-                "event" : "RemoteConnect",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get("message"),
-                "params" : res.get('params')
-            }
+        r = {
+            "event" : "RemoteConnect",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get("message"),
+            "params" : res.get('params')
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_connect() function"))
 
@@ -476,22 +438,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.disconnect()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteDisconnect",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteDisconnect",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteDisconnect",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : res.get('params')
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_disconnect() function"))
 
@@ -510,22 +463,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function will automatically be called when camera is disconnected suddenly
         """
         res = self.reconnect()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteReconnect",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteReconnect",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteReconnect",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : res.get('params')
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_reconnect() function"))
 
@@ -545,24 +489,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.scanning()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteScanning",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteScanning",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "camera" : res.get('params').get('camera')
             }
-        else:
-            r = {
-                "event" : "RemoteScanning",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "camera" : res.get('params').get('camera')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_scanning() function"))
 
@@ -582,24 +517,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.polling()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemotePolling",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemotePolling",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : {
+                "info" : res.get('params').get('info')
             }
-        else:
-            r = {
-                "event" : "RemotePolling",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "info" : res.get('params').get('info')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_polling() function"))
 
@@ -634,22 +560,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function is a non-blocking function,will return exposure results
         """
         res = self.start_exposure(params)
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteStartExposure",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteStartExposure",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteStartExposure",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_start_exposure() function"))
 
@@ -670,24 +587,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This is a blocking function
         """
         res = self.abort_exposure()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteAbortExposure",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteAbortExposure",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : {
+                "result" : res.get('params').get('result')
             }
-        else:
-            r = {
-                "event" : "RemoteAbortExposure",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "result" : res.get('params').get('result')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_abort_exposure() function"))
 
@@ -707,24 +615,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.get_exposure_status()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteGetExposureStatus",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteGetExposureStatus",
+            "id" : randbelow(1000),
+            "status" : res.get("status"),
+            "message" : res.get('message'),
+            "params" : {
+                "status" : res.get('params').get('status')
             }
-        else:
-            r = {
-                "event" : "RemoteGetExposureStatus",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "status" : res.get('params').get('status')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_get_exposure_status() function"))
 
@@ -747,26 +646,17 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function will be executing when the exposure is finished , don't need to call
         """
         res = self.get_exposure_result()
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteGetExposureResult",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteGetExposureResult",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "image" : res.get('params').get('image'),
+                "histogram" : res.get('params').get('histogram'),
+                "info" : res.get('params').get('info')
             }
-        else:
-            r = {
-                "event" : "RemoteGetExposureResult",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "image" : res.get('params').get('image'),
-                    "histogram" : res.get('params').get('histogram'),
-                    "info" : res.get('params').get('info')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_get_exposure_result() function"))
     
@@ -788,22 +678,13 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         """
         res = self.start_sequence_exposure(params)
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteStartSequenceExposure",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
-            }
-        else:
-            r = {
-                "event" : "RemoteStartSequenceExposure",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : None
-            }
+        r = {
+            "event" : "RemoteStartSequenceExposure",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_start_sequence_exposure() function"))
 
@@ -822,6 +703,16 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
             NOTE : After executing this command , we will totally cancel the sequence exposure
         """
+        res = self.abort_sequence_exposure()
+        r = {
+            "event" : "RemoteAbortSequenceExposure",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_abort_sequence_exposure() function"))
 
     def remote_pause_sequence_exposure(self) -> None:
         """
@@ -838,6 +729,16 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
             NOTE : After executing this command, you can still continue sequence exposures
         """
+        res = self.pause_sequence_exposure()
+        r = {
+            "event" : "RemotePauseSequenceExposure",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_pause_sequence_exposure() function"))
 
     def remote_continue_sequence_exposure(self) -> None:
         """
@@ -854,6 +755,16 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
             NOTE : After executing this command, you will continue sequence exposures
         """
+        res = self.continue_sequence_exposure()
+        r = {
+            "event" : "RemoteContinueSequenceExposure",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : None
+        }
+        if self.on_send(r) is not True:
+            log.loge_(_("Failed to send message while executing remote_continue_sequence_exposure() function"))
 
     def remote_cooling(self , params : dict) -> None:
         """
@@ -878,24 +789,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function needs camera support , if camera is not a cooling camera , something terrible will happen 
         """
         res = self.cooling(params)
-        if res.get('status') != 0:
-            r = {
-                "event" : "RemoteCooling",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteCooling",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "result" : res.get('params').get('result')
             }
-        else:
-            r = {
-                "event" : "RemoteCooling",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "result" : res.get('params').get('result')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_cooling() function"))
 
@@ -916,24 +818,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function needs camera support, if camera is not a cooling camera, something ter
         """
         res = self.get_cooling_status()
-        if res.get('status') != 0:
-            r = {
-                "event" : "RemoteGetCoolingStatus",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteGetCoolingStatus",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "status" : res.get('params').get('status')
             }
-        else:
-            r = {
-                "event" : "RemoteGetCoolingStatus",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "status" : res.get('params').get('status')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_get_cooling_status() function"))
 
@@ -954,24 +847,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function is blocking function, will return result to client
         """
         res = self.get_configration()
-        if res.get('status') != 0:
-            r = {
-                "event" : "RemoteGetConfiguration",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteGetConfiguration",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+            "info" : res.get('params').get('info')
             }
-        else:
-            r = {
-                "event" : "RemoteGetConfiguration",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "info" : res.get('params').get('info')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_get_configuration() function"))
 
@@ -997,24 +881,15 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function is blocking function , will return result to client
         """
         res = self.set_configration(params)
-        if res.get('status')!= 0:
-            r = {
-                "event" : "RemoteSetConfiguration",
-                "id" : randbelow(1000),
-                "status" : res.get('status'),
-                "message" : res.get('message'),
-                "params" : None
+        r = {
+            "event" : "RemoteSetConfiguration",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : res.get('message'),
+            "params" : {
+                "result" : res.get('params').get('result')
             }
-        else:
-            r = {
-                "event" : "RemoteSetConfiguration",
-                "id" : randbelow(1000),
-                "status" : 0,
-                "message" : res.get('message'),
-                "params" : {
-                    "result" : res.get('params').get('result')
-                }
-            }
+        }
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_set_configuration() function"))
 

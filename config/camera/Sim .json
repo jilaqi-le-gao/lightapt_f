@@ -1,7 +1,7 @@
 {
     "type": "ascom",
     "name": "Sim ",
-    "id": 8875,
+    "id": 46324,
     "description": "Simulated Monochrome camera ",
     "timeout": 5,
     "configration": "config/camera/Sim .json",

@@ -38,6 +38,8 @@ from os import path,mkdir
 from json import dumps
 import numpy as np
 import astropy.io.fits as fits
+from io import BytesIO
+from base64 import b64encode
 from requests.exceptions import ConnectionError
 
 CameraState = {
@@ -627,6 +629,10 @@ class AscomCameraAPI(BasicCameraAPI):
             log.loge(_("Exposure is still in progress, could not get exposure result"))
             return log.return_error(_("Exposure is still in progress"),{"error": "Exposure is still in progress"})
         try:
+            hist = None
+            base64_encode_img = None
+            info = None
+
             imgdata = self.device.ImageArray
             if self.info._depth is None:
                 img_format = self.device.ImageArrayInfo
@@ -650,6 +656,23 @@ class AscomCameraAPI(BasicCameraAPI):
             else:
                 img = np.float64
             
+            if self.info._imgarray:
+                nda = np.array(imgdata, dtype=img).transpose()
+            else:
+                nda = np.array(imgdata, dtype=img).transpose(2,1,0)
+            # Create a histogram of the image
+            if self.info._depth == 16:
+                hist , bins= np.histogram(nda,bins=[i for i in range(1,256)])
+            elif self.info._depth == 32:
+                hist, bins= np.histogram(nda,bins=[i for i in range(1,65536)])
+            # Create a base64 encoded image
+            bytesio = BytesIO()
+            np.savetxt(bytesio, nda)
+            base64_encode_img = b64encode(bytesio.getvalue())
+            # Create a image information dict
+            info = {
+                "exposure" : self.info._last_exposure
+            }
             if self.info._can_save:
                 log.logd(_("Start saving image data in fits"))
                 hdr = fits.Header()
@@ -675,16 +698,13 @@ class AscomCameraAPI(BasicCameraAPI):
 
                 hdr["SOFTWARE"] = "LightAPT ASCOM Client"
 
-                if self.info._imgarray:
-                    nda = np.array(imgdata, dtype=img).transpose()
-                else:
-                    nda = np.array(imgdata, dtype=img).transpose(2,1,0)
                 hdu = fits.PrimaryHDU(nda, header=hdr)
 
                 _path = "Image_" + "001" + ".fits"
-
-                hdu.writeto(_path, overwrite=True)
-
+                try:
+                    hdu.writeto(_path, overwrite=True)
+                except OSError as e:
+                    log.loge(_(f"Error writing image , error : {e}"))
                 log.logd(_("Save image successfully"))
         except InvalidOperationException as e:
             log.loge(_(f"No image data available , error : {e}"))
@@ -699,5 +719,169 @@ class AscomCameraAPI(BasicCameraAPI):
             log.loge(_(f"Network error while get camera configuration, error : {e}"))
             return log.return_error(_("Network error while get camera configuration"),{"error":e})
         
+        return log.return_success(_("Save image successfully"),{"image" : base64_encode_img,"histogram" : hist,"info" : info})
         
+    def start_sequence_exposure(self, params: dict) -> dict:
+        """
+            Start sequence exposure | 启动计划拍摄
+            Args:
+                params: {
+                    "sequence_count": int # number of sequences
+                    "sequence" : [
+                        {
+                            "name" : str # name of the sequence
+                            "mode" : "light","dark","flat","offset",
+                            "exposure" : float # exposure time in seconds
+                            "gain" : int # gain
+                            "offset" : int # offset
+                            "iso" : int # ISO
+                            "binning" : int # binning
+                            "duration" : float # duration between two images
+                            "repeat" : int
+                            "cooling" : {
+                                "enable" : bool # turn on or off cooling
+                                "temperature" : float # temperature
+                            },
+                            "filterwheel" : {
+                                "enable" : bool # turn on or off filterwheel
+                                "id" : int # id of the filter
+                            },
+                            "image" : {
+                                "is_save" : bool
+                            },
+                            "guiding" : {
+                                "dither" : bool
+                            }
+                        }
+                    ]
+                }
+        """
+        if not self.info._is_connected:
+            log.logw(_(f"Cannot start sequence exposure, device is not connected"))
+            return log.return_error(_("Device is not connected"),{"error": "Device is not connected"})
+        if self.info._is_exposure:
+            log.logw(_(f"Sequence exposure is already in progress"))
+            return log.return_error(_("Sequence exposure is already in progress"),{"error": "Sequence exposure is already in progress"})
+        
+        sequence_count = params.get("sequence_count")
+        sequence = params.get("sequence")
+        if sequence_count is None or sequence_count <= 0:
+            log.logw(_(f"sequence_count must be greater than 0"))
+            return log.return_error(_("Please provide a reasonable sequence count"),{"error":"sequence_count must be greater than 0"})
+        if sequence is None or len(sequence) == 0:
+            log.logw(_(f"sequence must not be empty"))
+            return log.return_error(_("Please provide a reasonable sequence"),{"error":"sequence must not be empty"})
+        
+        try:
+            # execute each sequence
+            for _sequence in sequence:
+                # check parameters provided
+                name = _sequence.get("name")
+                if name is None:
+                    name = "Sequence"
+                mode = _sequence.get("mode")
+                if mode is None:
+                    mode = "light"
+                exposure = _sequence.get("exposure")
+                if exposure is None:
+                    log.loge(_("At least you should provide a exposure value"))
+                    return log.return_error(_("At least you should provide a exposure value"),{"error":"No exposure value"})
+                gain = _sequence.get("gain")
+                if gain is None and self.info._can_gain:
+                    log.loge(_("No gain value provided"))
+                    return log.return_error(_("No gain value provided"),{"error":"No gain value provided"})
+                offset = _sequence.get("offset")
+                if offset is None and self.info._can_offset:
+                    log.loge(_("No offset value provided"))
+                    return log.return_error(_("No offset value provided"),{"error":"No offset value provided"})
+                iso = _sequence.get("iso")
+                if iso is None and self.info._can_iso:
+                    log.loge(_("No ISO value provided"))
+                    return log.return_error(_("No ISO value provided"),{"error":"No ISO value provided"})
+                duration = _sequence.get("duration")
+                binning = _sequence.get("binning")
+                if duration is None:
+                    duration = 1
+                repeat = _sequence.get("repeat")
+                if repeat is None:
+                    repeat = 1
+                cooling = _sequence.get("cooling")
+                filterwheel = _sequence.get("filterwheel")
+                image = _sequence.get("image")
+                log.log(_(f"Start sequence '{name}' exposure"))
+                count = 1
+                for i in range(repeat):
+                    log.log(_(f"Start capture no.{count} image"))
+                    r = {
+                        "exposure" : exposure,
+                        "gain" : gain,
+                        "offset" : offset,
+                        "iso" : iso,
+                        "binning" : binning,
+                        "image" : {
+                            "is_save" : True,
+                            "is_dark" : False if not mode == "dark" else True,
+                            "name" : name + "_" + str(count) + "_",
+                            "type" : "fits"
+                        }
+                    }
+                    res = self.start_exposure(r)
+                    if res.get("status") == 1:
+                        log.loge(_(f"Some error occurred when camera was exposuring , error : {res.get('message')}"))
+                    elif res.get("status") == 2:
+                        log.logw(_(f"Some warning occurred when camera was exposuring , warning : {res.get('message')}"))
+                    res = self.get_exposure_result()
+                    if res.get("status") == 1:
+                        log.loge(_(f"Some error occurred when getting exposure result, error : {res.get('message')}"))
+                    elif res.get("status") == 2:
+                        log.logw(_(f"Some warning occurred when getting exposure result, warning : {res.get('message')}"))
 
+                    count += 1
+        except DriverException as e:
+            log.loge(_("Some error occurred while sequence exposure , error : {e}"))
+            return log.return_error(_("Some error occurred while sequence exposure"),{"error" :e})
+
+    def abort_sequence_exposure(self) -> dict:
+        """
+            Abort sequence exposure | 中止计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : After executing this function , the whole sequence will be reset
+        """
+        try:
+            res = self.abort_exposure()
+            if res.get("status") == 1:
+                log.loge(_(f"Some error occurred when aborting exposure, error : {res.get('message')}"))
+                return log.return_error(_("Some error occurred when aborting exposure"),{"error" :res.get('message')})
+            elif res.get("status") == 2:
+                log.logw(_(f"Some warning occurred when aborting exposure, warning : {res.get('message')}"))
+                return log.return_error(_("Some warning occurred when aborting exposure"),{"warning" :res.get('message')})
+        except DriverException as e:
+            log.loge(_("Some error occurred while aborting exposure, error : {e}"))
+            return log.return_error(_("Some error occurred while aborting exposure"),{"error" :e})
+
+    def pause_sequence_exposure(self) -> dict:
+        """
+            Pause sequence exposure | 中止计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def continue_sequence_exposure(self) -> dict:
+        """
+            Continue sequence exposure | 继续计划拍摄
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """

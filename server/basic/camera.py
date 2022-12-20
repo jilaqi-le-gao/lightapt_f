@@ -159,6 +159,25 @@ class BasicCameraInfo(object):
             }
         }
 
+class BasicSequenceInfo(object):
+    """
+        Basic sequence information container
+    """
+
+    sequence_count = 0
+    sequence = []
+
+    def get_dict(self) -> dict:
+        """
+            Returns a dictionary containing basic sequence information
+            Args : None
+            Returns : dict
+        """
+        return {
+            "sequence_count" : self.sequence_count,
+            "sequence" : self.sequence,
+        }
+
 class BasicCameraAPI(BasicDeviceAPI):
     """
         Basic Camera API
