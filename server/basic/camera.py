@@ -32,10 +32,13 @@ class BasicCameraInfo(object):
     _timeout = 5
     _configration = "" # path to the configuration file
 
+    _exposure = 0
     _gain = 0
     _offset = 0
     _iso = 0
     _binning = []
+    _temperature = -256
+    _cool_power = 0
     _last_exposure : float
     _percent_complete : float
 
@@ -76,9 +79,14 @@ class BasicCameraInfo(object):
 
     _height : int
     _width : int
+    _max_height : int
+    _min_height : int
+    _max_width : int
+    _min_width : int
     _depth : int
     _max_adu : int
     _imgarray = False    # Now is just for ASCOM
+    _bayer_pattern : int
     _bayer_offset_x : int
     _bayer_offset_y : int
     _pixel_height : float
@@ -104,10 +112,13 @@ class BasicCameraInfo(object):
             "timeout": self._timeout,
             "configration": self._configration,
             "current" : {
+                "exposure": self._exposure,
                 "gain": self._gain,
                 "offset": self._offset,
                 "iso": self._iso,
                 "binning": self._binning,
+                "temperature": self._temperature,
+                "cool_power": self._cool_power,
             },
             "ability": {
                 "can_binning" : self._can_binning,
@@ -139,9 +150,14 @@ class BasicCameraInfo(object):
             "frame" : {
                 "height" : self._height,
                 "width" : self._width,
+                "max_height" : self._max_height,
+                "min_height" : self._min_height,
+                "max_width" : self._max_width,
+                "min_width" : self._min_width,
                 "depth" : self._depth if self._depth is not None else 0,
                 "max_adu" : self._max_adu,
                 "imgarray" : self._imgarray,
+                "bayer_pattern" : self._bayer_pattern,
                 "bayer_offset_x" : self._bayer_offset_x,
                 "bayer_offset_y" : self._bayer_offset_y,
                 "pixel_height" : self._pixel_height,
@@ -396,6 +412,58 @@ class BasicCameraAPI(BasicDeviceAPI):
                 }
             }
             NOTE : This function needs camera support
+        """
+
+    def start_video_capture(self, params : dict) -> dict:
+        """
+            Start video capture function | 开始录制视频
+            Args : {
+                "params" : {
+                    "path" : str
+                }
+            }
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def abort_video_capture(self) -> dict:
+        """
+            Abort video capture function | 停止录制视频
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def get_video_capture_status(self) -> dict:
+        """
+            Get video capture status function | 获取录制视频状态
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : Video Capture Status Object
+                }
+            }
+        """
+
+    def get_video_capture_result(self) -> dict:
+        """
+            Get video capture result | 获取视频录制结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "video" : Video 
+                }
+            }
         """
 
     # #################################################################

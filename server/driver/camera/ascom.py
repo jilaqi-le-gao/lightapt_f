@@ -235,6 +235,9 @@ class AscomCameraAPI(BasicCameraAPI):
                 }
             }
         """
+        if self.device is None or not self.info._is_connected:
+            log.logw(_("Camera is not connected, please do not execute polling command"))
+            return log.return_warning(_("Camera is not connected"),{})
         try:
             self.info._name = self.device.Name
             log.logd(_(f"Camera name : {self.info._name}"))
@@ -256,7 +259,16 @@ class AscomCameraAPI(BasicCameraAPI):
             log.logd(_(f"Can camera set cooling : {self.info._can_cooling}"))
             self.info._can_get_coolpower = self.device.CanGetCoolerPower
             log.logd(_(f"Can camera get cooling power : {self.info._can_get_coolpower}"))
-
+            if self.info._can_cooling:
+                try:
+                    self.info._temperature = self.device.CCDTemperature
+                except InvalidValueException as e:
+                    log.logd(_("Can not get camera temperature"))
+            if self.info._can_get_coolpower:
+                try:
+                    self.info._cool_power = self.device.CoolerPower
+                except InvalidValueException as e:
+                    log.logd(_("Can not get camera cooling power"))
             try:
                 self.info._gain = self.device.Gain
                 log.logd(_(f"Camera current gain : {self.info._gain}"))
@@ -320,16 +332,22 @@ class AscomCameraAPI(BasicCameraAPI):
             log.logd(_(f"Camera frame height : {self.info._height}"))
             self.info._width = self.device.CameraXSize
             log.logd(_(f"Camera frame width : {self.info._width}"))
+            self.info._max_height = self.info._height
+            self.info._max_width = self.info._width
+            self.info._min_height = self.info._height
+            self.info._min_width = self.info._width
             self.info._depth = self.device.ImageArrayInfo
             try:
                 self.info._bayer_offset_x = self.device.BayerOffsetX
                 log.logd(_(f"Camera bayer offset x : {self.info._bayer_offset_x}"))
                 self.info._bayer_offset_y = self.device.BayerOffsetY
                 log.logd(_(f"Camera bayer offset y : {self.info._bayer_offset_y}"))
+                self.info._bayer_pattern = 0
                 self.info._is_color = True
             except NotImplementedException:
                 self.info._bayer_offset_x = 0
                 self.info._bayer_offset_y = 0
+                self.info._bayer_pattern = ""
                 self.info._is_color = False
             self.info._pixel_height = self.device.PixelSizeY
             log.logd(_(f"Camera pixel height : {self.info._pixel_height}"))
@@ -417,6 +435,9 @@ class AscomCameraAPI(BasicCameraAPI):
             }
             NOTE : This function is a blocking function
         """
+        if self.device is None or not self.info._is_connected:
+            log.logw(_("Camera is not connected, please do not execute polling command"))
+            return log.return_warning(_("Camera is not connected"),{})
         exposure = params.get("exposure")
         gain = params.get("gain")
         offset = params.get("offset")

@@ -43,10 +43,10 @@ Just like the name of the project, only a few dependent libraries are needed to 
 
 ### Requirements
 
-+ requsets 
++ astropy
 + flask
-+ Pillow
-+ tifffile
++ numpy
++ requsets 
 
 ## Support
 + QQ Group 710622107
