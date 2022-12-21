@@ -287,7 +287,7 @@ html {
   cursor: pointer;
   border-radius: 5px;
   background-color: rgb(83, 99, 122);
-  background-image: url("../images/handle_bg.svg");
+  background-image: url("/static/textures/svg/handle_bg.svg");
   background-repeat: no-repeat;
   background-position: right;
   box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
@@ -295,7 +295,7 @@ html {
 #noVNC_control_bar_handle:after {
   content: "";
   transition: transform 0.5s ease-in-out;
-  background: url("../images/handle.svg");
+  background: url("/static/textures/svg/handle.svg");
   position: absolute;
   top: 22px; /* (50px-6px)/2 */
   right: 5px;
@@ -514,7 +514,7 @@ html {
   cursor: pointer;
 }
 .noVNC_expander::before {
-  content: url("../images/expander.svg");
+  content: url("/static/textures/svg/expander.svg");
   display: inline-block;
   margin-right: 5px;
   transition: 0.2s ease-in-out;
@@ -685,19 +685,19 @@ html {
   background: rgba(128,128,128,0.9);
 }
 #noVNC_status.noVNC_status_normal::before {
-  content: url("../images/info.svg") " ";
+  content: url("/static/textures/svg/info.svg") " ";
 }
 #noVNC_status.noVNC_status_error {
   background: rgba(200,55,55,0.9);
 }
 #noVNC_status.noVNC_status_error::before {
-  content: url("../images/error.svg") " ";
+  content: url("/static/textures/svg/error.svg") " ";
 }
 #noVNC_status.noVNC_status_warn {
   background: rgba(180,180,30,0.9);
 }
 #noVNC_status.noVNC_status_warn::before {
-  content: url("../images/warning.svg") " ";
+  content: url("/static/textures/svg/warning.svg") " ";
 }
 
 /* ----------------------------------------
@@ -879,18 +879,18 @@ html {
   font-family: 'Orbitron';
   font-style: normal;
   font-weight: 700;
-  src: local('?'), url('Orbitron700.woff') format('woff'),
-                   url('Orbitron700.ttf') format('truetype');
+  src: local('?'), url('/static/font/novnc/Orbitron700.woff') format('woff'),
+                   url('/static/font/novnc/Orbitron700.ttf') format('truetype');
 }
 
 .noVNC_logo {
-  color:yellow;
+  color:rgb(8, 106, 252);
   font-family: 'Orbitron', 'OrbitronTTF', sans-serif;
   line-height:90%;
   text-shadow: 0.1em 0.1em 0 black;
 }
 .noVNC_logo span{
-  color:green;
+  color:rgb(4, 126, 248);
 }
 
 #noVNC_bell {

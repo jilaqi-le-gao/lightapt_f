@@ -13,7 +13,7 @@
     or the fragment:
         http://example.com/#host=HOST&port=PORT&encrypt=1
     -->
-    <title>noVNC</title>
+    <title>LightAPT - noVNC</title>
 
     <meta charset="utf-8">
 
@@ -78,56 +78,56 @@
 
             <div class="noVNC_scroll">
 
-            <h1 class="noVNC_logo" translate="no"><span>no</span><br>VNC</h1>
+            <h1 class="noVNC_logo" translate="no"><span>Light</span><br>APT</h1>
 
             <hr>
 
             <!-- Drag/Pan the viewport -->
-            <input type="image" alt="Drag" src="/static/textures/drag.svg"
+            <input type="image" alt="Drag" src="/static/textures/svg/drag.svg"
                 id="noVNC_view_drag_button" class="noVNC_button noVNC_hidden"
                 title="Move/Drag Viewport">
 
             <!--noVNC Touch Device only buttons-->
             <div id="noVNC_mobile_buttons">
-                <input type="image" alt="Keyboard" src="/static/textures/keyboard.svg"
+                <input type="image" alt="Keyboard" src="/static/textures/svg/keyboard.svg"
                     id="noVNC_keyboard_button" class="noVNC_button" title="Show Keyboard">
             </div>
 
             <!-- Extra manual keys -->
-            <input type="image" alt="Extra keys" src="/static/textures/toggleextrakeys.svg"
+            <input type="image" alt="Extra keys" src="/static/textures/svg/toggleextrakeys.svg"
                 id="noVNC_toggle_extra_keys_button" class="noVNC_button"
                 title="Show Extra Keys">
             <div class="noVNC_vcenter">
             <div id="noVNC_modifiers" class="noVNC_panel">
-                <input type="image" alt="Ctrl" src="/static/textures/ctrl.svg"
+                <input type="image" alt="Ctrl" src="/static/textures/svg/ctrl.svg"
                     id="noVNC_toggle_ctrl_button" class="noVNC_button"
                     title="Toggle Ctrl">
-                <input type="image" alt="Alt" src="/static/textures/alt.svg"
+                <input type="image" alt="Alt" src="/static/textures/svg/alt.svg"
                     id="noVNC_toggle_alt_button" class="noVNC_button"
                     title="Toggle Alt">
-                <input type="image" alt="Windows" src="/static/textures/windows.svg"
+                <input type="image" alt="Windows" src="/static/textures/svg/windows.svg"
                     id="noVNC_toggle_windows_button" class="noVNC_button"
                     title="Toggle Windows">
-                <input type="image" alt="Tab" src="/static/textures/tab.svg"
+                <input type="image" alt="Tab" src="/static/textures/svg/tab.svg"
                     id="noVNC_send_tab_button" class="noVNC_button"
                     title="Send Tab">
-                <input type="image" alt="Esc" src="/static/textures/esc.svg"
+                <input type="image" alt="Esc" src="/static/textures/svg/esc.svg"
                     id="noVNC_send_esc_button" class="noVNC_button"
                     title="Send Escape">
-                <input type="image" alt="Ctrl+Alt+Del" src="/static/textures/ctrlaltdel.svg"
+                <input type="image" alt="Ctrl+Alt+Del" src="/static/textures/svg/ctrlaltdel.svg"
                     id="noVNC_send_ctrl_alt_del_button" class="noVNC_button"
                     title="Send Ctrl-Alt-Del">
             </div>
             </div>
 
             <!-- Shutdown/Reboot -->
-            <input type="image" alt="Shutdown/Reboot" src="/static/textures/power.svg"
+            <input type="image" alt="Shutdown/Reboot" src="/static/textures/svg/power.svg"
                 id="noVNC_power_button" class="noVNC_button"
                 title="Shutdown/Reboot...">
             <div class="noVNC_vcenter">
             <div id="noVNC_power" class="noVNC_panel">
                 <div class="noVNC_heading">
-                    <img alt="" src="/static/textures/power.svg"> Power
+                    <img alt="" src="/static/textures/svg/power.svg"> Power
                 </div>
                 <input type="button" id="noVNC_shutdown_button" value="Shutdown">
                 <input type="button" id="noVNC_reboot_button" value="Reboot">
@@ -136,13 +136,13 @@
             </div>
 
             <!-- Clipboard -->
-            <input type="image" alt="Clipboard" src="/static/textures/clipboard.svg"
+            <input type="image" alt="Clipboard" src="/static/textures/svg/clipboard.svg"
                 id="noVNC_clipboard_button" class="noVNC_button"
                 title="Clipboard">
             <div class="noVNC_vcenter">
             <div id="noVNC_clipboard" class="noVNC_panel">
                 <div class="noVNC_heading">
-                    <img alt="" src="/static/textures/clipboard.svg"> Clipboard
+                    <img alt="" src="/static/textures/svg/clipboard.svg"> Clipboard
                 </div>
                 <p class="noVNC_subheading">
                     Edit clipboard content in the textarea below.
@@ -152,18 +152,18 @@
             </div>
 
             <!-- Toggle fullscreen -->
-            <input type="image" alt="Full Screen" src="/static/textures/fullscreen.svg"
+            <input type="image" alt="Full Screen" src="/static/textures/svg/fullscreen.svg"
                 id="noVNC_fullscreen_button" class="noVNC_button noVNC_hidden"
                 title="Full Screen">
 
             <!-- Settings -->
-            <input type="image" alt="Settings" src="/static/textures/settings.svg"
+            <input type="image" alt="Settings" src="/static/textures/svg/settings.svg"
                 id="noVNC_settings_button" class="noVNC_button"
                 title="Settings">
             <div class="noVNC_vcenter">
             <div id="noVNC_settings" class="noVNC_panel">
                 <div class="noVNC_heading">
-                    <img alt="" src="/static/textures/settings.svg"> Settings
+                    <img alt="" src="/static/textures/svg/settings.svg"> Settings
                 </div>
                 <ul>
                     <li>
@@ -253,7 +253,7 @@
             </div>
 
             <!-- Connection Controls -->
-            <input type="image" alt="Disconnect" src="/static/textures/disconnect.svg"
+            <input type="image" alt="Disconnect" src="/static/textures/svg/disconnect.svg"
                 id="noVNC_disconnect_button" class="noVNC_button"
                 title="Disconnect">
 
@@ -273,9 +273,9 @@
     <!-- Connect button -->
     <div class="noVNC_center">
         <div id="noVNC_connect_dlg">
-            <div class="noVNC_logo" translate="no"><span>no</span>VNC</div>
+            <div class="noVNC_logo" translate="no"><span>Light</span>APT</div>
             <button id="noVNC_connect_button">
-                <img alt="" src="/static/textures/connect.svg"> Connect
+                <img alt="" src="/static/textures/svg/connect.svg"> Connect
             </button>
         </div>
     </div>
@@ -344,8 +344,8 @@
     </div>
 
     <audio id="noVNC_bell">
-        <source src="/static/js/novnc/sounds/bell.oga" type="audio/ogg">
-        <source src="/static/js/novnc/sounds/bell.mp3" type="audio/mpeg">
+        <source src="/static/sounds/novnc/bell.oga" type="audio/ogg">
+        <source src="/static/sounds/novnc/bell.mp3" type="audio/mpeg">
     </audio>
  </body>
 </html>

@@ -67,7 +67,7 @@ const UI = {
             // FIXME: This gets hidden when connecting
             UI.showStatus(_("HTTPS is required for full functionality"), 'error');
         }
-
+        /*
         // Try to fetch version number
         fetch('./package.json')
             .then((response) => {
@@ -85,7 +85,8 @@ const UI = {
                     .concat(Array.from(document.getElementsByClassName('noVNC_version_separator')))
                     .forEach(el => el.style.display = 'none');
             });
-
+        */
+            Array.from(document.getElementsByClassName('noVNC_version')).forEach(el => el.innerText = "1.3.0");
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
             // Remove the address bar
@@ -1750,7 +1751,7 @@ l10n.setup(LINGUAS);
 if (l10n.language === "en" || l10n.dictionary !== undefined) {
     UI.prime();
 } else {
-    fetch('app/locale/' + l10n.language + '.json')
+    fetch('/static/json/novnc/' + l10n.language + '.json')
         .then((response) => {
             if (!response.ok) {
                 throw Error("" + response.status + " " + response.statusText);
