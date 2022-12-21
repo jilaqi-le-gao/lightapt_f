@@ -41,9 +41,21 @@ def index():
 def main():
     return render_template('main.html')
 
+@app.route('/camera.html')
+def camera():
+    return render_template('camera.html')
+    
+@app.route('/telescope.html')
+def telescope():
+    return render_template('telescope.html')
+
 @app.route('/novnc')
 def novnc():
     return render_template('novnc.html')
+
+@app.route('/client')
+def client():
+    return render_template('client.html')
 
 def run_server(host : str , port : int) -> None:
     """

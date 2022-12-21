@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Telescope</title>
+
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="/static/css/all.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="/static/css/adminlte.min.css">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="/static/css/plugins/OverlayScrollbars.min.css">
+    <!-- MDB CSS -->
+    <link rel="stylesheet" href="/static/css/mdb.min.css">
+    <!-- Camera Style -->
+    <link rel="stylesheet" href="/static/css/client/camera.css">
+
+</head>
+
+<body style="height: auto;" class="sidebar-mini sidebar-closed sidebar-collapse dark-mode">
+    <div class="wrapper">
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card card-default card-primary">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fa-solid fa-shuffle"></i>
+                                    相机连接与信息
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <!-- Camera Connection and Infomation -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-plug"></i>
+                                            相机连接
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- IP and Port Input Form-->
+                                        <div class="form-group">
+                                            <div class="form-row justify-content-center mb-3">
+                                                <div class="form-col-md">
+                                                    <label for="ipAddress" class="active">IP地址 / 主机名称</label>
+                                                    <input type="text" value=""
+                                                        class="form-control form-control-sm text-center text-white border-sx-blue"
+                                                        id="ipAddress" aria-describedby="ip" placeholder="这里填写地址">
+                                                    <small id="ipHelp"
+                                                        class="form-text text-muted">填写IP地址或主机名称，空白则默认为localhost</small>
+                                                </div>
+                                                <div class="form-col-md">
+                                                    <label for="ipPort">端口</label>
+                                                    <select
+                                                        class="browser-default custom-select custom-select-sm text-white border-sx-blue"
+                                                        id="ipPort">
+                                                        <option value="5000" selected="">5000</option>
+                                                        <option value="5001">5001</option>
+                                                        <option value="5002">5002</option>
+                                                        <option value="5003">5003</option>
+                                                        <option value="5004">5004</option>
+                                                    </select>
+                                                    <small id="ipPortHelp" class="form-text text-muted">选择端口</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- /.IP and Port Input Form-->
+                                        <!-- Connect and Disconnect Button -->
+                                        <div class="input-group-append d-flex">
+                                            <button id="connectBtn"
+                                                class="btn btn-primary btn-sm m-1 px-1 flex-fill waves-effect waves-light">
+                                                <i class="fas fa-link mr-1"></i>连接
+                                            </button>
+                                            <button id="disconnectBtn"
+                                                class="btn btn-danger btn-sm m-1 px-1 flex-fill doubleConfirm waves-effect waves-light disabled btn-dark"
+                                                value="断开与LightAPT的连接">
+                                                <i class="fas fa-unlink mr-1"></i>断开连接
+                                            </button>
+                                        </div>
+                                        <!-- /.Connect and Disconnect Button -->
+                                        <!-- Status and Action Text-->
+                                        <div class="mt-3">
+                                            <ul class="list-group bg-dark">
+                                                <li
+                                                    class="list-group-item d-flex align-items-center justify-content-between">
+                                                    <span id="statGenText" class="text-muted info-data-item w-auto">
+                                                        <i class="fas fa-signal-bars"></i> 状态
+                                                    </span>
+                                                    <span class="environmentField info-data-item text-right"
+                                                        id="generalStatusText"></span>
+                                                </li>
+                                                <li
+                                                    class="list-group-item d-flex align-items-center justify-content-between">
+                                                    <span id="remoteActionText"
+                                                        class="text-muted info-data-item w-auto">
+                                                        <i class="fa-solid fa-barcode-scan"></i> 动作
+                                                    </span>
+                                                    <span class="environmentField info-data-item  text-right"
+                                                        id="generalActionText"></span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <!-- /.Status and Action Text-->
+                                        <!-- Camera Profile -->
+                                        <div class="my-3">
+                                            <div
+                                                class="text-center p-2 text-small extraSmallText text-uppercase text-muted">
+                                                选择文件
+                                            </div>
+                                            <div
+                                                class="list-group-item text-center d-inline-flex justify-content-between align-items-center p-1 w-100">
+                                                <div>
+                                                    <span id="selectedProfile" class="text-small ml-1"></span>
+                                                </div>
+                                                <div>
+                                                    <button id="profileListtBtn"
+                                                        class="btn btn-sm btn-indigo mx-1 flex-end px-2 py-1 lev1active waves-effect waves-light disabled"
+                                                        type="button">
+                                                        更换
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- /. Camera Profile-->
+                                    </div>
+                                </div>
+                                <!-- /.Camera Connection-->
+                                <!-- Camera Infomation -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-info"></i>
+                                            相机信息
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-group bg-dark">
+                                            <li
+                                                class="list-group-item d-flex align-items-center justify-content-between">
+                                                <div class="statusLed" id="cameraStatLed"></div>
+                                                <span id="cameraConnText">相机信息</span>
+                                            </li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                                <!-- /.Camera Infomation-->
+                                <!-- Image Infomation -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-image"></i>
+                                            图像信息
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                    </div>
+                                </div>
+                                <!-- /. Image Infomation-->
+                            </div>
+                            <!-- /.Camera Connection and Infomation -->
+                        </div>
+                        <div class="card-footer text-muted text-center">
+                            <div class="status-item d-inline-flex">
+                                <div class="led-circle mr-2" div="" id="connStatus" name="connStatus"></div>
+                                <p class="statusText">
+                                    <span id="lightapt">软件连接信息面板</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.Camera Info -->
+                    <!-- Camera Control -->
+                    <div class="col-md-6">
+                        <div class="card card-default card-primary">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fa-solid fa-camera"></i>
+                                    相机控制
+                                </div>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <!-- Single Frame Exposure -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-timer"></i>
+                                            单张拍摄
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group d-flex">
+                                            <div class="col m-1 p-0">
+                                                <label for="timeShot" class="active">曝光 (秒)</label>
+                                                <input type="number"
+                                                    class="form-control form-control-sm text-center text-white border-sx-blue"
+                                                    id="ex" value="1" placeholder="Exposure (s)">
+                                            </div>
+                                            <div class="col m-1 p-0">
+                                                <label for="filterSelect">滤镜</label>
+                                                <select
+                                                    class="browser-default custom-select custom-select-sm text-white border-sx-blue"
+                                                    id="filter">
+                                                    <option value="" selected="">Filter</option>
+                                                </select>
+                                            </div>
+                                            <div class="col m-1 p-0">
+                                                <label for="binSelect">像素合并</label>
+                                                <select
+                                                    class="browser-default custom-select custom-select-sm text-white border-sx-blue"
+                                                    id="bin">
+                                                    <option value="1" selected="">1x1</option>
+                                                    <option value="2">2x2</option>
+                                                    <option value="4">4x4</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="input-group d-flex">
+                                            <input type="number"
+                                                class="form-control form-control-sm text-center text-white border-sx-blue m-1"
+                                                id="gain" placeholder="增益">
+                                            <input type="number"
+                                                class="form-control form-control-sm text-center text-white border-sx-blue m-1"
+                                                id="offset" placeholder="偏置">
+                                        </div>
+
+                                        <div class="d-flex">
+                                            <button id="remoteShotbtn"
+                                                class="btn btn-primary btn-sm m-1 btn-voy-item px-2 actBtn waves-effect waves-light disabled">
+                                                <i class="fas fa-camera"></i> 拍摄
+                                            </button>
+                                            <button id="remoteShotAbortbtn"
+                                                class="btn btn-danger btn-sm m-1 btn-voy-item px-2 doubleConfirm waves-effect waves-light disabled">
+                                                <i class="fas fa-times"></i> 中断
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.Single Frame Exposure -->
+                                <!-- Sequence Exposure-->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-calendar-week"></i>
+                                            计划拍摄
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                    </div>
+                                </div>
+                                <!-- /.Sequence Exposure-->
+                                <!-- Camera Params Setting-->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">
+                                            <i class="fa-solid fa-gears"></i>
+                                            参数设置
+                                        </h3>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool btn-sm"
+                                                data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- /.card-tools -->
+                                    </div>
+                                    <div class="card-body">
+                                    </div>
+                                </div>
+                                <!-- /. Camera Params Setting -->
+                            </div>
+                            <div class="card-footer text-muted text-center">
+                                <div class="status-item d-inline-flex">
+                                    <span id="lightapt">相机控制</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- jQuery -->
+    <script src="/static/js/jquery.min.js"></script>
+    <!-- jQuery UI 1.11.4 -->
+    <script src="/static/js/jquery-ui.min.js"></script>
+    <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+    <script>
+        $.widget.bridge('uibutton', $.ui.button)
+    </script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="/static/js/plugins/jquery.overlayScrollbars.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/static/js/adminlte.min.js"></script>
+</body>
+
+</html>

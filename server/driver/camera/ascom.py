@@ -906,3 +906,29 @@ class AscomCameraAPI(BasicCameraAPI):
                 "params" : None
             }
         """
+
+    def get_sequence_exposure_status(self) -> dict:
+        """
+            Get sequence exposure status | 获取计划拍摄状态
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : int,
+                }
+            }
+        """
+
+    def get_sequence_exposure_result(self) -> dict:
+        """
+            Get sequence exposure result | 获取计划拍摄结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "result" : dict
+                }
+            }
+        """
