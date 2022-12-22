@@ -20,12 +20,11 @@ Boston, MA 02110-1301, USA.
 
 from server.webapp import run_server
 from utils.lightlog import lightlog
-
+import argparse
 log = lightlog(__name__)
 
 import gettext
 _ = gettext.gettext
-import threading
 
 version = "1.0.0"
 
@@ -33,11 +32,11 @@ if __name__ == "__main__":
     log.log(_("Initialize LightAPT server ..."))
     log.log(_(f"Current version is {version}"))
 
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=5000)
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--debug', type=bool, default=False)
+    parser.add_argument('--threaded', type=bool, default=True)
     parser.add_argument('--config', type=str, default='')
     parser.add_argument('--gui' , type=bool, default= False)
     args = parser.parse_args()    

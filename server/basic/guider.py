@@ -36,7 +36,7 @@ class TcpSocket(object):
         self.terminate = False
 
     def __del__(self):
-        self.Disconnect()
+        self.disconnect()
 
     def connect(self, hostname, port):
         self.sock = socket.socket()
@@ -100,10 +100,20 @@ class BasicGuiderInfo(object):
     """
 
     _is_connected = False
+    _is_device_connected = False
+    _is_looping = False
     _is_calibrating = False
     _is_dithering = False
     _is_guiding = False
+    _is_settling = False
+
+    _is_calibrated = False
     _is_selected = False
+    _is_settled = False
+    _is_starlost = False
+    _is_starlocklost = False
+
+    _can_cooling = False
 
     def get_dict(self) -> dict:
         """
