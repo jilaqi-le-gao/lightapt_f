@@ -18,7 +18,7 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from server.wsserver import run_server
+from server.webapp import run_server
 from utils.lightlog import lightlog
 
 log = lightlog(__name__)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     if args.gui:
         """Open terminal ui based on """
     try:
-        run_server(args.host, args.port)
+        run_server(args.host, args.port,False)
 
     except KeyboardInterrupt as exception:
         log.log(_("Shutdown lightAPT server by user"))

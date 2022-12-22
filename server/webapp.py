@@ -30,8 +30,6 @@ app = Flask(__name__,
     static_folder=os.path.join(os.getcwd(),os.path.join("client","static")),
     template_folder=os.path.join(os.getcwd(),os.path.join("client","templates"))
 )
-thread = None
-server = None
 
 @app.route('/')
 def index():
@@ -41,14 +39,26 @@ def index():
 def main():
     return render_template('main.html')
 
-@app.route('/camera.html')
+@app.route('/camera')
 def camera():
     return render_template('camera.html')
     
-@app.route('/telescope.html')
+@app.route('/telescope')
 def telescope():
     return render_template('telescope.html')
 
+@app.route('/focuser')
+def focuser():
+    return render_template('focuser.html')
+
+@app.route('/guider')
+def guider():
+    return render_template('guider.html')
+
+@app.route('/solver')
+def solver():
+    return render_template('solver.html')
+    
 @app.route('/novnc')
 def novnc():
     return render_template('novnc.html')
@@ -57,12 +67,22 @@ def novnc():
 def client():
     return render_template('client.html')
 
-def run_server(host : str , port : int) -> None:
+def run_server(host : str , port : int , threaded : bool , debug = False) -> None:
     """
         Start the server | 启动服务器
         Args: 
             host : str # default is "127.0.0.1"
-            port : int # default is 5001
+            port : int # default is 5000
+            threaded : bool # default is False
+            debug : bool # default is False
         Return: None
     """
+    if host is None:
+        host = "127.0.0.1"
+    if port is None:
+        port = 5000
+    if threaded is None:
+        threaded = True
+    if debug is None:
+        debug = False
     app.run(host=host, port=port,debug=True)
