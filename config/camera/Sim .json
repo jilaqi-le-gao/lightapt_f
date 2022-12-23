@@ -1,18 +1,21 @@
 {
     "type": "ascom",
     "name": "Sim ",
-    "id": 46324,
+    "id": 36458,
     "description": "Simulated Monochrome camera ",
     "timeout": 5,
     "configration": "config/camera/Sim .json",
     "current": {
+        "exposure": 0,
         "gain": 0,
         "offset": 0,
         "iso": 0,
         "binning": [
             1,
             1
-        ]
+        ],
+        "temperature": -256,
+        "cool_power": 0
     },
     "ability": {
         "can_binning": true,
@@ -47,9 +50,14 @@
     "frame": {
         "height": 600,
         "width": 800,
+        "max_height": 600,
+        "min_height": 600,
+        "max_width": 800,
+        "min_width": 800,
         "depth": 0,
         "max_adu": 65535,
         "imgarray": false,
+        "bayer_pattern": "",
         "bayer_offset_x": 0,
         "bayer_offset_y": 0,
         "pixel_height": 5.6,

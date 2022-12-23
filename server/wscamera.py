@@ -18,10 +18,8 @@ Boston, MA 02110-1301, USA.
 
 """
 
-import json
-from driver.basiccamera import CameraInfo
-from .basic.camera import BasicCameraAPI
-from .basic.wsdevice import wsdevice,basic_ws_info
+from server.basic.camera import BasicCameraAPI,BasicCameraInfo
+from server.basic.wsdevice import wsdevice,basic_ws_info
 from utils.utility import switch, ThreadPool
 from utils.lightlog import lightlog
 log = lightlog(__name__)
@@ -29,10 +27,11 @@ log = lightlog(__name__)
 from secrets import randbelow
 import gettext
 _ = gettext.gettext
+import json
 
 __version__ = '1.0.0'
 
-class wscamera_info(basic_ws_info,CameraInfo):
+class wscamera_info(basic_ws_info,BasicCameraInfo):
     """
         Websocket camera information container
         Public basic_ws_info and CameraInfo
@@ -114,6 +113,7 @@ class wscamera_info(basic_ws_info,CameraInfo):
                 "percent_complete" : self._percent_complete
             },
             "status" : {
+                "connected" : self._is_connected,
                 "exposure" : self._is_exposure,
                 "video" : self._is_video,
                 "guiding" : self._is_guiding,
@@ -187,12 +187,15 @@ class wscamera(wsdevice,BasicCameraAPI):
         return super().restart_server()
 
     def on_connect(self, client, server):
+        log.logd(_("Established connection with client"))
         return super().on_connect(client, server)
 
     def on_disconnect(self, client, server):
+        log.logd(_("Disconnected from client"))
         return super().on_disconnect(client, server)
     
     def on_message(self, client, server, message):
+        log.logd(_(f"Received message : {message}"))
         return super().on_message(client, server, message)
 
     def on_send(self, message: dict) -> bool:
@@ -277,6 +280,12 @@ class wscamera(wsdevice,BasicCameraAPI):
                 break
             if case("RemoteContinueSequenceExposure"):
                 self.remote_continue_sequence_exposure()
+                break
+            if case("RemoteGetSequenceExposureStatus"):
+                self.remote_get_sequence_exposure_status()
+                break
+            if case("RemoteGetSequenceExposureResults"):
+                self.remote_get_sequence_exposure_results()
                 break
             if case("RemoteCooling"):
                 self.remote_cooling(_message.get("params"))
@@ -409,7 +418,7 @@ class wscamera(wsdevice,BasicCameraAPI):
                 "status" : int,
                 "message" : str,
                 "params" : {
-                    "info" : CameraInfo object
+                    "info" : BasicCameraInfo object
                 }
             }
         """
@@ -927,27 +936,29 @@ class wscamera(wsdevice,BasicCameraAPI):
             log.loge(_("Please provide a type and name for the camera"))
             return log.return_error(_("Please provide a type and name for the"),{})
         try:
+            _type = params.get('type')
             # Initialize camera object,dynamic import camera class
             # Connect to camera after initialization
-            for case in switch(params.get('type').lower()):
+            for case in switch(_type):
                 if case("ascom"):
-                    from driver.camera.ascom import camera as ascom
-                    self.device = ascom()
+                    from server.driver.camera.ascom import AscomCameraAPI as camera
+                    self.device = camera()
                     if self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0}).get("status") != 0:
                         log.loge(_("Failed to connect to the camera"))
                         return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
                     log.log(_("Connected to the camera successfully"))
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
-                if case("indi"):
-                    from driver.camera.indi import camera as indi
+                    self.info._is_connected = True
+                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.info.get_dict()})
+                """if case("indi"):
+                    from server.driver.camera.indi import camera as indi
                     self.device = indi()
                     if self.device.connect({"host" : params.get('host'),"port" : params.get('port')}).get("status") != 0:
                         log.loge(_("Failed to connect to the camera"))
                         return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
                     log.log(_("Connected to the camera successfully"))
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
+                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})"""
                 if case("asi"):
-                    from driver.camera.zwoasi import camera as asi
+                    from server.driver.camera.zwoasi import camera as asi
                     self.device = asi()
                     if self.device.connect({"name" : params.get("name")}).get("status") != 0:
                         log.loge(_("Failed to connect to the camera"))
@@ -955,7 +966,7 @@ class wscamera(wsdevice,BasicCameraAPI):
                     log.log(_("Connected to the camera successfully"))
                     return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
                 if case("qhy"):
-                    from driver.camera.qhyccd import camera as qhy
+                    from server.driver.camera.qhyccd import camera as qhy
                     self.device = qhy()
                     if self.device.connect({"name" : params.get("name")}).get("status") != 0:
                         log.loge(_("Failed to connect to the camera"))
@@ -964,9 +975,9 @@ class wscamera(wsdevice,BasicCameraAPI):
                     return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
                 log.loge(_("Unknown camera type , please provide a correct camera type"))
                 return log.return_error(_("Unknown camera type, please provide a correct camera type"),{})
-        except Exception:
-            log.loge(_("Some error occurred during connect to camera"))
-            return log.return_error(_("Some error occurred during connect to camera"),{})
+        except Exception as e:
+            log.loge(_(f"Some error occurred during connect to camera, error : {e}"))
+            return log.return_error(_("Some error occurred during connect to camera"),{"error":e})
 
     def disconnect(self) -> dict:
         """

@@ -12,8 +12,6 @@
     <link rel="stylesheet" href="/static/css/all.min.css">
     <!-- AdminLTE Theme style -->
     <link rel="stylesheet" href="/static/css/adminlte.min.css">
-    <!-- overlayScrollbars -->
-    <link rel="stylesheet" href="/static/css/plugins/OverlayScrollbars.min.css">
     <!-- MDB CSS -->
     <link rel="stylesheet" href="/static/css/mdb.min.css">
     <!-- Camera Style -->
@@ -87,7 +85,7 @@
                                                 <i class="fas fa-link mr-1"></i>连接
                                             </button>
                                             <button id="disconnectBtn"
-                                                class="btn btn-danger btn-sm m-1 px-1 flex-fill doubleConfirm waves-effect waves-light disabled btn-dark"
+                                                class="btn btn-danger btn-sm m-1 px-1 flex-fill doubleConfirm waves-effect waves-light btn-dark"
                                                 value="断开与LightAPT的连接">
                                                 <i class="fas fa-unlink mr-1"></i>断开连接
                                             </button>
@@ -113,6 +111,15 @@
                                                     <span class="environmentField info-data-item  text-right"
                                                         id="generalActionText"></span>
                                                 </li>
+                                                <li
+                                                    class="list-group-item d-flex align-items-center justify-content-between">
+                                                    <span id="remoteActionText"
+                                                        class="text-muted info-data-item w-auto">
+                                                        <i class="fa-solid fa-paper-plane"></i> 日志
+                                                    </span>
+                                                    <span class="environmentField info-data-item  text-right"
+                                                        id="generalLogText"></span>
+                                                </li>
                                             </ul>
                                         </div>
                                         <!-- /.Status and Action Text-->
@@ -129,7 +136,7 @@
                                                 </div>
                                                 <div>
                                                     <button id="profileListtBtn"
-                                                        class="btn btn-sm btn-indigo mx-1 flex-end px-2 py-1 lev1active waves-effect waves-light disabled"
+                                                        class="btn btn-sm btn-indigo mx-1 flex-end px-2 py-1 lev1active waves-effect waves-light"
                                                         type="button">
                                                         更换
                                                     </button>
@@ -156,13 +163,47 @@
                                         <!-- /.card-tools -->
                                     </div>
                                     <div class="card-body">
-                                        <ul class="list-group bg-dark">
+                                        <ul class="list-group">
                                             <li
                                                 class="list-group-item d-flex align-items-center justify-content-between">
                                                 <div class="statusLed" id="cameraStatLed"></div>
                                                 <span id="cameraConnText">相机信息</span>
                                             </li>
+                                            
+                                            <ul class="list-group text-small" id="cameraStatusBar"></ul>
 
+                                            <div id="cameraConnectOptions">
+
+                                                <div class="input-group d-flex" id="cameraConnectIpBar">
+                                                    <input class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectHost" placeholder="主机">
+                                                    <input type="number" class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectPort" placeholder="端口">
+                                                </div>
+
+                                                <div class="input-group d-flex" id="cameraConnectBar">
+                                                    <input class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectName" placeholder="名称">
+
+                                                    <select class="custom-select custom-select-sm text-center text-white border-sx-blue m-1 p-2" id="connectType">
+                                                        <option value="ascom" selected="">ASCOM</option>
+                                                        <option value="indi">INDI</option>
+                                                        <option value="zwoasi">ZWOASI</option>
+                                                        <option value="qhyccd">QHYCCD</option>
+                                                    </select>
+                                                </div>
+                                                <small id="cameraConnectHelp" class="form-text text-muted text-center">如果是ASI或者QHY相机，则不用填写主机和端口</small>
+                                            </div>    
+                                            <!-- Connect and Disconnect Button -->
+                                            <div class="input-group-append d-flex" id="cameraConnectButtonBar">
+                                                <button id="cameraConnectBtn"
+                                                    class="btn btn-primary btn-sm m-1 px-1 flex-fill waves-effect waves-light">
+                                                    <i class="fas fa-link mr-1"></i>连接
+                                                </button>
+                                                <button id="cameraDisconnectBtn"
+                                                    class="btn btn-danger btn-sm m-1 px-1 flex-fill doubleConfirm waves-effect waves-light"
+                                                    value="断开与相机连接">
+                                                    <i class="fas fa-unlink mr-1"></i>断连
+                                                </button>
+                                            </div>
+                                            <!-- /.Connect and Disconnect Button -->                                            
                                         </ul>
                                     </div>
                                 </div>
@@ -264,11 +305,11 @@
 
                                         <div class="d-flex">
                                             <button id="remoteShotbtn"
-                                                class="btn btn-primary btn-sm m-1 btn-voy-item px-2 actBtn waves-effect waves-light disabled">
+                                                class="btn btn-primary btn-sm m-1 btn-voy-item px-2 actBtn waves-effect waves-light">
                                                 <i class="fas fa-camera"></i> 拍摄
                                             </button>
                                             <button id="remoteShotAbortbtn"
-                                                class="btn btn-danger btn-sm m-1 btn-voy-item px-2 doubleConfirm waves-effect waves-light disabled">
+                                                class="btn btn-danger btn-sm m-1 btn-voy-item px-2 doubleConfirm waves-effect waves-light">
                                                 <i class="fas fa-times"></i> 中断
                                             </button>
                                         </div>
@@ -337,10 +378,10 @@
     </script>
     <!-- Bootstrap 4 -->
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    <!-- overlayScrollbars -->
-    <script src="/static/js/plugins/jquery.overlayScrollbars.min.js"></script>
     <!-- AdminLTE App -->
     <script src="/static/js/adminlte.min.js"></script>
+    <!-- Custom Camera Js -->
+    <script src="/static/js/client/camera.js"></script>
 </body>
 
 </html>

@@ -124,11 +124,11 @@ class AscomCameraAPI(BasicCameraAPI):
             log.loge(_(f"Network error while connecting to camera , error : {e}"))
             return log.return_error(_("Network error while connecting to camera"),{"error" : e})
         log.log(_("Connected to device successfully"))
+        self.info._is_connected = True
+        self.info._type = "ascom"
         res = self.get_configration()
         if res.get('status') != 0:
             return log.return_error(_(f"Failed tp load camera configuration"),{})
-        self.info._is_connected = True
-        self.info._type = "ascom"
         return log.return_success(_("Connect to camera successfully"),{"info":res.get("info")})
 
     def disconnect(self) -> dict:

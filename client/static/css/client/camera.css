@@ -21,9 +21,20 @@
     margin: 2px;
 }
 
+.ledgreen {
+    background-color: #00c851 !important;
+    -webkit-box-shadow: 0 0 5px #00c851;
+    -moz-box-shadow: 0 0 5px #00c851;
+    box-shadow: 0 0 5px #00c851;
+}  
+
 .text-small {
     font-size: 80% !important;
     font-weight: 400 !important;
+}
+
+.extraSmallText {
+    font-size: x-small !important;
 }
 
 .btn-voy-item {
@@ -34,4 +45,10 @@
     width: 8px;
     height: 8px;
     background-color: dimgrey;
+}
+
+.camera-panel-item {
+    font-size: x-small;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
 }

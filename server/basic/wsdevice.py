@@ -186,7 +186,7 @@ class wsdevice(object):
             NOTE: This function must be called before killing main thread
         """ 
         if not self.info.running:
-            log.loge_(_("Server is not running , please do not execute stop_server()"))
+            log.loge(_("Server is not running , please do not execute stop_server()"))
             return log.return_error(_("Server is not running, please do not execute stop_server()"),{})
         self.ws.shutdown_gracefully()
         log.log(_("Shutting down websocket server gracefully"))

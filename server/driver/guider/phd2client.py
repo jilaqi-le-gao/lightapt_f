@@ -1901,7 +1901,11 @@ class PHD2Client(BasicGuiderAPI):
             Start guiding | 开导
             Args:
                 params : {
-                    "settle" : Settle object
+                    "settle" : {
+                        "pixels" : float,
+                        "time" : float
+                        "timeout" : float
+                    }
                     "recalibrate" bool # default is False
                     "roi" : [x,y,width,height] # default is full frame
                 }
@@ -1911,6 +1915,41 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_connected:
+            log.loge(_("PHD2 server is not connected"))
+            return log.return_error(_("PHD2 server is not connected"),{})
+        if self.info._is_calibrating:
+            log.logw(_("PHD2 server is calibrating now"))
+            return log.return_warning(_("PHD2 server is calibrating now"),{})
+        if self.info._is_guiding:
+            log.logw(_("PHD2 server is already started guiding"))
+            return log.return_warning(_("PHD2 server is already started guiding"),{})
+        # Check if the parameters are correct
+        settle = SettleParams()
+        if params.get('settle') is not None:
+            settle.pixels = params.get('settle').get('pixels')
+            settle.time = params.get('settle').get('time')
+            settle.timeout = params.get('settle').get('timeout')
+        recalibrate = params.get('recalibrate',False)
+        roi = params.get('roi')
+        if roi is None:
+            roi = [0,0,self.info._width,self.info._height]
+        _params = {
+            "settle" : settle,
+            "recalibrate" : recalibrate,
+            "roi" : roi
+        }
+        command = self.generate_command("guide",_params)
+        try:
+            res = self.send_command(command)
+            log.logd(_("Sent guide command to PHD2 server successfully"))
+        except socket.error as e:
+            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
+            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+        if "error" in res:
+            log.loge(_(f"Guide error: {res.get('error')}"))
+            return log.return_error(_("Guide error"),{"error":res.get('error')})
+        self.info._is_guiding = True
 
     def _guide_pulse(self,params : dict) -> dict:
         """
@@ -1927,6 +1966,19 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_connected:
+            log.loge(_("PHD2 server is not connected"))
+            return log.return_error(_("PHD2 server is not connected"),{})
+        command = self.generate_command("guide_pulse")
+        try:
+            res = self.send_command(command)
+            log.logd(_("Sent guide pulse command to PHD2 server successfully"))
+        except socket.error as e:
+            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
+            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+        if "error" in res:
+            log.loge(_(f"Guide pulse error: {res.get('error')}"))
+            return log.return_error(_("Guide pulse error"),{"error":res.get('error')})
 
     def _loop(self) -> dict:
         """
@@ -1940,6 +1992,20 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : 	start capturing, or, if guiding, stop guiding but continue capturing
         """
+        if not self.info._is_connected:
+            log.loge(_("PHD2 server is not connected"))
+            return log.return_error(_("PHD2 server is not connected"),{})
+        command = self.generate_command("loop")
+        try:
+            res = self.send_command(command)
+            log.logd(_("Sent loop command to PHD2 server successfully"))
+        except socket.error as e:
+            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
+            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+        if "error" in res:
+            log.loge(_(f"Loop error: {res.get('error')}"))
+            return log.return_error(_("Loop error"),{"error":res.get('error')})
+        self.info._is_looping = True
 
     def _save_image(self) -> dict:
         """

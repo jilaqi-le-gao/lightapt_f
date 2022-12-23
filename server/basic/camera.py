@@ -39,8 +39,8 @@ class BasicCameraInfo(object):
     _binning = []
     _temperature = -256
     _cool_power = 0
-    _last_exposure : float
-    _percent_complete : float
+    _last_exposure = 0
+    _percent_complete = 0
 
     _image_id = 0
     _image_path = ""
@@ -50,23 +50,23 @@ class BasicCameraInfo(object):
     _ipaddress : str # IP address only ASCOM and INDI
     _api_version : str # API version only ASCOM and INDI
 
-    _can_binning : bool
-    _can_cooling : bool
-    _can_gain : bool
-    _can_get_coolpower : bool
-    _can_guiding : bool
-    _can_has_shutter : bool
-    _can_iso : bool
-    _can_offset : bool
+    _can_binning = False
+    _can_cooling = False
+    _can_gain = False
+    _can_get_coolpower = False
+    _can_guiding = False
+    _can_has_shutter = False
+    _can_iso = False
+    _can_offset = False
     _can_save = True
 
-    _is_color : bool
-    _is_connected : bool
-    _is_cooling : bool
-    _is_exposure : bool
-    _is_guiding : bool
-    _is_imageready : bool
-    _is_video : bool
+    _is_color = False
+    _is_connected = False
+    _is_cooling = False
+    _is_exposure = False
+    _is_guiding = False
+    _is_imageready = False
+    _is_video = False
 
     _max_gain : int
     _min_gain : int
@@ -119,6 +119,7 @@ class BasicCameraInfo(object):
                 "binning": self._binning,
                 "temperature": self._temperature,
                 "cool_power": self._cool_power,
+                "percent_complete": self._percent_complete,
             },
             "ability": {
                 "can_binning" : self._can_binning,
