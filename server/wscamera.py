@@ -20,7 +20,11 @@ Boston, MA 02110-1301, USA.
 
 from server.basic.camera import BasicCameraAPI,BasicCameraInfo
 from server.basic.wsdevice import wsdevice,basic_ws_info
-from utils.utility import switch, ThreadPool
+from server.wsexception import WSCameraError as error
+from server.wsexception import WSCameraWarning as warning
+from server.wsexception import WSCameraSuccess as success
+
+from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 
@@ -195,7 +199,8 @@ class wscamera(wsdevice,BasicCameraAPI):
         return super().on_disconnect(client, server)
     
     def on_message(self, client, server, message):
-        log.logd(_(f"Received message : {message}"))
+        msg = message.replace('\n','')
+        log.logd(_(f"Received message : {msg}"))
         return super().on_message(client, server, message)
 
     def on_send(self, message: dict) -> bool:
@@ -297,7 +302,7 @@ class wscamera(wsdevice,BasicCameraAPI):
                 self.remote_get_cooling_status()
                 break
             if case("RemoteGetConfiguration"):
-                self.remote_get_configuration()
+                self.remote_get_configuration(_message.get("params"))
                 break
             if case("RemoteSetConfiguration"):
                 self.remote_set_configuration(_message.get("params"))
@@ -326,7 +331,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteStartServer",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -346,7 +351,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteStopServer",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -366,7 +371,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteShutdownServer",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -427,7 +432,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteConnect",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get("message"),
+            "message" : str(res.get("message")),
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
@@ -451,7 +456,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteDisconnect",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
@@ -476,7 +481,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteReconnect",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
@@ -502,7 +507,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteScanning",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "camera" : res.get('params').get('camera')
             }
@@ -530,7 +535,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemotePolling",
             "id" : randbelow(1000),
             "status" : res.get("status"),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "info" : res.get('params').get('info')
             }
@@ -573,7 +578,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteStartExposure",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -600,7 +605,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteAbortExposure",
             "id" : randbelow(1000),
             "status" : res.get("status"),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "result" : res.get('params').get('result')
             }
@@ -628,7 +633,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteGetExposureStatus",
             "id" : randbelow(1000),
             "status" : res.get("status"),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "status" : res.get('params').get('status')
             }
@@ -659,7 +664,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteGetExposureResult",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "image" : res.get('params').get('image'),
                 "histogram" : res.get('params').get('histogram'),
@@ -691,7 +696,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteStartSequenceExposure",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -717,7 +722,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteAbortSequenceExposure",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -743,7 +748,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemotePauseSequenceExposure",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -769,7 +774,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteContinueSequenceExposure",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : None
         }
         if self.on_send(r) is not True:
@@ -802,7 +807,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteCooling",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "result" : res.get('params').get('result')
             }
@@ -831,7 +836,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteGetCoolingStatus",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "status" : res.get('params').get('status')
             }
@@ -839,7 +844,7 @@ class wscamera(wsdevice,BasicCameraAPI):
         if self.on_send(r) is not True:
             log.loge_(_("Failed to send message while executing remote_get_cooling_status() function"))
 
-    def remote_get_configuration(self) -> None:
+    def remote_get_configuration(self,params : dict) -> None:
         """
             Remote get configuration function | 获取相机参数
             Args : None
@@ -855,12 +860,12 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
             NOTE : This function is blocking function, will return result to client
         """
-        res = self.get_configration()
+        res = self.get_configration(params)
         r = {
             "event" : "RemoteGetConfiguration",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
             "info" : res.get('params').get('info')
             }
@@ -894,7 +899,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "event" : "RemoteSetConfiguration",
             "id" : randbelow(1000),
             "status" : res.get('status'),
-            "message" : res.get('message'),
+            "message" : str(res.get('message')),
             "params" : {
                 "result" : res.get('params').get('result')
             }
@@ -931,6 +936,7 @@ class wscamera(wsdevice,BasicCameraAPI):
         """
         if self.info._is_connected:
             log.logw(_("Had already connected to the camera , please do not connect again"))
+            self.remote_polling()
             return log.return_warning(_("Had already connected to the camera"),{"advice" : _("Please do not connect again")})
         if params.get("type") is None or params.get("name") is None:
             log.loge(_("Please provide a type and name for the camera"))
@@ -943,41 +949,43 @@ class wscamera(wsdevice,BasicCameraAPI):
                 if case("ascom"):
                     from server.driver.camera.ascom import AscomCameraAPI as camera
                     self.device = camera()
-                    if self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0}).get("status") != 0:
-                        log.loge(_("Failed to connect to the camera"))
-                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
-                    log.log(_("Connected to the camera successfully"))
-                    self.info._is_connected = True
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.info.get_dict()})
-                """if case("indi"):
+                    res = self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0})
+                    if res.get("status") != 0:
+                        log.loge(error.ConnectError)
+                        return log.return_error(error.ConnectError,{"error":str(res.get("message"))})
+                    break
+                if case("indi"):
                     from server.driver.camera.indi import camera as indi
                     self.device = indi()
-                    if self.device.connect({"host" : params.get('host'),"port" : params.get('port')}).get("status") != 0:
-                        log.loge(_("Failed to connect to the camera"))
-                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
-                    log.log(_("Connected to the camera successfully"))
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})"""
+                    res = self.device.connect({"host" : params.get('host'),"port" : params.get('port')})
+                    if res.get("status") != 0:
+                        log.loge(error.ConnectError)
+                        return log.return_error(error.ConnectError,{"error":str(res.get("message"))})
+                    break
                 if case("asi"):
                     from server.driver.camera.zwoasi import camera as asi
                     self.device = asi()
-                    if self.device.connect({"name" : params.get("name")}).get("status") != 0:
-                        log.loge(_("Failed to connect to the camera"))
-                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
-                    log.log(_("Connected to the camera successfully"))
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
+                    res = self.device.connect({"name" : params.get("name")})
+                    if res.get("status") != 0:
+                        log.loge(error.ConnectError)
+                        return log.return_error(error.ConnectError,{"error":res.get("mesaage")})
+                    break
                 if case("qhy"):
                     from server.driver.camera.qhyccd import camera as qhy
                     self.device = qhy()
-                    if self.device.connect({"name" : params.get("name")}).get("status") != 0:
-                        log.loge(_("Failed to connect to the camera"))
-                        return log.return_error(_("Failed to connect to the camera"),{"advice" : _("Connect again")})
-                    log.log(_("Connected to the camera successfully"))
-                    return log.return_success(_("Connected to the camera successfully"),{"info" : self.device.update_config()})
+                    res = self.device.connect({"name" : params.get("name")})
+                    if res.get("status") != 0:
+                        log.loge(error.ConnectError)
+                        return log.return_error(error.ConnectError,{"error":res.get("error")})
+                    break
                 log.loge(_("Unknown camera type , please provide a correct camera type"))
                 return log.return_error(_("Unknown camera type, please provide a correct camera type"),{})
         except Exception as e:
             log.loge(_(f"Some error occurred during connect to camera, error : {e}"))
             return log.return_error(_("Some error occurred during connect to camera"),{"error":e})
+        log.log(_(success.ConnectSuccess))
+        self.info._is_connected = True
+        return log.return_success(_(success.ConnectSuccess),{"info" : self.device.info.get_dict()})
 
     def disconnect(self) -> dict:
         """
@@ -1124,9 +1132,9 @@ class wscamera(wsdevice,BasicCameraAPI):
         """
         if params.get("exposure") is None or not 0 < params.get('exposure') < 1000000:
             log.loge(_("Unreasonable exposure time was given , please give a possible number"))
-        if params.get("gain") is None or not 0 < params.get('gain'):
+        if params.get("gain") is None or params.get('gain') < 0:
             log.loge(_("Unreasonable gain was given, please give a possible number"))
-        if params.get("offset") is None or not 0 < params.get('offset'):
+        if params.get("offset") is None or params.get('offset') < 0:
             log.loge(_("Unreasonable offset was given, please give a possible number"))
         if params.get("binning") is None or not 1 <= params.get('bin') <= 8:
             log.loge(_("Unreasonable binning was given, please give a possible number"))
@@ -1323,23 +1331,20 @@ class wscamera(wsdevice,BasicCameraAPI):
             NOTE : This function needs camera support
         """
         if not self.info._can_set_temperature:
-            log.loge(_("Camera does not support temperature control"))
-            return log.return_error(_("Camera does not support temperature control"),{})
+            log.loge(error.NotSupportTemperatureControl)
+            return log.return_error(error.NotSupportTemperatureControl,{})
         if params.get('enable') is None:
             params['enable'] = False
         if params.get('temperature') is None:
             return log.return_error(_("Please provide a temperature"),{})
         if params.get('power') is None:
-            pass
+            return log.return_error(_("Please provide a power"),{})
         res = self.device.cooling(params)
-        if res.get("status") == 1:
-            log.loge(_("Failed to set the cooling"))
-            return log.return_error(_("Failed to set the cooling"),{"advice" : _("Set cooling failed")})
-        elif res.get("status") == 2:
-            log.logw(_("Set cooling with warning"))
-            return log.return_success(_("Set cooling with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Set cooling successfully"))
-        return log.return_success(_("Set cooling successfully"),{})
+        if res.get("status") != 0:
+            log.loge(error.CoolingError)
+            return log.return_error(error.CoolingError,{"error":str(res.get("message"))})
+        log.log(success.CoolingSuccess)
+        return log.return_success(success.CoolingSuccess,{})
 
     def cooling_to(self, params: dict) -> dict:
         """

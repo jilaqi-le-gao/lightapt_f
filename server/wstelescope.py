@@ -21,7 +21,7 @@ Boston, MA 02110-1301, USA.
 import gettext
 import json
 from libs.websocket.websocket_server import WebsocketServer
-from driver.telescope.ascom import telescope as ascom
+from server.driver.telescope.ascom import telescope as ascom
 
 from utils.utility import switch, ThreadPool
 from utils.lightlog import lightlog
