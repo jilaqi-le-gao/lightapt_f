@@ -45,8 +45,6 @@ from libs.alpyca.telescope import GuideDirections
 from libs.alpyca.exceptions import *
 from libs.alpyca.docenum import DocIntEnum
 from typing import List
-#import requests
-#from requests import Response
 import requests
 import array
 

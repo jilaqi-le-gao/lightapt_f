@@ -44,3 +44,38 @@ class WSCameraWarning(Enum):
     """
         Regular websocket camera warning
     """
+
+class WebAppSuccess(Enum):
+    """
+        Regular web app success
+    """
+    DeviceStartedSuccess = _("Started a device server successfully")
+    DeviceStoppedSuccess = _("Stopped a device server successfully")
+
+class WebAppError(Enum):
+    """
+        Regular web app error
+    """
+    ConfigFileNotFound = _("Could not find configration file ")
+    ConfigFolderNotFound = _("Could not find configration folder ")
+    ScriptNotFound = _("Could not find script file ")
+
+    EmptyConfigFile = _("Config file is empty ")
+
+    InvalidFile = _("Invalid device configuration file {}")
+    InvalidScriptPath = _("Invalid script path ")
+    InvalidDeviceType = _("Invalid device type ")
+    InvalidDeviceID = _("Invalid device ID")
+
+    LoadConfigFailed = _("Could not load configuration file {}")
+    LoadScriptFailed = _("Could not load script file {}")
+
+    HadAlreadyStarted = _("This server has already contained a device ")
+    HadAlreadyStartedSame = _("This server has already contained the same device you want to start now ")
+    DeviceNotStarted = _("The device you are trying to stop is not available on this server")
+    DeviceStopFailed = _("Failed to stop the device")
+
+class WebAppWarning(Enum):
+    """
+        Regular web app warning
+    """

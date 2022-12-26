@@ -5,13 +5,13 @@ import time
 import trace
 
 # websocket modules
-from ._abnf import *
-from ._exceptions import *
-from ._handshake import *
-from ._http import *
-from ._socket import *
-from ._ssl_compat import *
-from ._utils import *
+from libs.wsclient._abnf import *
+from libs.wsclient._exceptions import *
+from libs.wsclient._handshake import *
+from libs.wsclient._http import *
+from libs.wsclient._socket import *
+from libs.wsclient._ssl_compat import *
+from libs.wsclient._utils import *
 
 """
 _core.py

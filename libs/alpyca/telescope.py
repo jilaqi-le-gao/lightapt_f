@@ -69,7 +69,6 @@ class EquatorialCoordinateType(DocIntEnum):
     equJ2000        = 2, 'J2000 equator/equinox. Coordinates of the object at mid-day on 1st January 2000, ICRS reference frame.'
     equJ2050        = 3, 'J2050 equator/equinox, ICRS reference frame.'
     equB1950        = 4, 'B1950 equinox, FK4 reference frame.'
-##    equLocalTopocentric = 1     # OBSOLETE, use Topocentric
 
 class GuideDirections(DocIntEnum):    # Shared by Camera
     """The direction in which the guide-rate motion is to be made."""

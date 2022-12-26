@@ -20,7 +20,6 @@ from ._abnf import *
 from ._app import WebSocketApp, setReconnect
 from ._core import *
 from ._exceptions import *
-from ._logging import *
 from ._socket import *
 
 __version__ = "1.4.2"

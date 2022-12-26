@@ -257,7 +257,7 @@ class WebSocketHandler(StreamRequestHandler):
         if server.key and server.cert:
             try:
                 socket = ssl.wrap_socket(socket, server_side=True, certfile=server.cert, keyfile=server.key)
-            except: # Not sure which exception it throws if the key/cert isn't found
+            except FileNotFoundError: # Not sure which exception it throws if the key/cert isn't found
                 pass
         StreamRequestHandler.__init__(self, socket, addr, server)
 
@@ -340,7 +340,7 @@ class WebSocketHandler(StreamRequestHandler):
             reason: Text with reason of closing the connection
         """
         if status < CLOSE_STATUS_NORMAL or status > 1015:
-            raise Exception(f"CLOSE status must be between 1000 and 1015, got {status}")
+            raise ValueError(f"CLOSE status must be between 1000 and 1015, got {status}")
 
         header = bytearray()
         payload = struct.pack('!H', status) + reason
@@ -389,8 +389,7 @@ class WebSocketHandler(StreamRequestHandler):
             header.extend(struct.pack(">Q", payload_length))
 
         else:
-            raise Exception("Message is too big. Consider breaking it into chunks.")
-            return
+            raise AttributeError("Message is too big. Consider breaking it into chunks.")
 
         with self._send_lock:
             self.request.send(header + payload)
@@ -442,8 +441,8 @@ class WebSocketHandler(StreamRequestHandler):
     @classmethod
     def calculate_response_key(cls, key):
         GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-        hash = sha1(key.encode() + GUID.encode())
-        response_key = b64encode(hash.digest()).strip()
+        _hash = sha1(key.encode() + GUID.encode())
+        response_key = b64encode(_hash.digest()).strip()
         return response_key.decode('ASCII')
 
     def finish(self):

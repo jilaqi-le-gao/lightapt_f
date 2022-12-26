@@ -78,7 +78,7 @@ def __ipv6_safe_get(endpoint: str, addr: str) -> str:
         headers = {'Host': f'{addr.split("%")[0]}]'}
     else:
         headers = {}
-    return requests.get(f"http://{addr}{endpoint}", headers=headers)
+    return requests.get(f"http://{addr}{endpoint}", headers=headers).text
 
 def apiversions(addr: str) -> List[int]:
     """Returns a list of supported Alpaca API version numbers

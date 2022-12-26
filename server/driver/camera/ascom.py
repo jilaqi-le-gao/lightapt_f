@@ -37,8 +37,8 @@ _ = gettext.gettext
 
 from time import sleep
 from datetime import datetime
-from os import path,mkdir
-from json import dumps
+from os import path,mkdir,getcwd
+from json import dumps,JSONDecodeError
 import numpy as np
 import astropy.io.fits as fits
 from io import BytesIO
@@ -409,14 +409,20 @@ class AscomCameraAPI(BasicCameraAPI):
             }
         """
         _p = path.join
-        _path = _p("config",_p("camera",self.info._name+".json"))
+        _path = _p(getcwd() , "config","camera",self.info._name+".json")
         if not path.exists("config"):
             mkdir("config")
         if not path.exists(_p("config","camera")):
             mkdir(_p("config","camera"))
         self.info._configration = _path
-        with open(_path,mode="w+",encoding="utf-8") as file:
-            file.write(dumps(self.info.get_dict(),indent=4,ensure_ascii=False))
+        try:
+            with open(_path,mode="w+",encoding="utf-8") as file:
+                try:
+                    file.write(dumps(self.info.get_dict(),indent=4,ensure_ascii=False))
+                except JSONDecodeError as e:
+                    log.loge(_(f"JSON decoder error , error : {e}"))
+        except OSError as e:
+            log.loge(_(f"Failed to write configuration to file , error : {e}"))
         log.log(success.SaveConfigrationSuccess)
         return log.return_success(success.SaveConfigrationSuccess,{})
 

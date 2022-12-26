@@ -52,7 +52,7 @@ class DispatcherBase:
             while True:
                 time.sleep(seconds)
                 reconnector(reconnecting=True)
-        except KeyboardInterrupt as e:
+        except KeyboardInterrupt:
             pass
 
 
@@ -66,8 +66,7 @@ class Dispatcher(DispatcherBase):
             sel.register(self.app.sock.sock, selectors.EVENT_READ)
 
             r = sel.select(self.ping_timeout)
-            if r:
-                if not read_callback():
+            if r and not read_callback():
                     break
             check_callback()
             sel.close()
@@ -80,8 +79,7 @@ class SSLDispatcher(DispatcherBase):
     def read(self, sock, read_callback, check_callback):
         while self.app.keep_running:
             r = self.select()
-            if r:
-                if not read_callback():
+            if r and not read_callback():
                     break
             check_callback()
 
@@ -176,7 +174,7 @@ class WebSocketApp:
             if self.sock:
                 try:
                     self.sock.ping(payload)
-                except Exception as ex:
+                except Exception:
                     break
 
     def run_forever(self, sockopt=None, sslopt=None,

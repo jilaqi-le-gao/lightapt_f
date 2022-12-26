@@ -2,9 +2,9 @@ import errno
 import selectors
 import socket
 
-from ._exceptions import *
-from ._ssl_compat import *
-from ._utils import *
+from libs.wsclient._exceptions import *
+from libs.wsclient._ssl_compat import *
+from libs.wsclient._utils import *
 
 """
 _socket.py

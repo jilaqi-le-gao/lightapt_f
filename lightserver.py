@@ -18,8 +18,9 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from server.webapp import run_server
-from utils.lightlog import lightlog
+import os
+from server.webapp import run_server,set_configration
+from utils.lightlog import lightlog,DEBUG
 import argparse
 log = lightlog(__name__)
 
@@ -28,7 +29,12 @@ _ = gettext.gettext
 
 version = "1.0.0"
 
-if __name__ == "__main__":
+def main():
+    """
+        Main function | 主函数
+        Args : None
+        Return : None
+    """
     log.log(_("Initialize LightAPT server ..."))
     log.log(_(f"Current version is {version}"))
 
@@ -37,21 +43,23 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default='127.0.0.1')
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--threaded', type=bool, default=True)
-    parser.add_argument('--config', type=str, default='')
+    parser.add_argument('--config', type=str, default=os.path.join(os.getcwd(), 'config',"config.json"))
     parser.add_argument('--gui' , type=bool, default= False)
     args = parser.parse_args()    
     
     if args.debug:
         """Debug mode"""
+        global DEBUG
+        DEBUG = args.debug
     if args.config:
-        """Change configuration file"""    
+        """Change configuration file"""
+        set_configration(args.config)
     if args.gui:
         """Open terminal ui based on """
     try:
-        run_server(args.host, args.port,False)
-
-    except KeyboardInterrupt as exception:
+        run_server(args.host, args.port)
+    except KeyboardInterrupt:
         log.log(_("Shutdown lightAPT server by user"))
-else:
-    log.loge(_("Please run this file in main thread"))
-    raise SystemError("Main Thread")
+
+if __name__ == "__main__":
+    main()
