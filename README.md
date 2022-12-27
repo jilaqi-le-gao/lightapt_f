@@ -1,3 +1,8 @@
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=AstroAir-Develop-Team_lightapt&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=AstroAir-Develop-Team_lightapt)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=AstroAir-Develop-Team_lightapt&metric=bugs)](https://sonarcloud.io/summary/new_code?id=AstroAir-Develop-Team_lightapt)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=AstroAir-Develop-Team_lightapt&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=AstroAir-Develop-Team_lightapt)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=AstroAir-Develop-Team_lightapt&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=AstroAir-Develop-Team_lightapt)
+
 # LightAPT
 Light weight and Flexible Astro Photography Terminal
 
