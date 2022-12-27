@@ -335,7 +335,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge(_(f"Failed to send remote start server event"))
+            log.loge(error.SendStartServer.value)
         
     def remote_stop_server(self) -> None:
         """
@@ -355,7 +355,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge(_(f"Failed to send remote stop server event"))
+            log.loge(error.SendStopServer.value)
 
     def remote_shutdown_server(self) -> None:
         """
@@ -403,7 +403,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_dashboard_setup() function"))
+            log.loge(error.SendDashboardSetup.value)
 
     def remote_connect(self,params : dict) -> None:
         """
@@ -436,7 +436,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_connect() function"))
+            log.loge(error.SendConnect.value)
 
     def remote_disconnect(self) -> None:
         """
@@ -460,7 +460,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_disconnect() function"))
+            log.loge(error.SendDisconnect.value)
 
     def remote_reconnect(self) -> None:
         """
@@ -485,7 +485,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : res.get('params')
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_reconnect() function"))
+            log.loge(error.SendReconnect.value)
 
     def remote_scanning(self) -> None:
         """
@@ -513,7 +513,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_scanning() function"))
+            log.loge(error.SendScanning.value)
 
     def remote_polling(self) -> None:
         """
@@ -541,7 +541,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_polling() function"))
+            log.loge(error.SendPolling.value)
 
     def remote_start_exposure(self,params : dict) -> None:
         """
@@ -582,7 +582,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_start_exposure() function"))
+            log.loge(error.SendStartExposure.value)
 
     def remote_abort_exposure(self) -> None:
         """
@@ -611,7 +611,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_abort_exposure() function"))
+            log.loge(error.SendAbortExposure.value)
 
     def remote_get_exposure_status(self) -> None:
         """
@@ -639,7 +639,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_get_exposure_status() function"))
+            log.loge(error.SendGetExposureStatus.value)
 
     def remote_get_exposure_result(self) -> None:
         """
@@ -672,7 +672,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_get_exposure_result() function"))
+            log.loge(error.SendGetExposureResult.value)
     
     def remote_start_sequence_exposure(self, params : dict) -> None:
         """
@@ -700,7 +700,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_start_sequence_exposure() function"))
+            log.loge(error.SendStartSequence.value)
 
     def remote_abort_sequence_exposure(self) -> None:
         """
@@ -726,7 +726,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_abort_sequence_exposure() function"))
+            log.loge(error.SendAbortSequence.value)
 
     def remote_pause_sequence_exposure(self) -> None:
         """
@@ -752,7 +752,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_pause_sequence_exposure() function"))
+            log.loge(error.SendPauseSequence.value)
 
     def remote_continue_sequence_exposure(self) -> None:
         """
@@ -778,7 +778,70 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_continue_sequence_exposure() function"))
+            log.loge(error.SendContinueSequence.value)
+
+    def remote_get_sequence_exposure_status(self) -> None:
+        """
+            Remote get exposure status function | 获取计划拍摄进度
+            Args :
+                None
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteGetSequenceExposureStatus",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "percent" : float, # show how many jobs were finished
+                    "sequence" : int, # number of sequences
+                    "id" : int, # id of the image in the sequence
+                }
+            }
+            NOTE : After executing this command, you will get the status of the exposure
+        """
+        res = self.get_sequence_exposure_status()
+        r = {
+            "event" : "RemoteGetSequenceExposureStatus",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : str(res.get('message')),
+            "params" : {
+                "percent" : res.get("params").get('percent'),
+                "sequence" : res.get("params").get('sequence'),
+                "id" : res.get("params").get('id')
+            }
+        }
+        if self.on_send(r) is not True:
+            log.loge(error.SendGetSequenceExposureStatus.value)
+
+    def remote_get_sequence_exposure_results(self) -> None:
+        """
+            Remote get exposure results function | 获取计划拍摄结果
+            Args :
+                None
+            Returns : None
+            ServerResult : {
+                "event" : "RemoteGetSequenceExposureResults",
+                "id" : int,
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "image" : image object list
+                }
+            }
+            NOTE : After executing this command, you will get the results of the exposure
+            TODO : How to send so many images,will the websocket support such big files
+        """
+        res = self.get_sequence_exposure_results()
+        r = {
+            "event" : "RemoteGetSequenceExposureResults",
+            "id" : randbelow(1000),
+            "status" : res.get('status'),
+            "message" : str(res.get('message')),
+            "params" : res.get('params')
+        }
+        if self.on_send(r) is not True:
+            log.loge(error.SendGetSequenceExposureResults.value)
 
     def remote_cooling(self , params : dict) -> None:
         """
@@ -813,7 +876,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_cooling() function"))
+            log.loge(error.SendCooling.value)
 
     def remote_get_cooling_status(self) -> None:
         """
@@ -842,7 +905,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_get_cooling_status() function"))
+            log.loge(error.SendGetCoolingStatus.value)
 
     def remote_get_configuration(self,params : dict) -> None:
         """
@@ -871,7 +934,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_get_configuration() function"))
+            log.loge(error.SendGetConfigration.value)
 
     def remote_set_configuration(self, params : dict) -> None:
         """
@@ -905,7 +968,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             }
         }
         if self.on_send(r) is not True:
-            log.loge_(_("Failed to send message while executing remote_set_configuration() function"))
+            log.loge_(error.SendSetConfigration.value)
 
     # #################################################################
     #
@@ -1313,6 +1376,60 @@ class wscamera(wsdevice,BasicCameraAPI):
             return log.return_warning(_("Continue sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
         log.log(_("Continue sequence exposure successfully"))
         return log.return_success(_("Continue sequence exposure successfully"),{})
+
+    def get_sequence_exposure_status(self) -> dict:
+        """
+            Get sequence exposure status | 获取计划拍摄进度
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "percent" : float,
+                    "sequence" : int,
+                    "id" : int,
+                }
+            }
+        """
+        res = self.device.get_sequence_exposure_status()
+        if res.get("status") == 1:
+            log.loge(_("Failed to get sequence exposure status"))
+            return log.return_error(_("Failed to get sequence exposure status"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get sequence exposure status with warning"))
+            return log.return_warning(_("Get sequence exposure status with warning"),{"warning" : res.get("params").get("warning")})
+        log.log_("Get sequence exposure status successfully")
+        r = {
+            "percent" : res.get("params").get("percent"),
+            "sequence" : res.get("params").get("sequence"),
+            "id" : res.get("params").get("id"),
+        }
+        return log.return_success(_("Get sequence exposure status successfully"),r)
+
+    def get_sequence_exposure_result(self) -> dict:
+        """
+            Get sequence exposure result | 获取计划拍摄结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "image" : list
+                }
+            }
+        """
+        res = self.device.get_sequence_exposure_result()
+        if res.get("status") == 1:
+            log.loge(_("Failed to get sequence exposure result"))
+            return log.return_error(_("Failed to get sequence exposure result"),{})
+        elif res.get("status") == 2:
+            log.logw(_("Get sequence exposure result with warning"))
+            return log.return_warning(_("Get sequence exposure result with warning"),{"warning" : res.get("params").get("warning")})
+        log.log_("Get sequence exposure result successfully")
+        r = {
+            "image" : res.get("params").get("image"),
+        }
+        return log.return_success(_("Get sequence exposure result successfully"),r)
 
     def cooling(self , params : dict) -> dict:
         """

@@ -125,6 +125,51 @@ class BasicGuiderAPI(BasicDeviceAPI):
         Basic Guider API
     """
 
+    def start_looping(self,params : dict) -> dict:
+        """
+            Start looping to get image | 循环曝光
+            Args: 
+                params {
+
+                }
+            Returns: {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+        """
+
+    def stop_looping(self) -> dict:
+        """
+            Stop the looping process | 停止循环曝光
+            Returns: {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+        """
+
+    def get_looping_status(self) -> dict:
+        """
+            Get the looping status | 循环曝光
+            Returns: {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+        """
+    
+    def get_looping_result(self) -> dict:
+        """
+            Get the looping result | 循环曝光结果
+            Returns: {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+            NOTE : This function should get the image of the looping
+        """
+
     def start_guiding(self, params : dict) -> dict:
         """
             Start guiding | 开始导星
@@ -147,6 +192,27 @@ class BasicGuiderAPI(BasicDeviceAPI):
                 "message" : str,
                 "params" : None
             }
+        """
+
+    def get_guiding_status(self) -> dict:
+        """
+            Get guiding status | 获取导星状态
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def get_guiding_result(self) -> dict:
+        """
+            Get the result of the current guiding result | 获取导星结果
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : This function usually be called after canceling the guiding
         """
 
     def start_calibration(self, params : dict) -> dict:
@@ -174,6 +240,30 @@ class BasicGuiderAPI(BasicDeviceAPI):
             }
         """
 
+    def get_calibration_status(self) -> dict:
+        """
+            Get the status of the calibration | 获取校准状态
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : str
+                }
+            }
+        """
+
+    def get_calibration_result(self) -> dict:
+        """
+            Get the result of the calibration | 获取校准结果
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "result" : str
+                }
+            }
+        """
+
     def start_dither(self, params : dict) -> dict:
         """
             Start dithering | 开始抖动
@@ -196,5 +286,29 @@ class BasicGuiderAPI(BasicDeviceAPI):
                 "status" : int,
                 "message" : str,
                 "params" : None
+            }
+        """
+
+    def get_dither_status(self) -> dict:
+        """
+            Get the status of the dither process | 获取抖动状态
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : str
+                }
+            }
+        """
+
+    def get_dither_result(self) -> dict:
+        """
+            Get the result of the dither process | 获取抖动结果
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "result" : str
+                }
             }
         """

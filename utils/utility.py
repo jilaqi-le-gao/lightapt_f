@@ -107,7 +107,6 @@ class ThreadPool:
                 self.cond.notify()
                 # 释放锁
                 self.cond.release()
-            return
  
     def _start_tasks(self):
         # 向线程池中添加到最大数量的线程

@@ -87,10 +87,10 @@ class BasicFocuserAPI(BasicDeviceAPI):
     """
 
     def __init__(self) -> None:
-        return super().__init__()
+        super().__init__()
 
     def __del__(self) -> None:
-        return super().__del__()
+        super().__del__()
 
     # #################################################################
     #

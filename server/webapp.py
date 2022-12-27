@@ -40,6 +40,7 @@ app = Flask(__name__,
 )
 
 config = None
+config_path = "config.json"
 
 camera_container = {}
 mount_container = {}
@@ -89,12 +90,12 @@ def get_config():
         return {
             "error" : error.ConfigFolderNotFound.value
         }
-    if not os.path.exists(os.path.join("config","config.json")):
+    if not os.path.exists(os.path.join("config",config_path)):
         return {
             "error" : error.ConfigFileNotFound.value
         }
     try:
-        with open(os.path.join("config","config.json"),mode="r",encoding="utf-8") as file:
+        with open(os.path.join("config",config_path),mode="r",encoding="utf-8") as file:
             try:
                 config = json.load(file)
                 return {
@@ -326,7 +327,9 @@ def stop_device(device_type, device_id):
             if res.get('status') != 0:
                 log.logw(error.DeviceStopFailed)
                 return {
-                    "error" : error.DeviceStopFailed.value
+                    "error" : error.DeviceStopFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
                 }
             camera_container[device_id]["class"] = None
             log.log(success.DeviceStoppedSuccess)
@@ -334,7 +337,138 @@ def stop_device(device_type, device_id):
                 "success" : success.DeviceStoppedSuccess.value
             }
         if case("mount"):
+            global mount_container
+            if device_id not in mount_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = mount_container[device_id]["class"].disconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceStopFailed)
+                return {
+                    "error" : error.DeviceStopFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
+            mount_container[device_id]["class"] = None
+            log.log(success.DeviceStoppedSuccess)
+            return {
+                "success" : success.DeviceStoppedSuccess.value
+            }
+        if case("focuser"):
+            global focuser_container
+            if device_id not in focuser_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = focuser_container[device_id]["class"].disconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceStopFailed)
+                return {
+                    "error" : error.DeviceStopFailed.value,
+                    "status" : res.get("status"),
+                    "message" : res.get("message")
+                }
+            focuser_container[device_id]["class"] = None
+            log.log(success.DeviceStoppedSuccess)
+            return {
+                "success" : success.DeviceStoppedSuccess.value
+            }
+
+@app.route("/restart/<deivce_type>/<device_id>", methods=["GET"])
+def restart_device(device_type,device_id):
+    """
+        Restart a device via http request 
+        Args: 
+            device_id : str
+        Returns: None
+    """
+    if device_type not in ["camera","mount","focuser","solver","guider"]:
+        log.loge(error.InvalidDeviceType)
+        return {
+            "error" : error.InvalidDeviceType.value
+        }
+    for case in (device_type):
+        if case("camera"):
+            global camera_container
+            if device_id not in camera_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = camera_container[device_id]["class"].reconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceRestartFailed)
+                return {
+                    "error" : error.DeviceRestartFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
             break
+        if case("mount"):
+            global mount_container
+            if device_id not in mount_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = mount_container[device_id]["class"].reconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceRestartFailed)
+                return {
+                    "error" : error.DeviceRestartFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
+            break
+        if case("focuser"):
+            break
+        if case("solver"):
+            break
+        if case("guider"):
+            break
+        break
+    return {
+        "success" : success.DeviceRestartSuccess.value
+    }
+
+@app.route("/scan/<device_type>/<device>",methods = ["GET"])
+def scan_device(device_type,device):
+    """
+        Scan a device via http request 
+        Args: 
+            device_type : str
+        Returns: None
+    """
+    if device_type not in ["camera","mount","focuser","solver","guider"]:
+        log.loge(error.InvalidDeviceType)
+        return {
+            "error" : error.InvalidDeviceType.value
+        }
+    for case in (device_type):
+        if case("camera"):
+            if device not in ["ascom","indi","asi","qhy"]:
+                log.loge(error.InvalidDeviceType)
+                return {
+                    "error" : error.InvalidDeviceType.value
+                }
+            break
+        if case("mount"):
+            if device not in ["ascom","indi","ioptron"]:
+                log.loge(error.InvalidDeviceType)
+                return {
+                    "error" : error.InvalidDeviceType.value
+                }
+            break
+        if case("focuser"):
+            break
+        if case("solver"):
+            break
+        if case("guider"):
+            break
+        break
 
 @app.route("/start/<script>/",methods=["GET"])
 def start_device_(script):
@@ -343,6 +477,14 @@ def start_device_(script):
 @app.route("/stop/<device_type>/<device_id>/",methods=["GET"])
 def stop_device_(device_type, device_id):
     return redirect("/stop/<device_type>/<device_name>")
+
+@app.route("/restart/<deivce_type>/<device_id>/",methods=["GET"])
+def restart_device_(device_type,device_id):
+    return redirect("/restart/<device_type>/<device_id>")
+
+@app.route("/scan/<device_type>/<device>/",methods=["GET"])
+def scan_device_(device_type,device):
+    return redirect("/scan/<device_type>/<device>")
 
 @app.route("/setconfig/<config_path>", methods=["GET"])
 def set_config(config_path):
@@ -395,7 +537,7 @@ def set_configration(config_path : str) -> None:
     """
     if config_path is None:
         log.logd(_("No configuration file is specified , use default configuration"))
-        config_path = os.path.join("config","config.json")
+        config_path = os.path.join("config",config_path)
     log.logd(_(f"Trying to load configuration file : {config_path}"))
     if not os.path.exists(config_path):
         log.loge(_(f"Could not find config file : {config_path}"))

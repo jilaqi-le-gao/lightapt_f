@@ -19,6 +19,10 @@ Boston, MA 02110-1301, USA.
 """
 
 from server.basic.guider import TcpSocket,BasicGuiderAPI,BasicGuiderInfo
+from server.driver.guider.phd2exception import PHD2Success as success
+from server.driver.guider.phd2exception import PHD2Error as error
+from server.driver.guider.phd2exception import PHD2Warning as warning
+
 from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
@@ -155,6 +159,7 @@ class GuidingStatus(object):
     _time : int # the time in seconds, including fractional seconds, since guiding started
     _last_error : int # error code
     _output_enabled : bool # whether output is enabled
+    _dec_guide_mode : str # the guide mode of DEC axis
 
     _dx : float # the X-offset in pixels
     _dy : float # the Y-offset in pixels
@@ -187,6 +192,7 @@ class GuidingStatus(object):
             "time" : self._time,
             "last_error" : self._last_error,
             "output_enabled" : self._output_enabled,
+            "dec_guide_mode" : self._dec_guide_mode,
             "dx" : self._dx,
             "dy" : self._dy,
             "average_distance" : self._average_distance,
@@ -241,6 +247,7 @@ class PHD2ClientInfo(BasicGuiderInfo):
     msgversion : str
     state : str
     profile : dict
+    profile_id : int
 
     mount : str
     frame : int
@@ -398,7 +405,7 @@ class PHD2Client(BasicGuiderAPI):
                 connSkt.connect(("127.0.0.1",port))
                 log.log(_(f"Found socket port open on {port}"))
                 guider_list.append(port)
-            except:
+            except socket.error:
                 log.logd(_(f"Scanning socket port {port} failed"))
         if len(guider_list) == 0:
             log.logd(_(f"No PHD2 server found"))
@@ -422,9 +429,7 @@ class PHD2Client(BasicGuiderAPI):
         """
         while not self.terminate:
             line = self.conn.read()
-            if not line:
-                if not self.terminate:
-                    pass
+            if not line and not self.terminate:
                 break
             try:
                 j = json.loads(line)
@@ -629,7 +634,7 @@ class PHD2Client(BasicGuiderAPI):
                 None
         """
         self.info._is_guiding = False
-        log.log(_("Guiding is paused"))
+        log.log(success.Paused.value)
 
     def _start_calibration(self, message : dict) -> None:
         """
@@ -937,8 +942,8 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : captures a singe frame; guiding and looping must be stopped first
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         # Check if server is guiding
         if self.info._is_guiding:
             log.loge(_("Is guiding now , please stop guiding before capturing a single frame"))
@@ -950,10 +955,9 @@ class PHD2Client(BasicGuiderAPI):
         # Check if the parameters are valid
         exposure = params.get("exposure", self.info.exposure)
         subframe = params.get("subframe", self.info.subframe)
-        if exposure is not None:
-            if not isinstance(exposure,int) or exposure < 0:
-                log.loge(_(f"Unreadable exposure value : {exposure}"))
-                return log.return_error(_("Invalid exposure value"),{})
+        if exposure is not None or not isinstance(exposure,int) or exposure < 0:
+            log.loge(_(f"Unreadable exposure value : {exposure}"))
+            return log.return_error(_("Invalid exposure value"),{})
         if subframe is not None:
             pass
         _params = {
@@ -966,7 +970,7 @@ class PHD2Client(BasicGuiderAPI):
             log.logd(_(f"Captured single frame result : {res}"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server , error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{})
+            return log.return_error(error.SendFailed.value,{})
         log.log(_("Send capture single frame command to PHD2 server"))
         return log.return_success(_("Sent single frame command to PHD2 server"),{})
 
@@ -981,8 +985,8 @@ class PHD2Client(BasicGuiderAPI):
                 dict
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         _type = params.get("type")
         if _type is None or _type not in ["mount", "both", "ao"]:
             log.loge(_("Please provide a type of what calibration data you want to clear"))
@@ -993,7 +997,7 @@ class PHD2Client(BasicGuiderAPI):
             log.logd(_(f"Cleared calibration result : {res}"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server , error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{})
+            return log.return_error(error.SendFailed.value,{})
         log.log(_("Send clear calibration command to PHD2 server"))
         self.info._is_calibrated = False
         return log.return_success(_("Sent clear calibration command to PHD2 server"),{})
@@ -1019,8 +1023,8 @@ class PHD2Client(BasicGuiderAPI):
                     PHD will send Settling and SettleDone events to indicate when guiding has stabilized after the dither.
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         amount = params.get('amount',1.5)
         raonly = params.get('raonly',False)
         settle = params.get('settle')
@@ -1047,7 +1051,7 @@ class PHD2Client(BasicGuiderAPI):
             log.logd(_("Sent dither command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Dither command failed , error : {res.get('error')}"))
             return log.return_error(_("Dither command failed"),{"error":res.get('error')})
@@ -1075,8 +1079,8 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : on success: returns the lock position of the selected star, otherwise returns an error object
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         roi = params.get('roi')
         _params = None
         if roi is not None:
@@ -1094,7 +1098,7 @@ class PHD2Client(BasicGuiderAPI):
             log.log(_("Sent auto select a star command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error" : e})
+            return log.return_error(error.SendFailed.value,{"error" : e})
         if "error" in res:
             log.loge(_(f"PHD2 auto find star error : {res.get('error')}"))
         else:
@@ -1115,17 +1119,17 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         if not self.info._is_calibrated:
             log.loge(_("Guider had not calibrated , please do not execute flip_calibration() command"))
             return log.return_error(_("Guider had not calibrated"),{})
-        command = self.generate_command("flip_calibration")
+        command = self.generate_command("flip_calibration",{})
         try:
             res = self.send_command(command)
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error": e})
+            return log.return_error(error.SendFailed.value,{"error": e})
         if "error" in res:
             log.loge(_(f"PHD2 flip_calibration error : {res.get('error')}"))
             return log.return_error(_("PHD2 flip_calibration error"),{"error":res.get('error')})
@@ -1146,8 +1150,8 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         if "type" not in params:
             log.loge(_(f"Guide algorithm type is not set"))
             return log.return_error(_(f"Guide algorithm type is not set"),{})
@@ -1163,7 +1167,7 @@ class PHD2Client(BasicGuiderAPI):
             log.logd(_("Sent get algorithms parameters command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error": e})
+            return log.return_error(error.SendFailed.value,{"error": e})
         if "error" in res:
             log.loge(_(f"PHD2 get_algo_param_names error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_algo_param_names error"),{"error":res.get('error')})
@@ -1187,16 +1191,16 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : 	same value that came in the last AppState notification
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         log.logd(_("Trying to get app state ... "))
-        command = self.generate_command("get_app_state")
+        command = self.generate_command("get_app_state",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get app state command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"PHD2 get_app_state error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_app_state error"),{"error":res.get('error')})
@@ -1214,16 +1218,16 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         log.logd(_("Trying to get camera frame size... "))
-        command = self.generate_command("get_camera_frame_size")
+        command = self.generate_command("get_camera_frame_size",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get camera frame size command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"PHD2 get_camera_frame_size error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_camera_frame_size error"),{"error":res.get('error')})
@@ -1243,16 +1247,16 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         log.logd(_("Trying to get calibrated status ... "))
-        command = self.generate_command("get_calibrated")
+        command = self.generate_command("get_calibrated",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get calibrated command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"PHD2 get_calibrated error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_calibrated error"),{"error":res.get('error')})
@@ -1275,13 +1279,13 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         if not self.info._is_calibrated:
             log.logw(_("It seems that guider not calibrated , check again"))
             res = self._get_calibrated()
             if res.get("status") != 0:
-                return
+                return log.return_error(res.get("message"),{})
             if res.get("params").get("status") is True:
                 self.info._is_calibrated = True
         _type = params.get("type")
@@ -1295,7 +1299,7 @@ class PHD2Client(BasicGuiderAPI):
             log.logd(_("Sent get calibration data command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"PHD2 get_calibration_data error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_calibration_data error"),{"error":res.get('error')})
@@ -1342,15 +1346,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : This function is to check if the equipment is connected
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_connected")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_connected",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get connected command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"PHD2 get_connected error : {res.get('error')}"))
             return log.return_error(_("PHD2 get_connected error"),{"error":res.get('error')})
@@ -1371,15 +1375,15 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_cooler_status")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_cooler_status",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get cooler status command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get cooler status error : {res.get('error')}"))
             self.info._can_cooling = False
@@ -1417,15 +1421,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : 	This function may be called multiple times
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_current_equipment")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_current_equipment",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get current equipment command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get current camera information error: {res.get('error')}"))
             return log.return_error(_("Get current camera information error"),{"error":res.get('error')})
@@ -1483,15 +1487,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : "Off"/"Auto"/"North"/"South"
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_dec_guide_mode")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_dec_guide_mode",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get dec_guide_mode command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get dec_guide_mode error: {res.get('error')}"))
             return log.return_error(_("Get dec_guide_mode error"),{"error":res.get('error')})
@@ -1511,15 +1515,15 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_exposure")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_exposure",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get exposure command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get exposure error: {res.get('error')}"))
             return log.return_error(_("Get exposure error"),{"error":res.get('error')})
@@ -1541,15 +1545,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : array of integers: the list of valid exposure times in milliseconds
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_exposure_durations")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_exposure_durations",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get exposure durations command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get exposure duration error: {res.get('error')}"))
             return log.return_error(_("Get exposure duration error"),{"error":res.get('error')})
@@ -1571,15 +1575,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : boolean: true when guide output is enabled
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_guide_output_enabled")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_guide_output_enabled",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get guide output enabled command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get guide output enabled error: {res.get('error')}"))
             return log.return_error(_("Get guide output enabled error"),{"error":res.get('error')})
@@ -1601,15 +1605,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : array: [x, y] coordinates of lock position, or null if lock position is not set
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_lock_position")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_lock_position",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get lock position command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get lock position error: {res.get('error')}"))
             return log.return_error(_("Get lock position error"),{"error":res.get('error')})
@@ -1632,15 +1636,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : boolean: true if lock shift enabled
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_lock_shift_enabled")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_lock_shift_enabled",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get lock shift enabled command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get lock shift enabled error: {res.get('error')}"))
             return log.return_error(_("Get lock shift enabled error"),{"error":res.get('error')})
@@ -1671,21 +1675,21 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : boolean: true if paused
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_paused")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_paused",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get paused command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get paused error: {res.get('error')}"))
             return log.return_error(_("Get paused error"),{"error":res.get('error')})
         self.info._is_guiding = False
-        log.log(_("Guiding is paused"))
-        return log.return_success(_("Guiding is paused"),{})
+        log.log(success.Paused.value)
+        return log.return_success(success.Paused.value,{})
 
     def _get_pixel_scale(self) -> dict:
         """
@@ -1699,15 +1703,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : number: guider image scale in arc-sec/pixel.
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_pixel_scale")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_pixel_scale",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get pixel scale command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get pixel scale error: {res.get('error')}"))
             return log.return_error(_("Get pixel scale error"),{"error":res.get('error')})
@@ -1727,15 +1731,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : {"id":profile_id,"name":"profile_name"}
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_profile")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_profile",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get profile command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get profile error: {res.get('error')}"))
             return log.return_error(_("Get profile error"),{"error":res.get('error')})
@@ -1755,15 +1759,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : array of {"id":profile_id,"name":"profile_name"}	
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_profiles")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_profiles",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get profiles command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get profiles error: {res.get('error')}"))
             return log.return_error(_("Get profiles error"),{"error":res.get('error')})
@@ -1783,15 +1787,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : integer: search region radius
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_search_region")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_search_region",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get search region command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get search region error: {res.get('error')}"))
             return log.return_error(_("Get search region error"),{"error":res.get('error')})
@@ -1811,15 +1815,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : "temperature": sensor temperature in degrees C (number)	
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_ccd_temperature")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_ccd_temperature",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get ccd temperature command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get ccd temperature error: {res.get('error')}"))
             return log.return_error(_("Get ccd temperature error"),{"error":res.get('error')})
@@ -1839,15 +1843,15 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : This function returns full image !
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_star_image")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_star_image",{})
         try:
             res = self.send_command(command)
             log.logd(_("Sent get star image command to PHD2 server successfully"))
         except socket.error as e:
             log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get star image error: {res.get('error')}"))
             return log.return_error(_("Get star image error"),{"error":res.get('error')})
@@ -1883,15 +1887,15 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("get_use_subframes")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("get_use_subframes",{})
         try:
             res = self.send_command(command)
-            log.logd(_("Sent get use subframes command to PHD2 server successfully"))
+            log.logd(success.SendGetUseSubframe.value)
         except socket.error as e:
-            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            log.loge(error.SendGetUseSubframeFailed.value)
+            return log.return_error(error.SendFailed.value,{"error":e})
         if "error" in res:
             log.loge(_(f"Get use subframes error: {res.get('error')}"))
             return log.return_error(_("Get use subframes error"),{"error":res.get('error')})
@@ -1916,14 +1920,14 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
         if self.info._is_calibrating:
-            log.logw(_("PHD2 server is calibrating now"))
-            return log.return_warning(_("PHD2 server is calibrating now"),{})
+            log.logw(warning.IsCalibrating.value)
+            return log.return_warning(warning.IsCalibrating.value,{})
         if self.info._is_guiding:
-            log.logw(_("PHD2 server is already started guiding"))
-            return log.return_warning(_("PHD2 server is already started guiding"),{})
+            log.logw(warning.GuidingAlreadyStarted.value)
+            return log.return_warning(warning.GuidingAlreadyStarted.value,{})
         # Check if the parameters are correct
         settle = SettleParams()
         if params.get('settle') is not None:
@@ -1942,13 +1946,13 @@ class PHD2Client(BasicGuiderAPI):
         command = self.generate_command("guide",_params)
         try:
             res = self.send_command(command)
-            log.logd(_("Sent guide command to PHD2 server successfully"))
+            log.logd(success.SendGuide.value)
         except socket.error as e:
-            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            log.loge(error.SendGuideFailed.value + " : " + e)
+            return log.return_error(error.SendGuideFailed.value,{"error":e})
         if "error" in res:
-            log.loge(_(f"Guide error: {res.get('error')}"))
-            return log.return_error(_("Guide error"),{"error":res.get('error')})
+            log.loge(error.StartLoopingFailed.value + " " + res.get("error"))
+            return log.return_error(error.StartGuidingFailed.value,{"error":res.get('error')})
         self.info._is_guiding = True
 
     def _guide_pulse(self,params : dict) -> dict:
@@ -1967,18 +1971,18 @@ class PHD2Client(BasicGuiderAPI):
             }
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("guide_pulse")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("guide_pulse",{})
         try:
             res = self.send_command(command)
-            log.logd(_("Sent guide pulse command to PHD2 server successfully"))
+            log.logd(success.SendPulse.value)
         except socket.error as e:
-            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            log.loge(error.SendPulseFailed.value + " : " + e)
+            return log.return_error(error.SendPulseFailed.value,{"error":e})
         if "error" in res:
-            log.loge(_(f"Guide pulse error: {res.get('error')}"))
-            return log.return_error(_("Guide pulse error"),{"error":res.get('error')})
+            log.loge(error.PulseGuidingFailed.value + " " + res.get("error"))
+            return log.return_error(error.PulseGuidingFailed.value,{"error":res.get('error')})
 
     def _loop(self) -> dict:
         """
@@ -1993,19 +1997,21 @@ class PHD2Client(BasicGuiderAPI):
             NOTE : 	start capturing, or, if guiding, stop guiding but continue capturing
         """
         if not self.info._is_connected:
-            log.loge(_("PHD2 server is not connected"))
-            return log.return_error(_("PHD2 server is not connected"),{})
-        command = self.generate_command("loop")
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("loop",{})
         try:
             res = self.send_command(command)
-            log.logd(_("Sent loop command to PHD2 server successfully"))
+            log.logd(success.SendLooping.value)
         except socket.error as e:
-            log.loge(_(f"Failed to send command to PHD2 server, error : {e}"))
-            return log.return_error(_("Failed to send command to PHD2 server"),{"error":e})
+            log.loge(error.SendLoopingFailed.value + " : " + e)
+            return log.return_error(error.SendLoopingFailed.value,{"error":e})
         if "error" in res:
-            log.loge(_(f"Loop error: {res.get('error')}"))
-            return log.return_error(_("Loop error"),{"error":res.get('error')})
+            log.loge(error.StartLoopingFailed.value + " " + res.get("error"))
+            return log.return_error(error.StartLoopingFailed.value,{"error":res.get('error')})
         self.info._is_looping = True
+        log.log(success.StartLooping.value)
+        return log.return_success(success.StartLooping.value,{})
 
     def _save_image(self) -> dict:
         """
@@ -2018,6 +2024,20 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : 	save the current image. The client should remove the file when done with it.
         """
+        if not self.info._is_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("save_image",{})
+        try:
+            res = self.send_command(command)
+        except socket.error as e:
+            log.loge(error.SendSaveImageFailed.value + " : " + e)
+            return log.return_error(error.SendFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(_(f"Save image error: {res.get('error')}"))
+            return log.return_error(_("Save image error"),{"error":res.get('error')})
+        filename = res.get("params").get("filename")
+        log.logd(_(f"Save image to {filename}"))
 
     def _set_algo_param(self,params : dict) -> dict:
         """
@@ -2035,6 +2055,23 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : set a guide algorithm parameter on an axis
         """
+        if not self.info._is_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        axis = params.get('axis')
+        name = params.get('name')
+        value = params.get('value')
+        command = self.generate_command("set_algo_param",{"axis":axis,"name":name,"value":value})
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetAlgoParam.value)
+        except socket.error as e:
+            log.loge(error.SendSetAlgoParamFailed.value + " : " + e)
+            return log.return_error(error.SendAlgoParamFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetAlgoParamFailed.value + " " + res.get('error'))
+            return log.return_error(error.SetAlgoParamFailed.value,{"error":res.get('error')})
+        log.log(success.SetAlgoParam.value)
 
     def _set_connected(self,params : dict) -> dict:
         """
@@ -2050,6 +2087,26 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : 	connect or disconnect all equipment
         """
+        if not self.info._is_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        connect = params.get('connect')
+        if connect == self.info._is_device_connected:
+            log.logw(error.DeviceAlreadyConnected.value)
+            return log.return_warning(error.DeviceAlreadyConnected.value,{})
+        command = self.generate_command("set_connected",{"connect":connect})
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetConnected.value)
+        except socket.error as e:
+            log.loge(error.SendSetConnectedFailed.value + " : " + e)
+            return log.return_error(error.SendSetConnectedFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetConnectedFailed.value + " " + res.get('error'))
+            return log.return_error(error.SetConnectedFailed.value,{"error":res.get('error')})
+        log.log(success.SetConnected.value)
+        self.info._is_device_connected = connect
+        return log.return_success(success.SetConnected.value,{"status" : connect})
 
     def _set_dec_guide_mode(self, params : dict) -> dict:
         """
@@ -2064,6 +2121,26 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        mode = params.get('mode')
+        if mode not in ["Off", "Auto", "North","South"]:
+            log.loge(error.InvalidDECGuideMode.value + " : " + mode)
+            return log.return_error(error.InvalidDECGuideMode.value,{"mode":mode})
+        command = self.generate_command("set_dec_guide_mode",mode)
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetDECGuideMode.value)
+        except socket.error as e:
+            log.loge(error.SendSetDECGuideModeFailed.value + " : " + e)
+            return log.return_error(error.SendSetDECGuideModeFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetDECGuideModeFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SendSetDECGuideModeFailed.value,{"error":res.get("error")})
+        self.info.g_status._dec_guide_mode = mode
+        log.log(success.SetDECGuideMode.value)
+        return log.return_success(success.SetDECGuideMode.value,{"mode":mode})
 
     def _set_exposure(self, params : dict) -> dict:
         """
@@ -2078,6 +2155,22 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        exposure = params.get("exposure")
+        if exposure is None or not isinstance(exposure,int) or exposure < 0:
+            log.loge(error.InvalidExposureValue.value)
+            return log.return_error(error.InvalidExposureValue.value,{"exposure": exposure})
+        command = self.generate_command("set_exposure",exposure)
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetExposure.value)
+        except socket.error as e:
+            log.loge(error.SendSetExposureFailed.value + " : " + e)
+            return log.return_error(error.SendSetExposureFailed.value,{"error":e})
+        if "error" in res:
+            log.loge
 
     def _set_guide_output_enabled(self, params : dict) -> dict:
         """
@@ -2093,6 +2186,26 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : 	Enables or disables guide output
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        enable = params.get("enable")
+        if enable is None or not isinstance(enable,bool):
+            log.loge(error.InvalidEnableValue.value)
+            return log.return_error(error.InvalidEnableValue.value,{"enable":enable})
+        command = self.generate_command("set_guide_output_enabled",enable)
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetGuideOutputEnabled.value)
+        except socket.error as e:
+            log.loge(error.SendSetGuideOutputEnabledFailed.value + " : " + e)
+            return log.return_error(error.SendSetGuideOutputEnabledFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetGuideOutputEnabledFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SetGuideOutputEnabledFailed.value,{"error":res.get("error")})
+        self.info.g_status._guide_output_enabled = enable
+        log.log(success.SetGuideOutputEnabled.value)
+        return log.return_success(success.SetGuideOutputEnabled.value,{"enable":enable})
 
     def _set_lock_position(self , params : dict) -> dict:
         """
@@ -2110,6 +2223,35 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : When EXACT is true, the lock position is moved to the exact given coordinates. When false, the current position is moved to the given coordinates and if a guide star is in range, the lock position is set to the coordinates of the guide star.
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        X = params.get("X")
+        Y = params.get("Y")
+        EXACT = params.get("EXACT")
+        if X is None or not isinstance(X,float) or X < 0:
+            log.loge(error.InvalidLockPositionValue.value)
+            return log.return_error(error.InvalidLockPositionValue.value,{"X":X})
+        if Y is None or not isinstance(Y,float) or Y < 0:
+            log.loge(error.InvalidLockPositionValue.value)
+            return log.return_error(error.InvalidLockPositionValue.value,{"Y":Y})
+        if EXACT is None or not isinstance(EXACT,bool):
+            log.loge(error.InvalidLockPositionValue.value)
+            return log.return_error(error.InvalidLockPositionValue.value,{"EXACT":EXACT})
+        command = self.generate_command("set_lock_position",{"X":X, "Y":Y,"EXACT":EXACT})
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetLockPosition.value)
+        except socket.error as e:
+            log.loge(error.SendSetLockPositionFailed.value + " : " + e)
+            return log.return_error(error.SendSetLockPositionFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetLockPositionFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SetLockPositionFailed.value,{"error":res.get("error")})
+        self.info._lock_position_x = X
+        self.info._lock_position_y = Y
+        log.log(success.SetLockPosition.value)
+        return log.return_success(success.SetLockPosition.value,{"X":X, "Y":Y})
 
     def _set_lock_shift_enabled(self , params : dict) -> dict:
         """
@@ -2124,6 +2266,26 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        enable = params.get("enable")
+        if enable is None or not isinstance(enable,bool):
+            log.loge(error.InvalidLockShiftEnabledValue.value)
+            return log.return_error(error.InvalidLockShiftEnabledValue.value,{"enable":enable})
+        command = self.generate_command("set_lock_shift_enabled",enable)
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetLockShiftEnabled.value)
+        except socket.error as e:
+            log.loge(error.SendSetLockShiftEnabledFailed.value + " : " + e)
+            return log.return_error(error.SendSetLockShiftEnabledFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetLockShiftEnabledFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SetLockShiftEnabledFailed.value,{"error":res.get("error")})
+        self.info._lock_shift_enabled = True
+        log.log(success.SetLockShiftEnabled.value)
+        return log.return_success(success.SetLockShiftEnabled.value,{"enable":enable})
 
     def _set_lock_shift_params(self,params : dict) -> dict:
         """
@@ -2157,6 +2319,34 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : When setting paused to true, an optional second parameter with value "full" can be provided to fully pause phd, including pausing looping exposures. Otherwise, exposures continue to loop, and only guide output is paused. Example: {"method":"set_paused","params":[true,"full"],"id":42}
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        PAUSED = params.get("PAUSED")
+        FULL = params.get("FULL")
+        if PAUSED is None or not isinstance(PAUSED,bool):
+            log.loge(error.InvalidPausedValue.value)
+            return log.return_error(error.InvalidPausedValue.value,{"PAUSED":PAUSED})
+        if FULL is None or not isinstance(FULL,str):
+            log.loge(error.InvalidPausedFullValue.value)
+            return log.return_error(error.InvalidPausedFullValue.value,{"FULL":FULL})
+        command = self.generate_command("set_paused",[PAUSED,FULL])
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetPaused.value)
+        except socket.error as e:
+            log.loge(error.SendSetPausedFailed.value + " : " + e)
+            return log.return_error(error.SendSetPausedFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetPausedFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SetPausedFailed.value,{"error":res.get("error")})
+        if FULL is True:
+            self.info._is_guiding = False
+            self.info._is_calibrating = False
+            self.info._is_looping = False
+        self.info.g_status._output_enabled = False
+        log.log(success.SetPaused.value)
+        return log.return_success(success.SetPaused.value,{"paused":PAUSED,"full":FULL})
 
     def _set_profile(self,params : dict) -> dict:
         """
@@ -2172,6 +2362,26 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : 	Select an equipment profile. All equipment must be disconnected before switching profiles.
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        profile_id = params.get("profile_id")
+        if profile_id is None or not isinstance(profile_id,int):
+            log.loge(error.InvalidProfileID.value)
+            return log.return_error(error.InvalidProfileID.value,{"profile_id":profile_id})
+        command = self.generate_command("set_profile",[profile_id])
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendSetProfile.value)
+        except socket.error as e:
+            log.loge(error.SendSetProfileFailed.value + " : " + e)
+            return log.return_error(error.SendSetProfileFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.SetProfileFailed.value + " : " + res.get("error"))
+            return log.return_error(error.SetProfileFailed.value,{"error":res.get("error")})
+        log.log(success.SetProfile.value)
+        self.info.profile_id = profile_id
+        return log.return_success(success.SetProfile.value,{"profile_id":profile_id})
 
     def _shutdown(self) -> dict:
         """
@@ -2182,6 +2392,26 @@ class PHD2Client(BasicGuiderAPI):
                 "params" : dict
             }
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("shutdown",{})
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendShutdown.value)
+        except socket.error as e:
+            log.loge(error.SendShutdownFailed.value + " : " + e)
+            return log.return_error(error.SendShutdownFailed.value,{"error":e})
+        if "error" in res:
+            log.loge(error.ShutdownFailed.value + " : " + res.get("error"))
+            return log.return_error(error.ShutdownFailed.value,{"error":res.get("error")})
+        log.log(success.Shutdown.value)
+        self.info._is_connected = False
+        res = self.disconnect()
+        if res.get("status") != 0:
+            log.loge(error.DisconnectFailed.value + " : " + res.get("params").get("error"))
+            return log.return_error(error.DisconnectFailed.value,{"error":res.get("params").get("error")})
+        return log.return_success(success.Shutdown.value,{})
 
     def _stop_capture(self) -> dict:
         """
@@ -2211,5 +2441,169 @@ class PHD2Client(BasicGuiderAPI):
                 "status" : int,
                 "message" : str,
                 "params" : dict
+            }
+            NOTE : This function is a non-blocking operation
+        """
+
+    def abort_guiding(self) -> dict:
+        """
+            Abort the guiding process | 停止导星
+            Args: None
+            Returns:{
+                "status" : int,
+                "message" : str
+                "params" : dict
+            }
+            NOTE : This function must be called before destroying the whole server
+        """
+
+    def get_guiding_status(self) -> dict:
+        """
+            Get the status of the current guiding process | 获取当前导星状态
+            Args: None
+            Returns:{
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : int
+                }
+            }
+        """
+
+    def get_guiding_result(self) -> dict:
+        """
+            Get the result of the current guiding process | 获取导星的当前结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "info" : Current Guiding Status
+                }
+            }
+        """
+
+    def start_calibration(self, params: dict) -> dict:
+        """
+            Start calibration | 开始校准
+            Args : 
+                params : {
+
+                }
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+            NOTE : This function is a non-blocking operation
+        """
+
+    def abort_calibration(self) -> dict:
+        """
+            Abort the calibration | 停止校准
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : dict
+            }
+        """
+
+    def get_calibration_status(self) -> dict:
+        """
+            Get the status of the calibration | 获取校准状态
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : int
+                }
+            }
+        """
+
+    def get_calibration_result(self) -> dict:
+        """
+            Get the result of the calibration | 获取校准结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "result" : dict
+                }
+            }
+        """
+
+    def start_dither(self,params : dict) -> dict:
+        """
+            Start dither | 开始抖动
+            Args : 
+                params : dict
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+            NOTE : This function is a non-blocking operation
+        """
+
+    def abort_dither(self) -> dict:
+        """
+            Abort dither | 停止抖动
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def get_dither_status(self) -> dict:
+        """
+            Get dither status | 获取抖动状态
+            Args : None
+            Returns: {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "status" : int,
+                }
+            }
+        """
+
+    def get_dither_result(self) -> dict:
+        """
+            Get dither result | 获取抖动结果
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : {
+                    "result" : dict
+                }
+            }
+        """
+
+    def start_looping(self, params: dict) -> dict:
+        """
+            Start looping | 开始循环曝光
+            Args : 
+                params : dict
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
+            }
+        """
+
+    def abort_looping(self) -> dict:
+        """
+            Abort looping | 停止循环曝光
+            Args : None
+            Returns : {
+                "status" : int,
+                "message" : str,
+                "params" : None
             }
         """

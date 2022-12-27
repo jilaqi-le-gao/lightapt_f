@@ -40,5 +40,5 @@ def check_port(host : str, port : int) -> bool:
         s.bind((host, port))
         s.shutdown(2)
         return True
-    except socket.error as e:
+    except socket.error:
         return False
