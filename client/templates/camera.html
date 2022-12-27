@@ -272,7 +272,7 @@
                                                 <label for="timeShot" class="active">曝光 (秒)</label>
                                                 <input type="number"
                                                     class="form-control form-control-sm text-center text-white border-sx-blue"
-                                                    id="ex" value="1" placeholder="Exposure (s)">
+                                                    id="exposure" value="1" placeholder="Exposure (s)">
                                             </div>
                                             <div class="col m-1 p-0">
                                                 <label for="filterSelect">滤镜</label>
@@ -286,7 +286,7 @@
                                                 <label for="binSelect">像素合并</label>
                                                 <select
                                                     class="browser-default custom-select custom-select-sm text-white border-sx-blue"
-                                                    id="bin">
+                                                    id="binning">
                                                     <option value="1" selected="">1x1</option>
                                                     <option value="2">2x2</option>
                                                     <option value="4">4x4</option>
@@ -302,7 +302,7 @@
                                                 class="form-control form-control-sm text-center text-white border-sx-blue m-1"
                                                 id="offset" placeholder="偏置">
                                         </div>
-
+                                        <!-- Start & Abort Button -->
                                         <div class="d-flex">
                                             <button id="remoteShotbtn"
                                                 class="btn btn-primary btn-sm m-1 btn-voy-item px-2 actBtn waves-effect waves-light">
@@ -313,6 +313,7 @@
                                                 <i class="fas fa-times"></i> 中断
                                             </button>
                                         </div>
+                                        <!-- /. Start & Abort Button-->
                                     </div>
                                 </div>
                                 <!-- /.Single Frame Exposure -->

@@ -28,9 +28,9 @@ from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 
-import os,json,threading
-import gettext
-_ = gettext.gettext
+import os,json,threading,logging
+
+from utils.i18n import _
 
 from flask import Flask,render_template,redirect
 
@@ -38,6 +38,9 @@ app = Flask(__name__,
     static_folder=os.path.join(os.getcwd(),"client","static"),
     template_folder=os.path.join(os.getcwd(),"client","templates")
 )
+# Disable Flask logging system
+logger = logging.getLogger('werkzeug')
+logger.setLevel(logging.ERROR)
 
 config = None
 config_path = "config.json"
@@ -248,15 +251,15 @@ def start_device(script):
                     "exception" : str(e)
                 }
             device_type = start_script.get("type")
-            log.logd(_(f"Device type : {device_type}"))
+            log.logd(_("Device type : {}").format(device_type))
             device_host = start_script.get("host")
-            log.logd(_(f"Device host : {device_host}"))
+            log.logd(_("Device host : {}").format(device_host))
             device_port = start_script.get("port")
-            log.logd(_(f"Device port : {device_port}"))
+            log.logd(_("Device port : {}").format(device_port))
             device_debug = start_script.get("debug")
-            log.logd(_(f"Device debug : {device_debug}"))
+            log.logd(_("Device debug : {}").format(device_debug))
             device_threaded = start_script.get("threaded")
-            log.logd(_(f"Device threaded : {device_threaded}"))
+            log.logd(_("Device threaded : {}").format(device_threaded))
     except OSError as e:
         log.loge(error.LoadConfigFailed.value.format(e))
         return {
@@ -516,7 +519,7 @@ def set_config(config_path):
                 }
     except OSError as e:
         return {
-            "error" : _(f"OS Error : {e}")
+            "error" : _("OS Error : {}").format(e)
         }
     return {
         "config" : config
@@ -538,9 +541,9 @@ def set_configration(config_path : str) -> None:
     if config_path is None:
         log.logd(_("No configuration file is specified , use default configuration"))
         config_path = os.path.join("config",config_path)
-    log.logd(_(f"Trying to load configuration file : {config_path}"))
+    log.logd(_("Trying to load configuration file : {}").format(config_path))
     if not os.path.exists(config_path):
-        log.loge(_(f"Could not find config file : {config_path}"))
+        log.loge(_("Could not find config file : {}").format(config_path))
         return
     try:
         with open(config_path,mode="r",encoding="utf-8") as file:
@@ -550,17 +553,36 @@ def set_configration(config_path : str) -> None:
                 if config.get('host') is None or config.get('port') is None:
                     log.loge(_("Configuration is missing from the configuration file"))
                     return 
-                log.logd(f"Configuration host : {config.get('host')}")
-                log.logd(f"Configuration port : {config.get('port')}")
-                log.logd(f"Configuration debug : {config.get('debug')}")
-                log.logd(f"Configuration threaded : {config.get('threaded')}")
+                log.logd(_("Configuration host : {}").format(config.get('host')))
+                log.logd(_("Configuration port : {}").format(config.get('port')))
+                log.logd(_("Configuration debug : {}").format(config.get('debug')))
+                log.logd(_("Configuration threaded : {}").format(config.get('threaded')))
             except json.JSONDecodeError as e:
-                log.loge(_(f"Error decoding config file : {e}"))
+                log.loge(_("Error decoding config file : {}").format(e))
                 return
     except OSError as e:
-        log.loge(_(f"Faild to load config file, error : {e}"))
+        log.loge(_("Faild to load config file, error : {}").format(e))
         return
 
+@app.route("/script/<script_name>")
+def load_script(script_name):
+    """
+        Load a script
+        Args:
+            script_name : str
+        Returns:
+            status : dict
+    """
+    if script_name is None:
+        return {
+            "error" : error.EmptyScriptFile.value
+        }
+    if not os.path.exists(script_name):
+        return {
+            "error" : error.InvalidScriptPath.value
+        }
+    
+    
 def run_server(host : str , port : int , threaded = True , debug = False) -> None:
     """
         Start the server | 启动服务器
@@ -582,9 +604,9 @@ def run_server(host : str , port : int , threaded = True , debug = False) -> Non
         _threaded = config.get('threaded')
         _debug = config.get('debug')
     if _debug is True:
-        log.log(_(f"Running debug web server on {_host}:{_port}"))
+        log.log(_("Running debug web server on {}:{}").format(_host,_port))
         app.run(host=_host, port=_port,debug=True)
     else:
-        log.log(_(f"Running web server on {_host}:{_port}"))
+        log.log(_("Running web server on {}:{}").format(_host,_port))
         app.run(host=_host, port=_port,threaded=_threaded)
         

@@ -1,0 +1,494 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2022-12-27 10:47+0800\n"
+"PO-Revision-Date: 2022-12-27 11:13+0800\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: lightserver.py:37
+msgid "Initialize LightAPT server ..."
+msgstr "初始化LightAPT服务器 ..."
+
+#: lightserver.py:38
+msgid "Current version is {}"
+msgstr "目前的版本是{} "
+
+#: lightserver.py:61
+msgid "Shutdown lightAPT server by user"
+msgstr "由用户关闭lightAPT服务器"
+
+#: server/webapp.py:251
+msgid "Device type : {}"
+msgstr "设备类型 : {}"
+
+#: server/webapp.py:253
+msgid "Device host : {}"
+msgstr "设备主机 : {}"
+
+#: server/webapp.py:255
+msgid "Device port : {}"
+msgstr "设备端口 : {}"
+
+#: server/webapp.py:257
+msgid "Device debug : {}"
+msgstr "设备调试类型 : {}"
+
+#: server/webapp.py:259
+msgid "Device threaded : {}"
+msgstr "设备多线程化：{}"
+
+#: server/webapp.py:519
+msgid "OS Error : {}"
+msgstr "操作系统错误：{} "
+
+#: server/webapp.py:539
+msgid "No configuration file is specified , use default configuration"
+msgstr "没有指定配置文件，使用默认配置"
+
+#: server/webapp.py:541
+msgid "Trying to load configuration file : {}"
+msgstr "尝试加载配置文件：{}"
+
+#: server/webapp.py:543
+msgid "Could not find config file : {}"
+msgstr "无法找到配置文件：{}"
+
+#: server/webapp.py:551
+msgid "Configuration is missing from the configuration file"
+msgstr "配置文件中没有配置！"
+
+#: server/webapp.py:553
+msgid "Configuration host : {}"
+msgstr "配置主机：{}"
+
+#: server/webapp.py:554
+msgid "Configuration port : {}"
+msgstr "配置端口：{}"
+
+#: server/webapp.py:555
+msgid "Configuration debug : {}"
+msgstr "配置调式类型：{}"
+
+#: server/webapp.py:556
+msgid "Configuration threaded : {}"
+msgstr "配置多线程化：{}"
+
+#: server/webapp.py:558
+msgid "Error decoding config file : {}"
+msgstr "无法解码配置文件：{}"
+
+#: server/webapp.py:561
+msgid "Faild to load config file, error : {}"
+msgstr "加载配置文件错误，错误：{}"
+
+#: server/webapp.py:585
+msgid "Running debug web server on {}:{}"
+msgstr "在{}:{}启动调试服务器"
+
+#: server/webapp.py:588
+msgid "Running web server on {}:{}"
+msgstr "在{}:{}启动服务器"
+
+#: server/wscamera.py:160
+msgid "Failed to start websocket server"
+msgstr "无法启动websocket服务器"
+
+#: server/wscamera.py:162
+msgid "Start websocket server with warning"
+msgstr "启动websocket服务器时有警告"
+
+#: server/wscamera.py:186
+msgid "Shutting down server ... please wait for a moment"
+msgstr "服务器关机中..稍等一下"
+
+#: server/wscamera.py:194
+msgid "Established connection with client"
+msgstr "与客户端建立连接"
+
+#: server/wscamera.py:198
+msgid "Disconnected from client"
+msgstr "与客户端断开连接"
+
+#: server/wscamera.py:203
+msgid "Received message : {}"
+msgstr "收到消息:{}"
+
+#: server/wscamera.py:228
+msgid "Failed to parse JSON message"
+msgstr "无法解析JSON字符串"
+
+#: server/wscamera.py:232
+msgid "No event found from message , {}"
+msgstr "消息中未发现事件:{}"
+
+#: server/wscamera.py:310
+msgid "Unknown event received from remote client"
+msgstr "从客户端收到未知事件"
+
+#: server/wscamera.py:1001
+msgid "Had already connected to the camera , please do not connect again"
+msgstr "已连接相机，请勿重复连接"
+
+#: server/wscamera.py:1003
+msgid "Had already connected to the camera"
+msgstr "已连接相机"
+
+#: server/wscamera.py:1003
+msgid "Please do not connect again"
+msgstr "请勿重复连接"
+
+#: server/wscamera.py:1005
+msgid "Please provide a type and name for the camera"
+msgstr "请提供相机的类型和名称"
+
+#: server/wscamera.py:1006
+msgid "Please provide a type and name for the"
+msgstr "请提供相机的类型和名称"
+
+#: server/wscamera.py:1044
+msgid "Unknown camera type , please provide a correct camera type"
+msgstr "未知相机类型，请提供正确的相机名称"
+
+#: server/wscamera.py:1045
+msgid "Unknown camera type, please provide a correct camera type"
+msgstr "未知相机类型，请提供正确的相机名称"
+
+#: server/wscamera.py:1047
+msgid "Some error occurred during connect to camera, error : {}"
+msgstr "连接相机时发生错误:{}"
+
+#: server/wscamera.py:1048
+msgid "Some error occurred during connect to camera"
+msgstr "连接相机时发生错误"
+
+#: server/wscamera.py:1064
+msgid "The camera is not connected , please do not execute disconnect command"
+msgstr "相机未连接，请勿执行断开连接指令"
+
+#: server/wscamera.py:1065
+msgid "The camera is not connected, please do not execute disconnect command"
+msgstr "相机未连接，请勿执行断开连接指令"
+
+#: server/wscamera.py:1068 server/wscamera.py:1069
+msgid "Failed to disconnect from the camera"
+msgstr "无法与相机断开连接"
+
+#: server/wscamera.py:1069
+msgid "Disconnect again"
+msgstr "再次尝试断开连接"
+
+#: server/wscamera.py:1071 server/wscamera.py:1072
+msgid "Disconnect with the camera with warning"
+msgstr "与相机断开连接时带有警告"
+
+#: server/wscamera.py:1074
+msgid "Disconnect from the camera successfully"
+msgstr "成功与相机断开连接"
+
+#: server/wscamera.py:1075
+msgid "Disconnected from the camera successfully"
+msgstr "成功与相机断开连接"
+
+#: server/wscamera.py:1091 server/wscamera.py:1092
+msgid "The camera is not connected, please do not execute reconnect command"
+msgstr "相机未连接，请勿执行重连指令"
+
+#: server/wscamera.py:1095 server/wscamera.py:1096
+msgid "Failed to reconnect to the camera"
+msgstr "无法重连相机"
+
+#: server/wscamera.py:1096
+msgid "Reconnect again"
+msgstr "再次重连"
+
+#: server/wscamera.py:1098 server/wscamera.py:1099
+msgid "Reconnect with the camera with warning"
+msgstr "相机时带有警告"
+
+#: server/wscamera.py:1100 server/wscamera.py:1101
+msgid "Reconnect to camera successfully"
+msgstr "成功重连相机"
+
+#: server/wscamera.py:1118 server/wscamera.py:1119
+msgid "Failed to scan the camera"
+msgstr "无法扫描相机"
+
+#: server/wscamera.py:1119
+msgid "Scan again"
+msgstr "重新扫描"
+
+#: server/wscamera.py:1121 server/wscamera.py:1122
+msgid "Scan with the camera with warning"
+msgstr "扫描相机时带有警告"
+
+#: server/wscamera.py:1141 server/wscamera.py:1142
+msgid "Failed to refresh the camera infomation"
+msgstr "无法刷新相机信息"
+
+#: server/wscamera.py:1142
+msgid "Refresh again"
+msgstr "重新刷新"
+
+#: server/wscamera.py:1144 server/wscamera.py:1145
+msgid "Refresh the camera infomation with warning"
+msgstr "刷新相机信息时带有警告"
+
+#: server/wscamera.py:1146 server/wscamera.py:1147
+msgid "Refresh the camera infomation successfully"
+msgstr "刷新相机信息成功"
+
+#: server/wscamera.py:1164 server/wscamera.py:1165
+msgid "Failed to update the camera configuration"
+msgstr "无法更新相机配置"
+
+#: server/wscamera.py:1165
+msgid "Update the camera configuration again"
+msgstr "再次尝试更新相机配置"
+
+#: server/wscamera.py:1167 server/wscamera.py:1168
+msgid "Update the camera configuration with warning"
+msgstr "更新相机配置时带有警告"
+
+#: server/wscamera.py:1169 server/wscamera.py:1170
+msgid "Update camera configuration successfully"
+msgstr "更新相机信息成功"
+
+#: server/wscamera.py:1197
+msgid "Unreasonable exposure time was given , please give a possible number"
+msgstr "不合理的曝光时间，请提供一个合理的值"
+
+#: server/wscamera.py:1199
+msgid "Unreasonable gain was given, please give a possible number"
+msgstr "不合理的增益，请提供一个合理的值"
+
+#: server/wscamera.py:1201
+msgid "Unreasonable offset was given, please give a possible number"
+msgstr "不合理的偏置，请提供一个合理的值"
+
+#: server/wscamera.py:1203
+msgid "Unreasonable binning was given, please give a possible number"
+msgstr "不合理的像素合并模式，请提供一个合理的值"
+
+#: server/wscamera.py:1206 server/wscamera.py:1207
+msgid "Failed to start the exposure"
+msgstr "无法开始曝光"
+
+#: server/wscamera.py:1207
+msgid "Start exposure again"
+msgstr "尝试重新曝光"
+
+#: server/wscamera.py:1209 server/wscamera.py:1210
+msgid "Start exposure with warning"
+msgstr "开始曝光时出现警告"
+
+#: server/wscamera.py:1211 server/wscamera.py:1212
+msgid "Exposure started successfully"
+msgstr "成功开始曝光"
+
+#: server/wscamera.py:1228 server/wscamera.py:1229
+msgid "Failed to abort the exposure"
+msgstr "无法开始曝光"
+
+#: server/wscamera.py:1229
+msgid "Abort exposure again"
+msgstr "重新尝试停止曝光"
+
+#: server/wscamera.py:1231 server/wscamera.py:1232
+msgid "Abort exposure with warning"
+msgstr "停止曝光时带有警告"
+
+#: server/wscamera.py:1233 server/wscamera.py:1234
+msgid "Exposure aborted successfully"
+msgstr "成功停止曝光"
+
+#: server/wscamera.py:1251 server/wscamera.py:1252
+msgid "Failed to get the exposure status"
+msgstr "无法获取曝光状态"
+
+#: server/wscamera.py:1254 server/wscamera.py:1255
+msgid "Get exposure status with warning"
+msgstr "获取曝光状态时带有警告"
+
+#: server/wscamera.py:1256 server/wscamera.py:1257
+msgid "Get exposure status successfully"
+msgstr "成功获取曝光状态"
+
+#: server/wscamera.py:1276 server/wscamera.py:1277
+msgid "Failed to get the exposure result"
+msgstr "无法获取曝光结果"
+
+#: server/wscamera.py:1279 server/wscamera.py:1280
+msgid "Get exposure result with warning"
+msgstr "获取曝光结果时带有警告"
+
+#: server/wscamera.py:1281 server/wscamera.py:1282
+msgid "Get exposure result successfully"
+msgstr "成功获取曝光结果"
+
+#: server/wscamera.py:1309
+msgid "Sequence number is required"
+msgstr "需要提供序列数"
+
+#: server/wscamera.py:1311
+msgid "Sequence is required"
+msgstr "需要提供序列"
+
+#: server/wscamera.py:1314 server/wscamera.py:1315
+msgid "Failed to start sequence exposure"
+msgstr "无法开始计划拍摄"
+
+#: server/wscamera.py:1317 server/wscamera.py:1318
+msgid "Start sequence exposure with warning"
+msgstr "开始计划拍摄时带有警告"
+
+#: server/wscamera.py:1319 server/wscamera.py:1320
+msgid "Finish sequence exposure successfully"
+msgstr "完成计划拍摄"
+
+#: server/wscamera.py:1334 server/wscamera.py:1335
+msgid "Failed to abort sequence exposure"
+msgstr "无法停止计划拍摄"
+
+#: server/wscamera.py:1337 server/wscamera.py:1338
+msgid "Abort sequence exposure with warning"
+msgstr "停止计划拍摄时带有警告"
+
+#: server/wscamera.py:1339 server/wscamera.py:1340
+msgid "Abort sequence exposure successfully"
+msgstr "成功停止计划拍摄"
+
+#: server/wscamera.py:1353 server/wscamera.py:1354
+msgid "Failed to pause sequence exposure"
+msgstr "无法停止计划拍摄"
+
+#: server/wscamera.py:1356 server/wscamera.py:1357
+msgid "Pause sequence exposure with warning"
+msgstr "停止计划拍摄时带有警告"
+
+#: server/wscamera.py:1358 server/wscamera.py:1359
+msgid "Pause sequence exposure successfully"
+msgstr "成功暂停计划拍摄"
+
+#: server/wscamera.py:1372 server/wscamera.py:1373
+msgid "Failed to continue sequence exposure"
+msgstr "无法继续计划拍摄"
+
+#: server/wscamera.py:1375 server/wscamera.py:1376
+msgid "Continue sequence exposure with warning"
+msgstr "继续计划拍摄时带有警告"
+
+#: server/wscamera.py:1377 server/wscamera.py:1378
+msgid "Continue sequence exposure successfully"
+msgstr "成功继续计划拍摄"
+
+#: server/wscamera.py:1396 server/wscamera.py:1397
+msgid "Failed to get sequence exposure status"
+msgstr "无法获取计划拍摄状态"
+
+#: server/wscamera.py:1399 server/wscamera.py:1400
+msgid "Get sequence exposure status with warning"
+msgstr "获取计划拍摄状态时带有警告"
+
+#: server/wscamera.py:1407
+msgid "Get sequence exposure status successfully"
+msgstr "获取计划拍摄状态成功"
+
+#: server/wscamera.py:1423 server/wscamera.py:1424
+msgid "Failed to get sequence exposure result"
+msgstr "无法获取计划拍摄结果"
+
+#: server/wscamera.py:1426 server/wscamera.py:1427
+msgid "Get sequence exposure result with warning"
+msgstr "获取计划拍摄结果时带有警告"
+
+#: server/wscamera.py:1432
+msgid "Get sequence exposure result successfully"
+msgstr "成功获取计划拍摄结果"
+
+#: server/wscamera.py:1456
+msgid "Please provide a temperature"
+msgstr "请提供温度"
+
+#: server/wscamera.py:1458
+msgid "Please provide a power"
+msgstr "请提供制冷功率"
+
+#: server/wscamera.py:1481 server/wscamera.py:1482
+msgid "Camera does not support temperature control"
+msgstr "相机不支持制冷"
+
+#: server/wscamera.py:1484
+msgid "Please provide a valid temperature"
+msgstr "请提供一个合理的温度"
+
+#: server/wscamera.py:1487 server/wscamera.py:1488
+msgid "Failed to set the cooling"
+msgstr "无法设置制冷模式"
+
+#: server/wscamera.py:1488
+msgid "Set cooling failed"
+msgstr "设置制冷模式失败"
+
+#: server/wscamera.py:1490 server/wscamera.py:1491
+msgid "Set cooling with warning"
+msgstr ""
+
+#: server/wscamera.py:1492 server/wscamera.py:1493
+msgid "Set cooling successfully"
+msgstr ""
+
+#: server/wscamera.py:1510 server/wscamera.py:1511
+msgid "Failed to get the cooling status"
+msgstr ""
+
+#: server/wscamera.py:1513 server/wscamera.py:1514
+msgid "Get cooling status with warning"
+msgstr ""
+
+#: server/wscamera.py:1515 server/wscamera.py:1516
+msgid "Get cooling status successfully"
+msgstr ""
+
+#: server/wscamera.py:1535
+msgid "Please provide a type"
+msgstr ""
+
+#: server/wscamera.py:1538 server/wscamera.py:1539
+msgid "Failed to get the configration"
+msgstr ""
+
+#: server/wscamera.py:1541 server/wscamera.py:1542
+msgid "Get configration with warning"
+msgstr ""
+
+#: server/wscamera.py:1543 server/wscamera.py:1544
+msgid "Get configration successfully"
+msgstr ""
+
+#: server/wscamera.py:1562
+msgid "Please provide a valid configration"
+msgstr ""
+
+#: server/wscamera.py:1565 server/wscamera.py:1566
+msgid "Failed to set the configration"
+msgstr ""
+
+#: server/wscamera.py:1568 server/wscamera.py:1569
+msgid "Set configration with warning"
+msgstr ""
+
+#: server/wscamera.py:1571
+msgid "Set configration successfully"
+msgstr ""

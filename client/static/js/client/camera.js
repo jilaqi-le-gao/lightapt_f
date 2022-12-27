@@ -25,11 +25,15 @@ ready(()=>{
     InitialSetBtnActive();
     // Bind connect event with connectBtn 
     document.getElementById("connectBtn").addEventListener("click",connect)
+    document.getElementById("remoteShotbtn")
 });
 
 var is_connect = false,
     is_initialed = false,
     is_camera_connected = false
+    is_filter_connected = false
+
+var filter_list = []
 
 var websocket,
     polling_interval
@@ -321,7 +325,74 @@ function camera_disconnect(){
     SendRemoteDisconnect()
 }
 
+function camera_reconnect(){
+    if(!is_camera_connected){
+        console.log("Camera is not connected, please do not execute reconnect command")
+    }
+    SendRemoteReconnect()
+}
+
+function camera_scanning(){
+    if(!is_camera_connected){
+        console.log("Camera is not connected, please do not execute scanning command")
+    }
+    SendRemoteScanning()
+}
+
+function camera_start_exposure(){
+    // Get basic exposure parameters
+    let exposure = document.getElementById("exposure"),
+        gain = document.getElementById("gain"),
+        offset = document.getElementById("offset")
+    // Get the filter parameters if available
+    let filterFrom = document.getElementById("filter"),
+        filter = filterFrom.options[filterFrom.selectedIndex].value
+    // Get the binning mode 
+    let binning = document.getElementById("binning"),
+        binningMode = binning.options[binning.selectedIndex].value
+    // Check if the parameters are valid , though this will be done by server too.
+    if(exposure == undefined || exposure == null || exposure < 0 || exposure > 3600){
+        console.log("Invalid exposure parameters")
+        return
+    }
+    if(gain == undefined || gain == null || gain < 0 || gain > 100){
+        console.log("Invalid gain parameters")
+        return
+    }
+    if(offset == undefined || offset == null || offset < 0 || offset > 100){
+        console.log("Invalid offset parameters")
+        return
+    }
+    if(filter != undefined || filter != null){
+        if(!is_filter_connected){
+            console.log("Filter is not connected, please do not execute start_exposure command")
+            return
+        }
+        if(!filter in filter_list){
+            console.log("Invalid filter parameters")
+            return
+        }
+    }
+    if(binning == undefined || binning == null){
+        binning = 1
+    }else{
+        if(! 1 <= binning <=8){
+            console.log("Invalid binning parameters")
+            return
+        }
+    }
+    r = {
+        _exposure: exposure,
+        _gain: gain,
+        _offset: offset,
+        _filter: filter,
+        _binning: binning
+    }
+    SendRemoteStartExposure(r)
+}
+
 // ----------------------------------------------------------------
+
 // ----------------------------------------------------------------
 // Recieve Remote Messages and Process them
 function remote_start_server(message){
@@ -435,6 +506,7 @@ function remote_connect(message){
 function remote_disconnect(message){
     let status = message.status,
         msg = message.message
+    console.debug("Recieved remote disconnect message: " + JSON.stringify(message))
     if(status != 0){
         console.debug("Remote camera disconnect failed")
         console.debug(msg)
@@ -454,7 +526,21 @@ function remote_disconnect(message){
 }
 
 function remote_reconnect(message){
-
+    let status = message.status
+        msg = message.message
+    console.debug("Recieved remote reconnect message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera reconnect successful")
+        log("Remote camera reconnect successful")
+        is_camera_connected = true
+        ChangeConnectButtonStatus()
+    }
+    else{
+        console.debug("Remote camera reconnect failed")
+        console.debug(msg)
+        log("Remote camera reconnect failed")
+        is_camera_connected = false
+    }
 }
 
 function remote_scanning(message){
@@ -604,11 +690,23 @@ function SendRemoteDisconnect(){
 }
 
 function SendRemoteReconnect(){
-
+    // Send camera reconnect command to remote server
+    let request = {
+        event : "RemoteReconnect",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteScanning(){
-
+    // Send camera scanning command to remote server
+    let request = {
+        event : "RemoteScanning",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemotePolling(){
@@ -620,64 +718,154 @@ function SendRemotePolling(){
     on_send(JSON.stringify(request))
 }
 
-function SendRemoteStartExposure(){
-
+function SendRemoteStartExposure(params){
+    // Send start exposure command to remote server
+    let request = {
+        event : "RemoteStartExposure",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteAbortExposure(){
-
+    // Send abort exposure command to remote server
+    let request = {
+        event : "RemoteAbortExposure",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteGetExposureStatus(){
-
+    // Send get exposure status command to remote server
+    let request = {
+        event : "RemoteGetExposureStatus",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteGetExposureResult(){
-
+    // Send get exposure result command to remote server
+    let request = {
+        event : "RemoteGetExposureResult",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
-function SendRemoteStartSequenceExposure(){
-
+function SendRemoteStartSequenceExposure(params){
+    // Send start sequence exposure command to remote server
+    let request = {
+        event : "RemoteStartSequenceExposure",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteAbortSequenceExposure(){
-
+    // Send abort sequence exposure command to remote server
+    let request = {
+        event : "RemoteAbortSequenceExposure",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemotePauseSequenceExposure(){
-
+    // Send pause sequence exposure command to remote server
+    let request = {
+        event : "RemotePauseSequenceExposure",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteContinueSequenceExposure(){
-
+    // Send continue sequence exposure command to remote server
+    let request = {
+        event : "RemoteContinueSequenceExposure",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteGetSequenceExposureStatus(){
-
+    // Send get sequence exposure status command to remote server
+    let request = {
+        event : "RemoteGetSequenceExposureStatus",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteGetSequenceExposureResults(){
-
+    // Send get sequence exposure results command to remote server
+    let request = {
+        event : "RemoteGetSequenceExposureResults",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
-function SendRemoteCooling(){
-
+function SendRemoteCooling(params){
+    // Send cooling command to remote server
+    let request = {
+        event : "RemoteCooling",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
-function SendRemoteCoolingTo(){
-
+function SendRemoteCoolingTo(params){
+    // Send cooling to command to remote server
+    let request = {
+        event : "RemoteCoolingTo",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
 function SendRemoteGetCoolingStatus(){
-
+    // Send get cooling status command to remote server
+    let request = {
+        event : "RemoteGetCoolingStatus",
+        uid : GenerateUID(),
+        params : {}
+    }
+    on_send(JSON.stringify(request))
 }
 
-function SendRemoteGetConfiguration(){
-
+function SendRemoteGetConfiguration(params){
+    // Send get configuration command to remote server
+    let request = {
+        event : "RemoteGetConfiguration",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
-function SendRemoteSetConfiguration(){
-
+function SendRemoteSetConfiguration(params){
+    // Send set configuration command to remote server
+    let request = {
+        event : "RemoteSetConfiguration",
+        uid : GenerateUID(),
+        params : params
+    }
+    on_send(JSON.stringify(request))
 }
 
 // ----------------------------------------------------------------

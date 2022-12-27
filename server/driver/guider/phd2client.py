@@ -2444,6 +2444,17 @@ class PHD2Client(BasicGuiderAPI):
             }
             NOTE : This function is a non-blocking operation
         """
+        if not self.info._is_device_connected:
+            log.loge(error.NotConnected.value)
+            return log.return_error(error.NotConnected.value,{})
+        command = self.generate_command("start_guiding",[params])
+        try:
+            res = self.send_command(command)
+            log.logd(success.SendStartGuiding.value)
+        except socket.error as e:
+            log.loge(error.SendStartGuidingFailed.value + " : " + e)
+            return log.return_error(error.SendStartGuidingFailed.value,{"error":e})
+        
 
     def abort_guiding(self) -> dict:
         """

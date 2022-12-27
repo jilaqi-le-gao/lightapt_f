@@ -35,6 +35,7 @@ class WSCameraError(Enum):
     
     SendStartServer = _("Failed to send message while executing remote_start_server() function")
     SendStopServer = _("Failed to send message while executing remote_stop_server() function")
+    SendShutdownServer = _("Failed to send message while executing remote_shutdown_server() function")
     SendDashboardSetup = _("Failed to send message while executing remote_dashboard_setup() function")
     SendConnect = _("Failed to send message while executing remote_connect() function")
     SendDisconnect = _("Failed to send message while executing remote_disconnect() function")
@@ -62,6 +63,7 @@ class WSCameraSuccess(Enum):
     """
     ConnectSuccess = _("Connected to the camera successfully")
     CoolingSuccess = _("Set cooling temperature and power successfully")
+    ScanningSuccess = _("Scanning the camera successfully")
 
 class WSCameraWarning(Enum):
     """
@@ -85,6 +87,7 @@ class WebAppError(Enum):
     ScriptNotFound = _("Could not find script file ")
 
     EmptyConfigFile = _("Config file is empty ")
+    EmptyScriptFile = _("Script file is empty")
 
     InvalidFile = _("Invalid device configuration file {}")
     InvalidScriptPath = _("Invalid script path ")

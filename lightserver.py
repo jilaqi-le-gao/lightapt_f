@@ -24,10 +24,9 @@ from utils.lightlog import lightlog,DEBUG
 import argparse
 log = lightlog(__name__)
 
-import gettext
-_ = gettext.gettext
-
 version = "1.0.0"
+
+from utils.i18n import _
 
 def main():
     """
@@ -36,7 +35,7 @@ def main():
         Return : None
     """
     log.log(_("Initialize LightAPT server ..."))
-    log.log(_(f"Current version is {version}"))
+    log.log(_("Current version is {}").format(version))
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=5000)

@@ -26,6 +26,10 @@ This method is likes P2P mode. Every device has its own websocket server and eve
     LightAPT Client 1 <-(websocket)-> wsdevice <-(alpyca or pyindi)-> Driver 1
 
     LightAPT Client 2 <-(websocket)-> wsdevice <-(alpyca or pyindi)-> Driver 2
+
+    ...
+
+    LightAPT Client n <-(websocket)-> wsdevice <- (alpyca or pyindi)-> Driver n
     
 ## Features
 Including many useful features , and build in many powerful repositories

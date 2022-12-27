@@ -200,7 +200,7 @@ class wscamera(wsdevice,BasicCameraAPI):
     
     def on_message(self, client, server, message):
         msg = message.replace('\n','')
-        log.logd(_(f"Received message : {msg}"))
+        log.logd(_("Received message : {}").format(msg))
         return super().on_message(client, server, message)
 
     def on_send(self, message: dict) -> bool:
@@ -229,7 +229,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             return
         event = _message.get('event')
         if event is None:
-            log.loge(_(f"No event found from message , {message}"))
+            log.loge(_("No event found from message , {}").format(message))
         # There may need a thread pool to execute some functions which will cause a little time
         for case in switch(event):
             if case("RemoteStartServer"):
@@ -375,7 +375,7 @@ class wscamera(wsdevice,BasicCameraAPI):
             "params" : None
         }
         if self.on_send(r) is not True:
-            log.loge(_(f"Failed to send remote shutdown server event"))
+            log.loge(error.SendShutdownServer.value)
 
     def remote_dashboard_setup(self) -> None:
         """
@@ -1044,11 +1044,11 @@ class wscamera(wsdevice,BasicCameraAPI):
                 log.loge(_("Unknown camera type , please provide a correct camera type"))
                 return log.return_error(_("Unknown camera type, please provide a correct camera type"),{})
         except Exception as e:
-            log.loge(_(f"Some error occurred during connect to camera, error : {e}"))
+            log.loge(_("Some error occurred during connect to camera, error : {}").format(e))
             return log.return_error(_("Some error occurred during connect to camera"),{"error":e})
-        log.log(_(success.ConnectSuccess))
+        log.log(success.ConnectSuccess.value)
         self.info._is_connected = True
-        return log.return_success(_(success.ConnectSuccess),{"info" : self.device.info.get_dict()})
+        return log.return_success(success.ConnectSuccess.value,{"info" : self.device.info.get_dict()})
 
     def disconnect(self) -> dict:
         """
@@ -1120,8 +1120,8 @@ class wscamera(wsdevice,BasicCameraAPI):
         elif res.get("status") == 2:
             log.logw(_("Scan with the camera with warning"))
             return log.return_warning(_("Scan with the camera with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_(f"Scanning the camera successfully , Found : {res.get('params').get('list')}"))
-        return log.return_success(_("Scanning the camera successfully"),{"list" : res.get("params").get("list")})
+        log.log(success.ScanningSuccess.value + " : " + res.get("params").get("list"))
+        return log.return_success(success.ScanningSuccess.value,{"list" : res.get("params").get("list")})
 
 
     def polling(self) -> dict:
