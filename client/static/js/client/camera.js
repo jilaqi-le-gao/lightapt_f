@@ -30,8 +30,10 @@ ready(()=>{
 
 var is_connect = false,
     is_initialed = false,
-    is_camera_connected = false
-    is_filter_connected = false
+    is_camera_connected = false,
+    is_filter_connected = false,
+    is_exposure = false,
+    is_sequence_exposure = false
 
 var filter_list = []
 
@@ -202,7 +204,7 @@ function on_send(message){
 function StartPollingInterval(){
     // Send a polling command to server to get the newest infomation
     // default delay is 5 seconds
-    polling_interval = setInterval(SendRemotePolling(),5000)
+    polling_interval = setInterval(SendRemotePolling,1000)
 }
 
 function saveLocalStorage(url){
@@ -267,12 +269,16 @@ function ChangeButtonStatus(){
         document.getElementById("connectBtn").classList.add("btn-success"),
         document.getElementById("connectBtn").innerHTML='<i class="fas fa-link fa-spin mr-1"></i>已连接',
         SetBtnActive("#disconnectBtn"),
-		SetBtnActive(".btn")
+		SetBtnActive(".btn"),
+        document.getElementById("remoteShotBtn").addEventListener("click",camera_start_exposure),
+        document.getElementById("remoteShotAbortBtn").addEventListener("click",camera_abort_exposure)
     ):(
         document.getElementById("connectBtn").classList.remove("btn-success"),		//如果已经连接
 		document.getElementById("connectBtn").innerHTML='<i class="fas fa-link mr-1"></i>连接',
 		SetBtnInactive(".btn"),
-		SetBtnActive("#connectBtn")
+		SetBtnActive("#connectBtn"),
+        document.getElementById("remoteShotBtn").removeEventListener('click'),
+        document.getElementById("remoteShotAbortBtn").removeEventListener('click')
     )
 }
 
@@ -289,6 +295,20 @@ function ChangeConnectButtonStatus(){
 		SetBtnActive("#cameraConnectBtn"),
         SetBtnInactive("#cameraDisconnectBtn")
     )
+}
+
+function ChangeShotButtonStatus(){
+    // Change the status of the button when remoteShotBtn or remoteShotAbortBtn is clicked
+    is_exposure ? (
+        $("#remoteShotbtn").html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>拍摄中...').addClass("disabled")
+
+    ):(
+        $("#remoteShotbtn").html('<i class="fas fa-camera mr-2"></i>拍摄').removeClass("disabled")
+    )
+}
+
+function ChangeSequenceShotButtonStatus(){
+
 }
 // ----------------------------------------------------------------
 
@@ -340,6 +360,12 @@ function camera_scanning(){
 }
 
 function camera_start_exposure(){
+    // Check if camera had already started exposure
+    if(is_exposure || is_sequence_exposure){
+        console.log("Exposure had already started"),
+        log("Exposure has already started")
+        return
+    }
     // Get basic exposure parameters
     let exposure = document.getElementById("exposure"),
         gain = document.getElementById("gain"),
@@ -391,6 +417,14 @@ function camera_start_exposure(){
     SendRemoteStartExposure(r)
 }
 
+function camera_abort_exposure(){
+    if(!is_exposure){
+        console.debug("Camera had no exposure process")
+        log("Camera has no exposure process")
+        return
+    }
+    SendRemoteAbortExposure()
+}
 // ----------------------------------------------------------------
 
 // ----------------------------------------------------------------
@@ -493,6 +527,7 @@ function remote_connect(message){
             }
             console.debug("Established connection with camera successfully")
             log("Established connection with camera successfully")
+            StartPollingInterval()
         }else{
             console.debug("Couldn't find camera information in message")
         }
@@ -561,35 +596,138 @@ function remote_polling(message){
 }
 
 function remote_start_exposure(message){
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote start exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera start exposure successful")
+        log("Remote camera start exposure successful")
+        is_exposure = true
+    }else{
+        console.debug("Remote camera start exposure failed")
+        console.debug(msg)
+        log("Remote camera start exposure failed")
+        is_exposure = false
 
+    }
+    ChangeShotButtonStatus()
 }
 
 function remote_abort_exposure(message){
-
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote abort exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera abort exposure successful")
+        log("Remote camera abort exposure successful")
+        is_exposure = false
+    }
+    else{
+        console.debug("Remote camera abort exposure failed")
+        console.debug(msg)
+        log("Remote camera abort exposure failed")
+    }
+    ChangeShotButtonStatus()
 }
 
 function remote_get_exposure_status(message){
-
+    let status = message.status,
+        msg = message.message,
+        params = message.params
+    console.debug("Recieved remote get exposure status message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera get exposure status successful")
+        log("Remote camera get exposure status successful")
+    }
+    else{
+        console.debug("Remote camera get exposure status failed")
+        console.debug(msg)
+        log("Remote camera get exposure status failed")
+    }
 }
 
 function remote_get_exposure_result(message){
-
+    let status = message.status,
+        msg = message.message,
+        params = message.params
+    console.debug("Recieved remote get exposure result message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera get exposure result successful")
+        log("Remote camera get exposure result successful")
+    }
+    else{
+        console.debug("Remote camera get exposure result failed")
+        console.debug(msg)
+        log("Remote camera get exposure result failed")
+    }
 }
 
 function remote_start_sequence_exposure(message){
-
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote start sequence exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera start exposure successful")
+        log("Remote camera start exposure successful")
+        is_sequence_exposure = true
+    }
+    else{
+        console.debug("Remote camera start exposure failed")
+        console.debug(msg)
+        log("Remote camera start exposure failed")
+        is_sequence_exposure = false
+    }
+    ChangeSequenceShotButtonStatus()
 }
 
 function remote_abort_sequence_exposure(message){
-
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote abort sequence exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera abort exposure successful")
+        log("Remote camera abort exposure successful")
+        is_sequence_exposure = false
+    }
+    else{
+        console.debug("Remote camera abort exposure failed")
+        console.debug(msg)
+        log("Remote camera abort exposure failed")
+    }
+    ChangeSequenceShotButtonStatus()
 }
 
 function remote_pause_sequence_exposure(message){
-
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote pause sequence exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera pause exposure successful")
+        log("Remote camera pause exposure successful")
+        is_sequence_exposure = false
+    }
+    else{
+        console.debug("Remote camera pause exposure failed")
+        console.debug(msg)
+        log("Remote camera pause exposure failed")
+    }
+    ChangeSequenceShotButtonStatus()
 }
 
 function remote_continue_sequence_exposure(message){
-
+    let status = message.status,
+        msg = message.message
+    console.debug("Recieved remote continue sequence exposure message: " + JSON.stringify(message))
+    if(status == 0){
+        console.debug("Remote camera continue exposure successful")
+        log("Remote camera continue exposure successful")
+        is_sequence_exposure = true
+    }
+    else{
+        console.debug("Remote camera continue exposure failed")
+        console.debug(msg)
+        log("Remote camera continue exposure failed")
+    }
 }
 
 function remote_get_sequence_exposure_status(message){
