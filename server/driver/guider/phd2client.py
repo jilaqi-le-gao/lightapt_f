@@ -30,6 +30,7 @@ log = lightlog(__name__)
 import gettext
 _ = gettext.gettext
 
+import time
 import json
 import socket
 import threading
@@ -157,7 +158,7 @@ class GuidingStatus(object):
     """
     _frame : int # The frame number; starts at 1 each time guiding starts
     _time : int # the time in seconds, including fractional seconds, since guiding started
-    _last_error : int # error code
+    _last_error = 0 # error code
     _output_enabled : bool # whether output is enabled
     _dec_guide_mode : str # the guide mode of DEC axis
 
@@ -172,7 +173,7 @@ class GuidingStatus(object):
     _dec_distance : float # the guide algorithm-modified DEC distance in pixels of the guide offset vector
     
     _ra_duration : float # the RA guide pulse duration in milliseconds
-    _dec_distance : float # the DEC guide pulse duration in milliseconds
+    _dec_duration : float # the DEC guide pulse duration in milliseconds
 
     _ra_direction : str # "East" or "West"
     _dec_direction : str # "North" or "South"
@@ -189,7 +190,7 @@ class GuidingStatus(object):
     def get_dict(self) -> dict:
         return {
             "frame" : self._frame,
-            "time" : self._time,
+            "time" : time.asctime( time.localtime(time.time()) ),
             "last_error" : self._last_error,
             "output_enabled" : self._output_enabled,
             "dec_guide_mode" : self._dec_guide_mode,
@@ -245,7 +246,6 @@ class PHD2ClientInfo(BasicGuiderInfo):
     version : str
     subversion : str
     msgversion : str
-    state : str
     profile : dict
     profile_id : int
 
@@ -283,6 +283,41 @@ class PHD2ClientInfo(BasicGuiderInfo):
     starlost_snr : float
     starlost_starmass : float
     starlost_avgdist : float
+
+    def get_dict(self) -> dict:
+        """
+            Return PHD2 infomation in a dict
+        """
+        return {
+            "version" : self.version,
+            "subversion" : self.subversion,
+            "msgversion" : self.msgversion,
+            "profile" : self.profile,
+            "profile_id" : self.profile_id,
+            "mount" : self.mount,
+            "frame" : self.frame,
+            "exposure" : self.exposure,
+            "subframe" : self.subframe,
+            "cooling_model" : self.cooling_model.get_dict(),
+            "equipment_model" : self.equipment_model.get_dict(),
+            "g_status" : self.g_status.get_dict(),
+            "c_status" : self.c_status.get_dict(),
+            "image" : self.image.get_dict(),
+            "settle_distance" : self.settle_distance,
+            "settle_time" : self.settle_time,
+            "settle_star_locked" : self.settle_star_locked,
+            "settle_total_frame" : self.settle_total_frame,
+            "lock_position_x" : self.lock_position_x,
+            "lock_position_y" : self.lock_position_y,
+            "lock_shift_enabled" : self.lock_shift_enabled,
+            "star_selected_x" : self.star_selected_x,
+            "star_selected_y" : self.star_selected_y,
+            "dither_dx" : self.dither_dx,
+            "dither_dy" : self.dither_dy,
+            "starlost_snr" : self.starlost_snr,
+            "starlost_starmass" : self.starlost_starmass,
+            "starlost_avgdist" : self.starlost_avgdist,
+        }
 
 class PHD2Client(BasicGuiderAPI):
     """
@@ -338,6 +373,10 @@ class PHD2Client(BasicGuiderAPI):
         except OSError as e:
             log.loge(_("Failed to connect to PHD2 server"))
             return log.return_error(_("Failed to connect to PHD2 server"),{"error" :e})
+        res = self.get_configration()
+        if res.get("status") != 0:
+            log.loge(_("Failed to get configuration of PHD2 server"))
+            return log.return_error(_("Failed to get configuration of PHD2 server"),{"error":res.get("message")})
         log.log(_("Connected to PHD2 server successfully"))
         return log.return_success(_("Connected to PHD2 server successfully"),{})
 
@@ -413,6 +452,135 @@ class PHD2Client(BasicGuiderAPI):
         log.log(_(f"Found PHD2 server open on {guider_list}"))
         return log.return_success(_(f"Found PHD2 server"),{"guider" : guider_list})
 
+    def polling(self) -> dict:
+        """
+            Polling PHD2 server infomation | 获取PHD2服务器最新信息
+            Args: 
+                None
+            Returns:{
+                "status" : int,
+                "message": str,
+                "params" : {
+                    "info" : BasicGuiderInfo
+                }
+            }
+        """
+        if not self.info._is_connected or not self.info._is_device_connected:
+            log.loge(_("PHD2 is not connected, please do not execute polling() command"))
+            return log.return_error(_("PHD2 is not connected"),{})
+        res = self.info.get_dict()
+        log.logd(_(f"New guider infomation : {res}"))
+        return log.return_success(_("New guider infomation"),{"info" : res})
+
+    def get_configration(self) -> dict:
+        """
+            Get PHD2 configration | 获取配置信息
+            Args: 
+                None
+            Returns:{
+                "status" : int,
+                "message": str,
+                "params" : {
+                    "info" : BasicGuiderInfo
+                }
+            }
+        """
+        if not self.info._is_connected or not self.info._is_device_connected:
+            log.loge(_("PHD2 is not connected, please do not execute get_configration() command"))
+            return log.return_error(_("PHD2 is not connected"),{})
+        # Get calibration data
+        res = self._get_calibration_data()
+        if res.get("status") != 0:
+            log.loge(_("Failed to get calibration data"))
+            return log.return_error(f"Failed to get calibration data",{})
+        # Get app status
+        res = self._get_app_state()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get app status"))
+            return log.return_error(_(f"Failed to get app status"),{})
+        # Get camera frame size
+        res = self._get_camera_frame_size()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get camera frame size"))
+            return log.return_error(_(f"Failed to get camera frame size"),{})
+        # Get whether PHD2 is calibrated
+        res = self._get_calibrated()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get PHD2 is calibrated"))
+            return log.return_error(_(f"Failed to get PHD2 is calibrated"),{})
+        # Get whether the devices are all connected
+        res = self._get_connected()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get PHD2 is connected"))
+            return log.return_error(_(f"Failed to get PHD2 is connected"),{})
+        # Get current device
+        res = self._get_current_equipment()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get current device"))
+            return log.return_error(_(f"Failed to get current device"),{})
+        # Get current exposure value
+        res = self._get_exposure()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get current exposure value"))
+            return log.return_error(_(f"Failed to get current exposure value"),{})
+        # Get current exposure duration value
+        res = self._get_exposure_durations()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get current exposure duration value"))
+            return log.return_error(_(f"Failed to get current exposure duration value"),{})
+        # Get whether the guiding output is enabled
+        res = self._get_guide_output_enabled()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get whether the guiding output is enabled"))
+            return log.return_error(_(f"Failed to get the status of the output"),{})
+        # Get the position of the star if a star is locked
+        res = self._get_lock_position()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get the position of the star if a star is locked"))
+            return log.return_error(_(f"Failed to get the position of the star if a star is locked"),{})
+        # Get whether the locked position is enabled
+        res = self._get_lock_shift_enabled()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get whether the locked position is enabled"))
+            return log.return_error(_(f"Failed to get whether the locked position is enabled"),{})
+        # Get whether the locked position is locked
+        res = self._get_lock_shift_params()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get whether the locked position is locked"))
+            return log.return_error(_(f"Failed to get whether the locked position is locked"),{})
+        # Get whether PHD2 server is paused
+        res = self._get_paused()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get whether PHD2 server is paused"))
+            return log.return_error(_(f"Failed to get whether PHD2 server is paused"),{})
+        # Get camera pixel scale
+        res = self._get_pixel_scale()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get camera pixel scale"))
+            return log.return_error(_(f"Failed to get camera pixel scale"),{})
+        # Get ccurrent profile
+        res = self._get_profile()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get ccurrent profile"))
+            return log.return_error(_(f"Failed to get ccurrent profile"),{})
+        # Get all of the available profiles
+        res = self._get_profiles()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get all of the available profiles"))
+            return log.return_error(_(f"Failed to get all of the available profiles"),{}) 
+        # Get search region
+        res = self._get_search_region()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get search region"))
+            return log.return_error(_(f"Failed to get search region"),{})
+        # Get whether camera is using subframe
+        res = self._get_use_subframes()
+        if res.get("status")  != 0:
+            log.loge(_("Failed to get whether camera is using subframe"))
+            return log.return_error(_(f"Failed to get whether camera is using subframe"),{})
+        log.log(_("Get PHD2 configuration successfully"))
+        return log.return_success(_("Get PHD2 configration successfully"),{})
+        
     # #################################################################
     #
     # Listen and progress messages from PHD2 server
@@ -634,6 +802,7 @@ class PHD2Client(BasicGuiderAPI):
                 None
         """
         self.info._is_guiding = False
+        self.info._is_calibrating = False
         log.log(success.Paused.value)
 
     def _start_calibration(self, message : dict) -> None:
@@ -646,6 +815,7 @@ class PHD2Client(BasicGuiderAPI):
         """
         self.info.mount = message.get("Mount")
         self.info._is_calibrating = True
+        self.info._is_guiding = False
         log.log(_("Start calibration"))
 
     def _app_state(self, message : dict) -> None:
@@ -656,8 +826,40 @@ class PHD2Client(BasicGuiderAPI):
             Returns:
                 None
         """
-        self.info.state = message.get("State")
-        log.logd(_(f"App state : {self.info.state}"))
+        state = message.get("State")
+        for case in switch(state):
+            if case("Stopped"):
+                self.info._is_calibrating = False
+                self.info._is_looping = False
+                self.info._is_guiding = False
+                self.info._is_settling = False
+                break
+            if case("Selected"):
+                self.info._is_selected = True
+                self.info._is_looping = False
+                self.info._is_guiding = False
+                self.info._is_settling = False
+                self.info._is_calibrating = False
+                break
+            if case("Calibrating"):
+                self.info._is_calibrating = True
+                self.info._is_guiding = False
+                break
+            if case("Guiding"):
+                self.info._is_guiding = True
+                self.info._is_calibrating = False
+                break
+            if case("LostLock"):
+                self.info._is_guiding = True
+                self.info._is_starlocklost = True
+                break
+            if case("Paused"):
+                self.info._is_guiding = False
+                self.info._is_calibrating = False
+                break
+            if case("Looping"):
+                self.info._is_looping = True
+        log.logd(_(f"App state : {state}"))
 
     def _calibration_failed(self, message : dict) -> None:
         """
@@ -713,6 +915,7 @@ class PHD2Client(BasicGuiderAPI):
                 None
         """
         self.info._is_looping = False
+        log.log(_("Stop looping exposure"))
 
     def _settle_begin(self) -> None:
         """
@@ -737,6 +940,7 @@ class PHD2Client(BasicGuiderAPI):
         self.info._settle_time = message.get("SettleTime")
         self.info._settle_star_locked = message.get("StarLocked")
         self.info._is_settling = True
+        log.logd(_("Settling status : distance {} time {} star_locked {}").format(self.info._settle_distance,self.info._settle_time,self.info._settle_star_locked))
 
     def _settle_done(self, message : dict) -> None:
         """
@@ -801,29 +1005,46 @@ class PHD2Client(BasicGuiderAPI):
                 None
         """
         self.info.g_status._frame = message.get("Frame")
+        log.logd(_("Guide step frame : {}").format(self.info.g_status._frame))
         self.info.mount = message.get("Mount")
+        log.logd(_("Guide step mount : {}").format(self.info.mount))
         self.info.g_status._error = message.get("ErrorCode")
+        log.logd(_("Guide step error : {}").format(self.info.g_status._error))
 
         self.info.g_status._average_distance = message.get("AvgDist")
+        log.logd(_("Guide step average distance : {}").format(self.info.g_status._average_distance))
 
         self.info.g_status._dx = message.get("dx")
+        log.logd(_("Guide step dx : {}").format(self.info.g_status._dx))
         self.info.g_status._dy = message.get("dy")
+        log.logd(_("Guide step dy : {}").format(self.info.g_status._dy))
 
         self.info.g_status._ra_raw_distance = message.get("RADistanceRaw")
+        log.logd(_("Guide step RADistanceRaw : {}").format(self.info.g_status._ra_raw_distance))
         self.info.g_status._dec_raw_distance = message.get("DECDistanceRaw")
+        log.logd(_("Guide step DECDistanceRaw : {}").format(self.info.g_status._dec_raw_distance))
 
         self.info.g_status._ra_distance = message.get("RADistanceGuide")
+        log.logd(_("Guide step RADistanceGuide : {}").format(self.info.g_status._ra_distance))
         self.info.g_status._dec_distance = message.get("DECDistanceGuide")
+        log.logd(_("Guide step DECDistanceGuide : {}").format(self.info.g_status._dec_distance))
 
         self.info.g_status._ra_duration = message.get("RADuration")
+        log.logd(_("Guide step RADuration : {}").format(self.info.g_status._ra_duration))
         self.info.g_status._dec_duration = message.get("DECDuration")
+        log.logd(_("Guide step DECDuration : {}").format(self.info.g_status._dec_duration))
 
         self.info.g_status._ra_direction = message.get("RADirection")
+        log.logd(_("Guide step RADirection : {}").format(self.info.g_status._ra_direction))
         self.info.g_status._dec_direction = message.get("DECDirection")    
+        log.logd(_("Guide step DECDirection : {}").format(self.info.g_status._dec_direction))
 
         self.info.g_status._snr = message.get("SNR")
+        log.logd(_("Guide step SNR : {}").format(self.info.g_status._snr))
         self.info.g_status._starmass = message.get("StarMass")
+        log.logd(_("Guide step StarMass : {}").format(self.info.g_status._starmass))
         self.info.g_status._hfd = message.get("HFD")
+        log.logd(_("Guide step HFD : {}").format(self.info.g_status._hfd))
         
     def _guiding_dithered(self, message : dict) -> None:
         """

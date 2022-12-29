@@ -54,6 +54,7 @@ Just like the name of the project, only a few dependent libraries are needed to 
 
 + astropy
 + flask
++ flask-login
 + numpy
 + requsets 
 

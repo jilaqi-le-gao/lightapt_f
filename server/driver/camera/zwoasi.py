@@ -877,10 +877,10 @@ class ASICameraAPI(BasicCameraAPI):
         if self.info._can_save:
             log.logd(_("Start saving image data in fits"))
             hdr = fits.Header()
-            hdr['COMMENT'] = 'FITS (Flexible Image Transport System) format defined in Astronomy and'
-            hdr['COMMENT'] = 'Astrophysics Supplement Series v44/p363, v44/p371, v73/p359, v73/p365.'
-            hdr['COMMENT'] = 'Contact the NASA Science Office of Standards and Technology for the'
-            hdr['COMMENT'] = 'FITS Definition document #100 and other FITS information.'
+            hdr['COMMENT'] = """FITS (Flexible Image Transport System) format defined in Astronomy and
+                            Astrophysics Supplement Series v44/p363, v44/p371, v73/p359, v73/p365.
+                            Contact the NASA Science Office of Standards and Technology for the
+                            FITS Definition document #100 and other FITS information."""
             if self.info._depth == 16:
                 hdr['BZERO'] = 32768.0
                 hdr['BSCALE'] = 1.0

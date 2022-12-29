@@ -28,16 +28,134 @@ from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 
-import os,json,threading,logging
+import os,json,threading,logging,uuid
 
 from utils.i18n import _
 
-from flask import Flask,render_template,redirect
+from flask import Flask,render_template,redirect,Blueprint,request,flash,url_for
+from flask_login import LoginManager,login_required,login_user,current_user,logout_user,UserMixin
+from werkzeug.security import check_password_hash,generate_password_hash
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd(),"client","static"),
     template_folder=os.path.join(os.getcwd(),"client","templates")
 )
+app.secret_key = "lightapt"
+auth = Blueprint("auth",__name__)
+# Login system
+login_system = LoginManager()
+login_system.session_protection = "strong"
+login_system.login_view = "login"
+login_system.login_message_category = "info"
+login_system.login_message = "Access denied."
+login_system.init_app(app)
+
+USERS = [
+    {"id" : 1 ,"username": "admin", "password": generate_password_hash("admin")},
+]
+
+def create_user(user_name : str, password : str) -> None:
+    """
+        Create a new user | 创建一个新的用户
+        Args:
+            user_name: str
+            password: str
+    """
+    user = {
+        "name": user_name,
+        "password": generate_password_hash(password),
+        "id": uuid.uuid4()
+    }
+    USERS.append(user)
+
+def get_user(user_name : str) -> UserMixin:
+    """
+        Get the user from the database
+        Args:
+            user_name: str
+        Returns:
+            UserMixin | None if the user is not available
+    """
+    for user in USERS:
+        if user.get("username") == user_name:
+            return user
+    return None
+
+@login_system.user_loader
+def load_user(user_id : str):
+    """
+        Get the user from the database
+        Args:
+            user_id: str
+        Returns:
+            UserMixin | None if the user is not available
+    """
+    return User.get(user_id)
+
+class User(UserMixin):
+    """
+        User Information object
+    """
+    def __init__(self, user):
+        self.username = user.get("name")
+        self.password_hash = user.get("password")
+        self.id = user.get("id")
+
+    def verify_password(self, password):
+        """密码验证"""
+        if self.password_hash is None:
+            return False
+        return check_password_hash(self.password_hash, password)
+
+    def get_id(self):
+        """获取用户ID"""
+        return self.id
+
+    @staticmethod
+    def get(user_id):
+        if not user_id:
+            return None
+        for user in USERS:
+            if user.get('id') == user_id:
+                return User(user)
+        return None
+
+@app.route("/login" , methods=["POST","GET"])
+def login():
+    """
+        Login
+    """
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user_info = get_user(username)
+        if username is None or password is None:
+            log.loge(_("Empty username or password"))
+            return redirect("/login")
+        if user_info is None:
+            return redirect("/login")
+        else:
+            user = User(user_info)
+            if user.verify_password(password):  # 校验密码
+                login_user(user)
+                log.log(_("User login successful"))
+                return redirect('/desktop')
+    return render_template('login.html')
+
+@app.route("/login/" , methods=["POST","GET"])
+def login_():
+    return redirect('/login')
+
+@app.route("/logout", methods=["POST","GET"])
+def logout():
+    logout_user()
+    log.logd(_("User has been logged out"))
+    return redirect('/')
+
+@app.route("/logout/" , methods=["POST","GET"])
+def logout_():
+    return redirect('/logout')
+
 # Disable Flask logging system
 logger = logging.getLogger('werkzeug')
 logger.setLevel(logging.ERROR)
@@ -55,39 +173,88 @@ solver_container = {}
 def index():
     return render_template('index.html')
 
-@app.route('/main.html')
-def main():
-    return render_template('main.html')
-
 @app.route('/camera')
+@login_required
 def camera():
     return render_template('camera.html')
+
+@app.route('/camera/')
+@login_required
+def camera_():
+    return redirect("/camera")
     
 @app.route('/telescope')
+@login_required
 def telescope():
     return render_template('telescope.html')
 
+@app.route('/telescope/')
+@login_required
+def telescope_():
+    return redirect("/telescope")
+
 @app.route('/focuser')
+@login_required
 def focuser():
     return render_template('focuser.html')
 
+@app.route('/focuser/')
+@login_required
+def focuser_():
+    return redirect("/focuser")
+
 @app.route('/guider')
+@login_required
 def guider():
     return render_template('guider.html')
 
+@app.route('/guider/')
+@login_required
+def guider_():
+    return redirect("/guider")
+
 @app.route('/solver')
+@login_required
 def solver():
     return render_template('solver.html')
+
+@app.route('/solver/')
+@login_required
+def solver_():
+    return redirect("/solver")
     
 @app.route('/novnc')
+@login_required
 def novnc():
     return render_template('novnc.html')
 
+@app.route('/novnc/')
+@login_required
+def novnc_():
+    return redirect("/novnc")
+
 @app.route('/client')
+@login_required
 def client():
     return render_template('client.html')
 
+@app.route('/client/')
+@login_required
+def client_():
+    return redirect("/client")
+
+@app.route('/desktop')
+@login_required
+def desktop():
+    return render_template('desktop.html')
+
+@app.route('/desktop/')
+@login_required
+def desktop_():
+    return redirect("/desktop")
+
 @app.route("/config",methods = ["GET"])
+@login_required
 def get_config():
     if not os.path.exists("config"):
         return {
@@ -116,10 +283,12 @@ def get_config():
         }
 
 @app.route("/config/",methods = ["GET"])
+@login_required
 def get_config_():
     return redirect('/config')
 
 @app.route("/device",methods = ["GET"])
+@login_required
 def device():
     """
         Returns a dict of devices and their configurations | 返回设备列表以及对应配置
@@ -167,10 +336,12 @@ def device():
     return device_list
 
 @app.route("/device/",methods = ["GET"])
+@login_required
 def get_device_():
     return redirect("/device")
 
 @app.route("/device/<device_type>/<device_id>",methods=["GET"])
+@login_required
 def device_id(device_type,device_id):
     """
         Read device configuration | 读取设备配置
@@ -213,10 +384,12 @@ def device_id(device_type,device_id):
     }
 
 @app.route("/device/<device_type>/<device_id>/",methods=["GET"])
+@login_required
 def device_id_(device_type, device_id):
     return redirect(f"/device/{device_type}/{device_id}")
 
 @app.route("/start/<script>", methods=["GET"])
+@login_required
 def start_device(script):
     """
         Start device | 启动服务器
@@ -305,6 +478,7 @@ def start_device(script):
     }
 
 @app.route("/stop/<device_type>/<device_id>",methods=["GET"])
+@login_required
 def stop_device(device_type, device_id):
     """
         Stop device and shutdown the server via http request
@@ -381,6 +555,7 @@ def stop_device(device_type, device_id):
             }
 
 @app.route("/restart/<deivce_type>/<device_id>", methods=["GET"])
+@login_required
 def restart_device(device_type,device_id):
     """
         Restart a device via http request 
@@ -438,6 +613,7 @@ def restart_device(device_type,device_id):
     }
 
 @app.route("/scan/<device_type>/<device>",methods = ["GET"])
+@login_required
 def scan_device(device_type,device):
     """
         Scan a device via http request 
@@ -474,22 +650,27 @@ def scan_device(device_type,device):
         break
 
 @app.route("/start/<script>/",methods=["GET"])
+@login_required
 def start_device_(script):
     return redirect("/start/<script>")
 
 @app.route("/stop/<device_type>/<device_id>/",methods=["GET"])
+@login_required
 def stop_device_(device_type, device_id):
     return redirect("/stop/<device_type>/<device_name>")
 
 @app.route("/restart/<deivce_type>/<device_id>/",methods=["GET"])
+@login_required
 def restart_device_(device_type,device_id):
     return redirect("/restart/<device_type>/<device_id>")
 
 @app.route("/scan/<device_type>/<device>/",methods=["GET"])
+@login_required
 def scan_device_(device_type,device):
     return redirect("/scan/<device_type>/<device>")
 
 @app.route("/setconfig/<config_path>", methods=["GET"])
+@login_required
 def set_config(config_path):
     """
         Set the configuration file path | 设置配置文件路径
@@ -526,6 +707,7 @@ def set_config(config_path):
     }
 
 @app.route("/setconfig/<config_path>/", methods=["GET"])
+@login_required
 def set_config_(config_path):
     return redirect("/setconfig/<config_path>")
 
@@ -538,7 +720,7 @@ def set_configration(config_path : str) -> None:
         Returns:
             None
     """
-    if config_path is None:
+    if config_path is None or config_path == "":
         log.logd(_("No configuration file is specified , use default configuration"))
         config_path = os.path.join("config",config_path)
     log.logd(_("Trying to load configuration file : {}").format(config_path))
