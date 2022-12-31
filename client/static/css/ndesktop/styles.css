@@ -21,7 +21,7 @@
 }
 
 * {
-  font-family: Segoe UI Variable, Segoe UI;
+  font-family: Segoe UI Variable, Segoe UI, sans-serif;
 }
 
 ::-webkit-scrollbar {
@@ -566,13 +566,11 @@ body {
   background-color: var(--background-color);
   box-shadow: 1px 3px 10px lightgray;
   width: 200px;
-  display:
-    flex;
+  display:flex;
   align-items: center;
   margin-left: 16px;
   height: 30px;
   border-radius: 3px;
-  display: flex;
   justify-content: space-between;
 }
 

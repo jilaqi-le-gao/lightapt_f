@@ -213,14 +213,14 @@ body {
 }
 
 #win10-menu .list .item.has-sub-down::after{
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
     content:"\f107";
     line-height: inherit;
     float: right;
 }
 
 #win10-menu .list .item.has-sub-up::after{
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
     content:"\f106";
     line-height: inherit;
     float: right;
@@ -296,7 +296,7 @@ body {
 }
 
 #win10-menu .menu_group:hover .title::after{
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
     content:"\f0c9";
     line-height: inherit;
     float: right;
@@ -585,25 +585,25 @@ body {
 .win10-open-iframe .layui-layer-min::before{
     content:"\f2d1";
     color: white;
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
 }
 
 .win10-open-iframe .layui-layer-max::before{
     content:"\f2d0";
     color: white;
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
 }
 
 .win10-open-iframe .layui-layer-maxmin.layui-layer-max::before{
     content:"\f2d2";
     color: white;
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
 }
 
 .win10-open-iframe .layui-layer-close::before{
     content:"\f2d3";
     color: #fff;
-    font: normal normal normal 14px/1 FontAwesome;
+    font: normal normal normal 14px/1 FontAwesome, sans-serif;
 }
 
 .win10-open-iframe .layui-layer-min,.layui-layer-close,.layui-layer-max{

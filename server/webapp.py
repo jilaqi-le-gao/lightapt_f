@@ -28,12 +28,12 @@ from utils.utility import switch
 from utils.lightlog import lightlog
 log = lightlog(__name__)
 
-import os,json,threading,logging,uuid
+import os,json,logging,uuid
 
 from utils.i18n import _
 
-from flask import Flask,render_template,redirect,Blueprint,request,flash,url_for
-from flask_login import LoginManager,login_required,login_user,current_user,logout_user,UserMixin
+from flask import Flask,render_template,redirect,Blueprint,request
+from flask_login import LoginManager,login_required,login_user,logout_user,UserMixin
 from werkzeug.security import check_password_hash,generate_password_hash
 
 app = Flask(__name__,
@@ -260,6 +260,16 @@ def ndesktop():
 @app.route("/ndesktop/")
 def ndesktop_():
     return redirect("/ndesktop")
+
+@app.route("/editor")
+@login_required
+def editor():
+    return render_template('jsoneditor.html')
+
+@app.route("/editor/")
+@login_required
+def editor_():
+    return redirect("/editor")
     
 @app.errorhandler(404)
 def page_not_found(error):
@@ -481,12 +491,39 @@ def start_device(script):
                 "message" : success.DeviceStartedSuccess.value
             }
         if case("mount"):
-            break
+            global mount_container
+            if device_id in mount_container.keys():
+                log.logw(error.HadAlreadyStartedSame.value)
+                return {
+                    "error" : error.HadAlreadyStartedSame.value
+                }
+            mount_container[device_id] = {}
         if case("focuser"):
+            global focuser_container
+            if device_id in focuser_container.keys():
+                log.logw(error.HadAlreadyStartedSame.value)
+                return {
+                    "error" : error.HadAlreadyStartedSame.value
+                }
+            focuser_container[device_id] = {}
             break
         if case("guider"):
+            global guider_container
+            if device_id in guider_container.keys():
+                log.logw(error.HadAlreadyStartedSame.value)
+                return {
+                    "error" : error.HadAlreadyStartedSame.value
+                }
+            guider_container[device_id] = {}
             break
         if case("solver"):
+            global solver_container
+            if device_id in solver_container.keys():
+                log.logw(error.HadAlreadyStartedSame.value)
+                return {
+                    "error" : error.HadAlreadyStartedSame.value
+                }
+            solver_container[device_id] = {}
             break
         break
     return {
@@ -618,10 +655,52 @@ def restart_device(device_type,device_id):
                 }
             break
         if case("focuser"):
+            global focuser_container
+            if device_id not in focuser_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = focuser_container[device_id]["class"].reconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceRestartFailed)
+                return {
+                    "error" : error.DeviceRestartFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
             break
         if case("solver"):
+            global solver_container
+            if device_id not in solver_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = solver_container[device_id]["class"].reconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceRestartFailed)
+                return {
+                    "error" : error.DeviceRestartFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
             break
         if case("guider"):
+            global guider_container
+            if device_id not in guider_container.keys():
+                log.logw(error.DeviceNotStarted)
+                return {
+                    "error" : error.DeviceNotStarted.value
+                }
+            res = guider_container[device_id]["class"].reconnect()
+            if res.get('status')!= 0:
+                log.logw(error.DeviceRestartFailed)
+                return {
+                    "error" : error.DeviceRestartFailed.value,
+                    "status" : res.get('status'),
+                    "message" : res.get('message')
+                }
             break
         break
     return {

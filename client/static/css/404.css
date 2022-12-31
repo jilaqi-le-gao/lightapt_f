@@ -1,5 +1,5 @@
 body {
-    font-family: Segoe UI;
+    font-family: Segoe UI,sans-serif;
     background: #3973aa;
     color: #fefeff;
     height: 100vh;
@@ -29,7 +29,6 @@ body {
     padding: 0;
     margin: 25px 0;
     margin-top: 0;
-    font-weight: 300;
   }
   
   h1 {
