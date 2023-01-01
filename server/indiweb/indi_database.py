@@ -165,9 +165,9 @@ class Database(object):
 
         c = self.__conn.cursor()
         try:
-            c.execute('INSERT INTO profile (name) VALUES(?)', (name,))
+            c.execute('INSERT INTO profile (name) VALUES(?)', (name))
         except sqlite3.IntegrityError:
-            log.logw(_("Profile name %s already exists."), name)
+            log.logw(_("Profile name %s already exists.") % name)
         return c.lastrowid
 
     def get_profile(self, name):

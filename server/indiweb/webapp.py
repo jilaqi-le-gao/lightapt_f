@@ -51,7 +51,7 @@ active_profile = ""
 @indiapp.route("/")
 def index():
     global saved_profile
-    drivers = indi_collection.get_families()
+    drivers = indi_collection.get_family()
     if not saved_profile:
         saved_profile = request.cookies.get('indiserver_profile') or 'Simulators'
     profiles = indi_database.get_profiles()
@@ -110,7 +110,7 @@ def save_profile_custom_driver():
     data = request.json(silent=False)
     indi_database.save_profile_custom_driver(data)
     indi_collection.clear_custom_drivers()
-    indi_collection.parse_custom_drivers(indi_database.get_custom_drivers())
+    indi_collection.parser_custom_driver(indi_database.get_custom_drivers())
 
 
 @indiapp.route('/api/profiles/<item>/labels', methods=['GET'])
@@ -136,7 +136,7 @@ def get_remote_drivers(item):
 @indiapp.route('/api/server/status', methods=['GET'])
 def get_server_status():
     """Server status"""
-    status = [{'status': str(indi_server.is_running()), 'active_profile': active_profile}]
+    status = [{'status': str(indi_server.is_server_running()), 'active_profile': active_profile}]
     return json.dumps(status)
 
 
@@ -174,7 +174,7 @@ def start_server(profile):
 @indiapp.route('/api/server/stop', methods=['POST'])
 def stop_server():
     """Stop INDI Server"""
-    indi_server.stop()
+    indi_server.stop_server()
 
     global active_profile
     active_profile = ""
@@ -194,7 +194,7 @@ def stop_server():
 def get_json_groups(response):
     """Get all driver families (JSON)"""
     response.content_type = 'application/json'
-    families = indi_collection.get_families()
+    families = indi_collection.get_family()
     return json.dumps(sorted(families.keys()))
 
 
@@ -208,7 +208,7 @@ def get_json_drivers(response):
 @indiapp.route('/api/drivers/start/<label>', methods=['POST'])
 def start_driver(label):
     """Start INDI driver"""
-    driver = indi_collection.by_label(label)
+    driver = indi_collection.get_by_label(label)
     indi_server.start_driver(driver)
     log.log(_('Driver "%s" started.') % label)
     return ''
@@ -218,7 +218,7 @@ def start_driver(label):
 @indiapp.route('/api/drivers/stop/<label>', methods=['POST'])
 def stop_driver(label):
     """Stop INDI driver"""
-    driver = indi_collection.by_label(label)
+    driver = indi_collection.get_by_label(label)
     indi_server.stop_driver(driver)
     log.log(_('Driver "%s" stopped.') % label)
     return ''
@@ -227,7 +227,7 @@ def stop_driver(label):
 @indiapp.route('/api/drivers/restart/<label>', methods=['POST'])
 def restart_driver(label):
     """Restart INDI driver"""
-    driver = indi_collection.by_label(label)
+    driver = indi_collection.get_by_label(label)
     indi_server.stop_driver(driver)
     indi_server.start_driver(driver)
     log.log(_('Driver "%s" restarted.') % label)
@@ -267,8 +267,8 @@ def start_profile(profile):
     info = indi_database.get_profile(profile)
 
     profile_drivers = indi_database.get_profile_drivers_labels(profile)
-    all_drivers = [indi_collection.by_label(d['label']) for d in profile_drivers]
-    indi_server.start(info['port'], all_drivers)
+    all_drivers = [indi_collection.get_by_label(d['label']) for d in profile_drivers]
+    indi_server.start_server(info['port'], all_drivers)
         # Auto connect drivers in 3 seconds if required.
     if info['autoconnect'] == 1:
         t = Timer(3, indi_server.auto_connect)
@@ -299,7 +299,7 @@ def start_indiweb(host : str, port : int,indi_port : int,fifo_path : str,config_
     indi_server = INDIServerFIFO(_fifo_path, _config_path)
     indi_device = Device(port=_indi_port)
     indi_database = Database(os.path.join(os.getcwd(),"config","indiweb","profiles.db"))
-    indi_collection.parse_custom_drivers(indi_database.get_custom_drivers())
+    indi_collection.parser_custom_driver(indi_database.get_custom_drivers())
     indiapp.jinja_env.auto_reload = True
     global active_profile
     for profile in indi_database.get_profiles():
@@ -307,10 +307,8 @@ def start_indiweb(host : str, port : int,indi_port : int,fifo_path : str,config_
             start_profile(profile['name'])
             active_profile = profile['name']
             break
-
-    log.log(_("Exiting"))
-    indiapp.run(host=_host, port=_port, debug=True, threaded=True)
-
+    log.logd(_("Running INDI web manager on {}:{}").format(_host,_port))
+    indiapp.run(host=_host, port=int(_port),threaded=True)
 
 if __name__ == '__main__':
     start_indiweb()

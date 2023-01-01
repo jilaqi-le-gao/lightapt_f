@@ -150,7 +150,7 @@ class INDIDriverCollection(object):
                 return driver
         return None
 
-    def get_family(self, family) -> dict:
+    def get_family(self) -> dict:
         """
             Get driver family
             Args:

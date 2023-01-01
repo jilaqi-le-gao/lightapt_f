@@ -25,7 +25,7 @@ from server.wsexception import WebAppError as error
 from server.wsexception import WebAppWarning as warning
 
 from utils.utility import switch
-from utils.lightlog import lightlog
+from utils.lightlog import lightlog,DEBUG
 log = lightlog(__name__)
 
 import os,json,logging,uuid
@@ -157,8 +157,9 @@ def logout_():
     return redirect('/logout')
 
 # Disable Flask logging system
-logger = logging.getLogger('werkzeug')
-logger.setLevel(logging.ERROR)
+if not DEBUG:
+    logger = logging.getLogger('werkzeug')
+    logger.setLevel(logging.ERROR)
 
 config = None
 config_path = "config.json"
@@ -270,6 +271,26 @@ def editor():
 @login_required
 def editor_():
     return redirect("/editor")
+
+@app.route("/skymap")
+@login_required
+def skymap():
+    return render_template('skymap.html')
+
+@app.route("/skymap/")
+@login_required
+def skymap_():
+    return redirect("/skymap")
+
+@app.route("/scripteditor")
+@login_required
+def scripteditor():
+    return render_template('scripteditor.html')
+
+@app.route("/scripteditor/")
+@login_required
+def scripteditor_():
+    return redirect("/scripteditor")
     
 @app.errorhandler(404)
 def page_not_found(error):

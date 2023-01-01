@@ -41,12 +41,12 @@ class INDIServerFIFO(object):
     """
 
     def __init__(self,port = INDI_PORT,config_path = INDI_CONFIG_PATH) -> None:
-        self.fifo = None
+        self.fifo = INDI_FIFO
         self.port = port
         self.config_path = config_path
 
     def __del__(self) -> None:
-        self.stop()
+        self.stop_server()
 
     def start_server(self, port = INDI_PORT,drivers=[]) -> None:
         """
@@ -70,7 +70,7 @@ class INDIServerFIFO(object):
         else:
             log.logw(_("Successfully cleared the current fifo pipe"))
         # Run INDI server with no drivers starting
-        cmd = 'indiserver -p %d -m 100 -v -f %s > /tmp/indiserver.log 2>&1 &' % (self.port, self.fifo)
+        cmd = 'indiserver -p {} -m 100 -v -f {} > /tmp/indiserver.log 2>&1 &'.format(self.port, self.fifo)
         log.log(cmd)
         run(cmd, shell=True)
 
