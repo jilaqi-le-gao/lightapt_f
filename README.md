@@ -39,7 +39,9 @@ This method is likes P2P mode. Every device has its own websocket server and eve
 ## Features
 Including many useful features , and build in many powerful repositories
 + Full devices supported via ASCOM & INDI
++ Offline skymap and virtual viewer
 + Remote connection supported via noVNC
++ Image viewer and compresser support
 + Small tools for image processing and star searching
 + Beautiful User interface and all platforms supported
 + Open source and stable , but also powerful
@@ -50,9 +52,18 @@ Most of the codes are written in Python and JavaScript, and we will try to add m
 ### Build
 Just like the name of the project, only a few dependent libraries are needed to start
 
-### Requirements
+#### Installation
 
-+ astropy
+Fisrt , you should install all of the required libraries . You can run this command
+"""
+pip install -r requirements.txt
+"""
+
+However , when we tested this on Python3.7 , we can not install astropy from Pypi.Until now we do not find the solution to this problem.You can just ignore astropy and all of server will run normally.
+
+#### Requirements
+
++ astropy(optional)
 + flask
 + flask-login
 + numpy

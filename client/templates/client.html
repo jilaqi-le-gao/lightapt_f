@@ -33,17 +33,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>LightAPT WebUI</title>
     <!-- Font Awesome 6.2.0 Pro -->
-    <link rel="stylesheet" href="static/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/static/css/solid.min.css">
     <!-- AdminLTE Theme style -->
     <link rel="stylesheet" href="static/css/adminlte.min.css">
     <!-- overlayScrollbars -->
     <link rel="stylesheet" href="static/css/plugins/OverlayScrollbars.min.css">
+    <!-- Loading animation -->
+    <link rel="stylesheet" href="/static/css/loading.css">
     <!-- Icon -->
     <link rel="icon" sizes="16x16" type="image/icon" href="{{url_for('static',filename='textures/icon.ico')}}">
 </head>
 <!-- Body Part -->
 
 <body class="hold-transition sidebar-mini layout-fixed dark-mode" data-panel-auto-height-mode="height">
+    <!-- loading开始 -->
+    <div id="loading-animation">
+        <div id="loading-animation-center">
+            <div id="loading-animation-center-absolute">
+                <div class="loading_object" id="loading_four"></div>
+                <div class="loading_object" id="loading_three"></div>
+                <div class="loading_object" id="loading_two"></div>
+                <div class="loading_object" id="loading_one"></div>
+            </div>
+        </div>
+    </div>
+    <script>!function () { function e() { setTimeout(() => { $("#loading-animation").fadeOut(540) }, 500) } window.jQuery ? $(document).ready(() => { e() }) : document.onreadystatechange = (() => { "interactive" === document.readyState && e() }) }();</script>
+    <!-- loading 结束 -->
     <div class="wrapper">
         <!-- Navbar -->
         <nav class="main-header navbar navbar-expand navbar-dark">

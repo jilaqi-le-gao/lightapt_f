@@ -30,15 +30,31 @@
     <title>Camera</title>
 
     <!-- Font Awesome 6.2.0 Pro -->
-    <link rel="stylesheet" href="/static/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/static/css/solid.min.css">
     <!-- AdminLTE Theme style -->
     <link rel="stylesheet" href="/static/css/adminlte.min.css">
     <!-- Camera Style -->
     <link rel="stylesheet" href="/static/css/client/camera.css">
+    <!-- Loading animation -->
+    <link rel="stylesheet" href="/static/css/loading.css">
 
 </head>
 
 <body style="height: auto;" class="sidebar-mini sidebar-closed sidebar-collapse dark-mode">
+    <!-- loading开始 -->
+    <div id="loading-animation">
+        <div id="loading-animation-center">
+            <div id="loading-animation-center-absolute">
+                <div class="loading_object" id="loading_four"></div>
+                <div class="loading_object" id="loading_three"></div>
+                <div class="loading_object" id="loading_two"></div>
+                <div class="loading_object" id="loading_one"></div>
+            </div>
+        </div>
+    </div>
+    <script>!function () { function e() { setTimeout(() => { $("#loading-animation").fadeOut(540) }, 500) } window.jQuery ? $(document).ready(() => { e() }) : document.onreadystatechange = (() => { "interactive" === document.readyState && e() }) }();</script>
+    <!-- loading 结束 -->
     <div class="wrapper">
         <!-- Main content -->
         <section class="content">

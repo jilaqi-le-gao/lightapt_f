@@ -64,23 +64,6 @@ def main():
     if args.gui:
         """Open terminal ui based on """
 
-    if args.indiweb:
-        from server.indiweb.webapp import start_indiweb
-        indiweb_thread = threading.Thread(target=start_indiweb,kwargs={
-            "host": args.indihost,
-            "port": args.indiport,
-            "indi_port": args.indipport,
-            "fifo_path": args.indififo,
-            "config_path": args.indiconfig,
-            "data_path": args.indidata,
-        })
-        # 设置主线程同步，但是由于python3.10.6的语法修改，是的需要进行判断
-        try:
-            indiweb_thread.daemon = True
-        except DeprecationWarning:
-            indiweb_thread.setDaemon(True)
-        log.log(_("Starting INDI web manager on {}:{}").format(args.indihost,args.indiport))
-        indiweb_thread.start()
     log.log(_("Initialize LightAPT server ..."))
     log.log(_("Current version is {}").format(version))
     try:

@@ -146,13 +146,15 @@ def login():
 def login_():
     return redirect('/login')
 
-@app.route("/logout", methods=["POST","GET"])
+@app.route("/logout", methods=["GET"])
+@login_required
 def logout():
     logout_user()
     log.logd(_("User has been logged out"))
     return redirect('/')
 
-@app.route("/logout/" , methods=["POST","GET"])
+@app.route("/logout/" , methods=["GET"])
+@login_required
 def logout_():
     return redirect('/logout')
 
@@ -291,6 +293,26 @@ def scripteditor():
 @login_required
 def scripteditor_():
     return redirect("/scripteditor")
+
+@app.route("/imageviewer")
+@login_required
+def imageviewer():
+    return render_template('imageviewer.html')
+
+@app.route("/imageviewer/")
+@login_required
+def imageviewer_():
+    return redirect("/imageviewer")
+
+@app.route("/indiweb")
+@login_required
+def indiweb():
+    return render_template('indiweb.html')
+
+@app.route("/indiweb/")
+@login_required
+def indiweb_():
+    return redirect("/indiweb")
     
 @app.errorhandler(404)
 def page_not_found(error):
