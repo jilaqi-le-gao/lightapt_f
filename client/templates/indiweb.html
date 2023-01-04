@@ -1,0 +1,502 @@
+<!--
+
+   Copyright(c) 2022 Max Qian  <astroair.cn>
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>INDI启动器</title>
+
+    <link rel='Shortcut Icon' type='image/x-icon' href='/static/textures/icons/indilib.png'>
+
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="/static/css/fontawesome.min.css">
+    <link rel="stylesheet" href="/static/css/solid.min.css">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="/static/css/select2.min.css">
+    <!-- Icheck -->
+    <link rel="stylesheet" href="/static/css/icheck-bootstrap.min.css">
+    <!-- Select2 with bootstrap -->
+    <link rel="stylesheet" href="/static/css/select2-bootstrap4.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="/static/css/adminlte.min.css">
+    <!-- Loading animation -->
+    <link rel="stylesheet" href="/static/css/loading.css">
+</head>
+
+<body style="height: auto;" class="dark-mode">
+    <!-- loading开始 -->
+    <div id="loading-animation">
+        <div id="loading-animation-center">
+            <div id="loading-animation-center-absolute">
+                <div class="loading_object" id="loading_four"></div>
+                <div class="loading_object" id="loading_three"></div>
+                <div class="loading_object" id="loading_two"></div>
+                <div class="loading_object" id="loading_one"></div>
+            </div>
+        </div>
+    </div>
+    <script>!function () { function e() { setTimeout(() => { $("#loading-animation").fadeOut(540) }, 500) } window.jQuery ? $(document).ready(() => { e() }) : document.onreadystatechange = (() => { "interactive" === document.readyState && e() }) }();</script>
+    <!-- loading 结束 -->
+    <div class="wrapper">
+        <!-- Main content -->
+        <section class="content" data-widget="iframe">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col px-lg-1 px-xl-2 mb-xl-4 mb-2">
+                        <div class="card elegant-color h100 card-default card-primary">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-webcam mr-2"></i>
+                                    INDI启动器
+                                </div>
+                            </div>
+                            <!-- Card content -->
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col px-lg-1 px-xl-2 mb-xl-4 mb-2">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="card card-default card-lightblue">
+                                                    <div class="card-header">
+                                                        <div class="card-title">
+                                                            <i class="fas fa-camera mr-2"></i>
+                                                            设备配置
+                                                        </div>
+                                                        <div class="card-tools">
+                                                            <button type="button" class="btn btn-tool"
+                                                                data-card-widget="collapse" title="Collapse">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Card content -->
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>主相机</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="camera_type" style="width: 100%;">
+                                                                        <option value="asi">ASI</option>
+                                                                        <option value="qhy">QHY</option>
+                                                                        <option value="gphoto">DSLR</option>
+                                                                        <option value="none" selected="selected">None</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>赤道仪</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="mount_type" style="width: 100%;">
+                                                                        <option value="ioptronv3">iOptron v3</option>
+                                                                        <option value="ieq">iOptron IEQ</option>
+                                                                        <option value="lx200zeq25">iOptron Old</option>
+                                                                        <option value="skywatcher">Skywatcher</option>
+                                                                        <option value="celestron">Celestron</option>
+                                                                        <option value="onstep">Onstep</option>
+                                                                        <option value="none" selected="selected">None</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>滤镜论</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="filterwheel_type" style="width: 100%;">
+                                                                        <option value="none" selected="selected">None
+                                                                        </option>
+                                                                        <option value="qhy">QHY</option>
+                                                                        <option value="asi">ASI</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>电调</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="focuser_type" style="width: 100%;">
+                                                                        <option value="none" selected="selected">None</option>
+                                                                        <option value="asi">ASI</option>
+                                                                        <option value="onstep">Onstep</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>导星</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="guider_type" style="width: 100%;">
+                                                                        <option value="none" selected="selected">None
+                                                                        </option>
+                                                                        <option value="phd2">PHD2</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group form-group-sm">
+                                                                    <label>解析</label>
+                                                                    <select class="form-control select2 form-control-sm"
+                                                                        id="solver_type" style="width: 100%;">
+                                                                        <option value="none" selected="selected">None
+                                                                        </option>
+                                                                        <option value="astap">ASTAP</option>
+                                                                        <option value="astrometry">Astrometry</option>
+                                                                        <option value="simulator">Simulator</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <button id="start_device" type="button"
+                                                                    class="btn btn-block btn-outline-info btn-sm">
+                                                                    <i class="fas fa-link"></i>
+                                                                    启动
+                                                                </button>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <button id="reset_device" type="button"
+                                                                    class="btn btn-block btn-outline-danger btn-sm">
+                                                                    <i class="fas fa-redo"></i>
+                                                                    重置
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card card-default card-lightblue">
+                                                    <div class="card-header">
+                                                        <div class="card-title">
+                                                            <i class="fas fa-info mr-2"></i>
+                                                            设备详情
+                                                        </div>
+                                                        <div class="card-tools">
+                                                            <button type="button" class="btn btn-tool"
+                                                                data-card-widget="collapse" title="Collapse">
+                                                                <i class="fas fa-minus"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Card content -->
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-md-12">
+                                                                <table class="table table-sm table-bordered table-hover">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th style="width: 25%;" class="text-center">
+                                                                                <i class="fas fa-camera-home"></i>
+                                                                                设备类型
+                                                                            </th>
+                                                                            <th style="width: 25%;" class="text-center">
+                                                                                <i class="fas fa-box"></i>
+                                                                                设备名称
+                                                                            </th>
+                                                                            <th style="width: 25%;" class="text-center">
+                                                                                <i class="fas fa-running"></i>
+                                                                                设备状态
+                                                                            </th>
+                                                                            <th style="width: 25%;" class="text-center">
+                                                                                <i class="fas fa-gear"></i>
+                                                                                设备控制
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                主相机
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="camera_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="camera_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Caemra Table-->
+
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                赤道仪
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="mount_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="mount_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Mount Table -->
+
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                滤镜轮
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="filterwheel_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="filterwheel_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Filterwheel Tabel-->
+
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                电调
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="focuser_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="focuser_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Focuser Tbale -->
+
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                导星
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="guider_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="guider_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Guider Tabel -->
+
+                                                                        <tr data-widget="expandable-table"
+                                                                            aria-expanded="false">
+                                                                            <td class="text-center">
+                                                                                解析
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+
+                                                                            </td>
+                                                                            <td>
+                                                                                <div class="row">
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="solver_restart" type="button"
+                                                                                            class="btn btn-block btn-outline-success btn-sm disabled">
+                                                                                            <i class="fas fa-redo"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div class="col-md-6">
+                                                                                        <button id="solver_disconnect" type="button"
+                                                                                            class="btn btn-block btn-outline-danger btn-sm disabled">
+                                                                                            <i class="fas fa-delete-left" ></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                
+                                                                            </td>
+                                                                        </tr>
+                                                                        <!-- ./ Solver Table -->
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-primary text-center mt-2">
+                                INDI启动器
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+		<!-- Central Modal Medium Danger -->
+		<div class="modal fade" id="centralModalDanger" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+			aria-hidden="true">
+			<div class="modal-dialog modal-notify modal-danger" role="document">
+				<!--Content-->
+				<div class="modal-content">
+					<!--Header-->
+					<div class="modal-header">
+						<p class="heading lead" id="errorModalTitle">错误信息</p>
+						<button type="button" class="close modal-voy-btn" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true" class="white-text">&times;</span>
+						</button>
+					</div>
+
+					<!--Body-->
+					<div class="modal-body">
+						<div class="text-center">
+							<i class="fas fa-exclamation-triangle fa-4x mb-3 animated bounceIn"></i>
+							<p id="errorMessage" class="note note-danger">
+								未知错误
+							</p>
+							<p id="contactMessage" class="text-muted">
+								<small>如果你有任何问题，请将详细细节告知开发者</small>
+							</p>
+						</div>
+					</div>
+
+					<!--Footer-->
+					<div class="modal-footer justify-content-center">
+						<a class="btn btn-outline-danger modal-voy-btn"
+							href="mailto:astro_air@126.com,fran.dibiase@gmail.com">
+							<i class="fas fa-envelope mr-1"></i>联系我们</a>
+						<button type="button" class="btn btn-danger waves-effect modal-voy-btn" data-dismiss="modal">
+							Ok
+						</button>
+					</div>
+				</div>
+				<!--/.Content-->
+			</div>
+		</div>
+	</div>
+	<!-- Modal container end -->
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <!-- Select2 -->
+    <script src="/static/js/select2.full.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/static/js/adminlte.min.js"></script>
+    <!-- INDI Web -->
+    <script src="/static/js/client/indiweb.js"></script>
+</body>

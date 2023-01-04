@@ -28,11 +28,11 @@ from utils.utility import switch
 from utils.lightlog import lightlog,DEBUG
 log = lightlog(__name__)
 
-import os,json,logging,uuid
+import os,json,logging,uuid,subprocess
 
 from utils.i18n import _
 
-from flask import Flask,render_template,redirect,Blueprint,request
+from flask import Flask,render_template,redirect,Blueprint,request,Response
 from flask_login import LoginManager,login_required,login_user,logout_user,UserMixin
 from werkzeug.security import check_password_hash,generate_password_hash
 
@@ -303,16 +303,6 @@ def imageviewer():
 @login_required
 def imageviewer_():
     return redirect("/imageviewer")
-
-@app.route("/indiweb")
-@login_required
-def indiweb():
-    return render_template('indiweb.html')
-
-@app.route("/indiweb/")
-@login_required
-def indiweb_():
-    return redirect("/indiweb")
     
 @app.errorhandler(404)
 def page_not_found(error):
@@ -930,3 +920,136 @@ def run_server(host : str , port : int , threaded = True , debug = False) -> Non
         log.log(_("Running web server on {}:{}").format(_host,_port))
         app.run(host=_host, port=_port,threaded=_threaded)
         
+# #################################################################
+# INDIWeb 
+# #################################################################
+
+@app.route("/indiweb")
+@login_required
+def indiweb():
+    return render_template('indiweb.html')
+
+@app.route("/indiweb/")
+@login_required
+def indiweb_():
+    return redirect("/indiweb")
+
+INDI_FIFO = os.path.join("/tmp","indiFIFO")
+
+is_indi_started = False
+indi_container = {
+    "camera" : None,
+    "mount" : None,
+    "focuser" : None,
+    "filterwheel" : None,
+    "guider" : None,
+    "solver" : None,
+}
+
+@app.route("/indiweb/start",methods=["POST"])
+@login_required
+def start_indiweb():
+    """
+        Start the server | 启动服务器
+        Args: 
+            None
+        Return: None
+    """
+    # Check if the indiserver had already started
+    global is_indi_started
+    code = 200
+    message = ""
+    if is_indi_started is True:
+        log.logw(_("INDI server had already started , please do not start it again"))
+        code = 114115 
+        message = "INDI server had already started, please do not start it again"
+    else:
+        device = request.get_json()
+        if device.get("try") is None:
+            cmd = "indiserver "
+            for index in device:
+                if device[index] is not None:
+                    if index != "guider" and index != "solver":
+                        cmd += device[index] + " "
+                    indi_container[index] = device[index]
+            if cmd == "indiserver ":
+                log.logw(_("No device need to start!"))
+                message = _("No device need to start")
+            else:
+                log.logd(_("Starting server : {}").format(cmd))
+                message = _("Starting server : {}").format(cmd)
+                subprocess.run("killall indiserver",shell=True)
+                subprocess.run(cmd + " &",shell=True)
+                is_indi_started = True
+        else:
+            code = 114115
+    params = {
+        "camera" : indi_container.get("camera",None),
+        "mount" : indi_container.get("mount",None),
+        "focuser" : indi_container.get("focuser",None),
+        "filterwheel" : indi_container.get("filterwheel",None),
+        "guider" : indi_container.get("guider",None),
+        "solver" : indi_container.get("solver",None),
+    }
+    print(params)
+    res = {
+        "status" : code,
+        "message" : message,
+        "params" : params
+    }
+    return Response(json.dumps(res), mimetype='application/json')
+
+@app.route("/indiweb/start/",methods=["POST"])
+@login_required
+def start_indiweb_():
+    return redirect("/indiweb/start")
+
+@app.route("/indiweb/stop",methods=["POST"])
+@login_required
+def stop_indiweb():
+    """
+        Stop a specified INDI device
+    """
+    res = request.get_json()
+    device = res.get("device")
+    cmd = "stop {}".format(indi_container[device])
+    full_cmd = "echo '{}' > {}".format(cmd,INDI_FIFO)
+    subprocess.run(full_cmd,shell=True)
+    del indi_container[device]
+    r = {
+        "status" : 200,
+        "message" : _("Stop {} successfully").format(device)
+    }
+    return Response(json.dumps(r), mimetype='application/json')
+
+@app.route("/indiweb/stop/",methods=["POST"])
+@login_required
+def stop_indiweb_():
+    return redirect("/indiweb/stop")
+
+@app.route("/indiweb/restart", methods=["POST"])
+@login_required
+def restart_indiweb():
+    """
+        Restart an INDI device
+    """
+    res = request.get_json()
+    device = res.get("device")
+    if indi_container[device] is None:
+        r = {
+            "status" : 1000,
+            "message" : _("Device {} not found").format(device)
+        }
+        return Response(json.dumps(r),mimetype="application/json")
+    cmd = "stop {}".format(indi_container[device])
+    full_cmd = "echo '{}' > {}".format(cmd,INDI_FIFO)
+    subprocess.run(full_cmd,shell=True)
+
+    cmd = "start {}".format(indi_container[device])
+    full_cmd = "echo '{}' > {}".format(cmd,INDI_FIFO)
+    subprocess.run(full_cmd,shell=True)
+
+@app.route("/indiweb/restart/", methods=["POST"])
+@login_required
+def restart_indiweb_():
+    return redirect("/indiweb/restart")
