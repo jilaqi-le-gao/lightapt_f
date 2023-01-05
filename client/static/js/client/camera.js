@@ -25,7 +25,7 @@ ready(()=>{
     InitialSetBtnActive();
     // Bind connect event with connectBtn 
     document.getElementById("connectBtn").addEventListener("click",connect)
-    document.getElementById("remoteShotbtn")
+    document.getElementById("remoteShotBtn")
 });
 
 var is_connect = false,
@@ -75,6 +75,9 @@ var RemoteEvent = {
 function InitialSetBtnInactive(){
     // Make all buttons to inactive when initialized
     $(".btn").addClass("disabled")
+    $(".btn-tool").removeClass("disabled")
+    $('#goto_seq').tooltip({title: "Go to Script Editor", animation: true}); 
+    $('#clear_log').tooltip({title: "清除日志", animation: true}); 
 }
 
 function InitialSetBtnActive(){
@@ -158,6 +161,7 @@ function on_open(event) {
     SetStatusLedOn("connStatus")
     $("#lightapt").text("LightAPT服务器已连接")
     log("Established connection with server")
+    stepper.next()
     document.getElementById("disconnectBtn").addEventListener("click",disconnect)
     document.getElementById("cameraConnectBtn").addEventListener("click",camera_connect)
     SendRemoteDashboardSetup()
@@ -300,10 +304,10 @@ function ChangeConnectButtonStatus(){
 function ChangeShotButtonStatus(){
     // Change the status of the button when remoteShotBtn or remoteShotAbortBtn is clicked
     is_exposure ? (
-        $("#remoteShotbtn").html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>拍摄中...').addClass("disabled")
+        $("#remoteShotBtn").html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>拍摄中...').addClass("disabled")
 
     ):(
-        $("#remoteShotbtn").html('<i class="fas fa-camera mr-2"></i>拍摄').removeClass("disabled")
+        $("#remoteShotBtn").html('<i class="fas fa-camera mr-2"></i>拍摄').removeClass("disabled")
     )
 }
 
@@ -467,7 +471,7 @@ function remote_connect(message){
         msg = message.message,
         params = message.params
     console.debug("Recieved remote connect message: " + JSON.stringify(message))
-    if(status == 0){
+    if(status == 0 || msg == "Had already connected to the camera"){
         console.debug("Remote camera connected successfully")
         log("Remote camera connected successfully")
         if(params.info != null){
@@ -1007,3 +1011,221 @@ function SendRemoteSetConfiguration(params){
 }
 
 // ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// BS-Stepper for server and device connections
+// ----------------------------------------------------------------
+
+// BS-Stepper Init
+document.addEventListener('DOMContentLoaded', function () {
+    window.stepper = new Stepper(document.querySelector('.bs-stepper'))
+})
+
+
+// ----------------------------------------------------------------
+// Guider line Renders
+// ----------------------------------------------------------------
+
+$(function () {
+
+    var TempData = [];
+    var PowerData = [];
+
+    var coolingLineData = {
+        datasets: [
+            {
+                label: '制冷温度',
+                yAxisID: 'temperature',
+                backgroundColor: 'rgba(60,141,188,0.9)',
+                borderColor: 'rgba(0,0,255,0.8)',
+                pointRadius: false,
+                pointColor: '#3b8bba',
+                pointStrokeColor: 'rgba(60,141,188,1)',
+                pointHighlightFill: '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data: TempData
+            },
+            {
+                label: '制冷功率',
+                yAxisID : 'power',
+                backgroundColor: 'rgba(255,0 ,0, 1)',
+                borderColor: 'rgba(255, 0, 0, 0.8)',
+                pointRadius: true,
+                pointColor: 'rgba(210, 214, 222, 1)',
+                pointStrokeColor: '#c1c7d1',
+                pointHighlightFill: '#fff',
+                pointHighlightStroke: 'rgba(220,220,220,1)',
+                data: PowerData
+            },
+        ]
+    }
+
+    var coolingLineOptions = {
+        maintainAspectRatio: false,
+        responsive: true,
+        legend: {
+            display: true
+        },
+        scales: {
+            xAxes: [{
+                gridLines: {
+                    display: true,
+                }
+            }],
+            yAxes: [{
+                gridLines: {
+                    display: true,
+                },
+                },{
+                    type: 'value',
+                    name: 'power',
+                    display : true
+                }
+            ]
+            
+        }
+    }
+
+    var cooling_line_canvas = $('#cooling_line').get(0).getContext('2d')
+    var cooling_line_options = $.extend(true, {}, coolingLineOptions)
+    var cooling_line_data = $.extend(true, {}, coolingLineData)
+    cooling_line_data.datasets[0].fill = false;
+    cooling_line_data.datasets[1].fill = false;
+    cooling_line_options.datasetFill = false
+
+    var cooling_chart = new Chart(cooling_line_canvas, {
+        type: 'line',
+        data: cooling_line_data,
+        options: cooling_line_options
+    })
+});
+
+// ----------------------------------------------------------------
+// Image Viewer
+// ----------------------------------------------------------------
+
+window.onload = function () {
+    'use strict';
+
+    var Viewer = window.Viewer;
+    var console = window.console || { log: function () { } };
+    var pictures = document.querySelector('.docs-pictures');
+    var toggles = document.querySelector('.docs-toggles');
+    var buttons = document.querySelector('.docs-buttons');
+    var options = {
+        // inline: true,
+        url: 'data-original',
+        ready: function (e) {
+        },
+        show: function (e) {
+        },
+        shown: function (e) {
+        },
+        hide: function (e) {
+        },
+        hidden: function (e) {
+        },
+        view: function (e) {
+        },
+        viewed: function (e) {
+        },
+        move: function (e) {
+        },
+        moved: function (e) {
+        },
+        rotate: function (e) {
+        },
+        rotated: function (e) {
+        },
+        scale: function (e) {
+        },
+        scaled: function (e) {
+        },
+        zoom: function (e) {
+        },
+        zoomed: function (e) {
+        },
+        play: function (e) {
+        },
+        stop: function (e) {
+        }
+    };
+    var viewer = new Viewer(pictures, options);
+
+    function toggleButtons(mode) {
+        var targets;
+        var target;
+        var length;
+        var i;
+
+        if (/modal|inline|none/.test(mode)) {
+            targets = buttons.querySelectorAll('button[data-enable]');
+
+            for (i = 0, length = targets.length; i < length; i++) {
+                target = targets[i];
+                target.disabled = true;
+
+                if (String(target.getAttribute('data-enable')).indexOf(mode) > -1) {
+                    target.disabled = false;
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------------------
+// HFD line Renders
+// ----------------------------------------------------------------
+
+$(function () {
+
+    var hfdData = []
+    var hfdLineData = {
+        datasets: [
+            {
+                label: 'HFD',
+                yAxisID: 'hfd',
+                backgroundColor: 'rgba(60,141,188,0.9)',
+                borderColor: 'rgba(0,255,0,0.8)',
+                pointRadius: false,
+                pointColor: '#3b8bba',
+                pointStrokeColor: 'rgba(60,141,188,1)',
+                pointHighlightFill: '#fff',
+                pointHighlightStroke: 'rgba(60,141,188,1)',
+                data: hfdData
+            }
+        ]
+    }
+
+    var hfdLineOptions = {
+        maintainAspectRatio: false,
+        responsive: true,
+        legend: {
+            display: true
+        },
+        scales: {
+            xAxes: [{
+                gridLines: {
+                    display: true,
+                }
+            }],
+            yAxes: [{
+                gridLines: {
+                    display: true,
+                }
+            }]
+        }
+    }
+
+    var hfd_line_canvas = $('#hfd_line').get(0).getContext('2d')
+    var hfd_line_options = $.extend(true, {}, hfdLineOptions)
+    var hfd_line_data = $.extend(true, {}, hfdLineData)
+    hfd_line_data.datasets[0].fill = false;
+    hfd_line_options.datasetFill = false
+
+    var hfd_chart = new Chart(hfd_line_canvas, {
+        type: 'line',
+        data: hfd_line_data,
+        options: hfd_line_options
+    })
+});

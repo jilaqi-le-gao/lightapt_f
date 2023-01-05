@@ -1000,7 +1000,7 @@ class wscamera(wsdevice,BasicCameraAPI):
         if self.info._is_connected:
             log.logw(_("Had already connected to the camera , please do not connect again"))
             self.remote_polling()
-            return log.return_warning(_("Had already connected to the camera"),{"advice" : _("Please do not connect again")})
+            return log.return_warning(_("Had already connected to the camera"),{"info" : self.device.info.get_dict()})
         if params.get("type") is None or params.get("name") is None:
             log.loge(_("Please provide a type and name for the camera"))
             return log.return_error(_("Please provide a type and name for the"),{})
