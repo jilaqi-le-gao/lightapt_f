@@ -25,7 +25,6 @@ ready(()=>{
     InitialSetBtnActive();
     // Bind connect event with connectBtn 
     document.getElementById("connectBtn").addEventListener("click",connect)
-    document.getElementById("remoteShotBtn")
 });
 
 var is_connect = false,

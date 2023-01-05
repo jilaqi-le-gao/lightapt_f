@@ -27,10 +27,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Telescope</title>
+    <title>Focuser</title>
 
      <!-- Icon -->
-     <link rel="icon" sizes="16x16" type="image/png" href="{{url_for('static',filename='textures/icons/telescope.png')}}">
+     <link rel="icon" sizes="16x16" type="image/png" href="{{url_for('static',filename='textures/icons/focuser.png')}}">
 
     <!-- Font Awesome 6.2.0 Pro -->
     <link rel="stylesheet" href="/static/css/fontawesome/fontawesome.min.css">
@@ -72,7 +72,7 @@
                             <div class="card-header">
                                 <div class="card-title">
                                     <i class="fa-solid fa-shuffle"></i>
-                                    赤道仪连接与信息
+                                    电调连接与信息
                                 </div>
                                 <div class="card-tools">
                                     <button type="button" class="btn btn-tool btn-sm"
@@ -83,12 +83,12 @@
                             </div>
                             <!-- /.card-header -->
                             <div class="card-body">
-                                <!-- mount Connection and Infomation -->
+                                <!-- focuser Connection and Infomation -->
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fa-solid fa-plug"></i>
-                                            赤道仪连接
+                                            电调连接
                                         </h3>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool btn-sm"
@@ -172,14 +172,14 @@
                                                         <div id="connect-device-part" class="content" role="tabpanel" aria-labelledby="information-part-trigger">
                                                             <div class="row">
                                                                 <div class="col-md-12">
-                                                                    <div id="mountConnectOptions">
+                                                                    <div id="focuserConnectOptions">
 
-                                                                        <div class="input-group d-flex" id="mountConnectIpBar">
+                                                                        <div class="input-group d-flex" id="focuserConnectIpBar">
                                                                             <input class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectHost" placeholder="主机">
                                                                             <input type="number" class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectPort" placeholder="端口">
                                                                         </div>
                         
-                                                                        <div class="input-group d-flex" id="mountConnectBar">
+                                                                        <div class="input-group d-flex" id="focuserConnectBar">
                                                                             <input class="form-control form-control-sm text-center text-white border-sx-blue m-1" id="connectName" placeholder="名称">
                         
                                                                             <select class="custom-select custom-select-sm text-center text-white border-sx-blue m-1 p-2" id="connectType">
@@ -189,21 +189,21 @@
                                                                                 <option value="qhyccd">QHYCCD</option>
                                                                             </select>
                                                                         </div>
-                                                                        <small id="mountConnectHelp" class="form-text text-muted text-center">如果是ASI或者QHY赤道仪，则不用填写主机和端口</small>
+                                                                        <small id="focuserConnectHelp" class="form-text text-muted text-center">如果是ASI或者QHY电调，则不用填写主机和端口</small>
                                                                     </div>    
                                                                 </div>
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col-md-12">
                                                                     <!-- Connect and Disconnect Button -->
-                                                                    <div class="input-group-append d-flex" id="mountConnectButtonBar">
-                                                                        <button id="mountConnectBtn"
+                                                                    <div class="input-group-append d-flex" id="focuserConnectButtonBar">
+                                                                        <button id="focuserConnectBtn"
                                                                             class="btn btn-primary btn-sm m-1 px-1 flex-fill waves-effect waves-light">
                                                                             <i class="fas fa-link mr-1"></i>连接
                                                                         </button>
-                                                                        <button id="mountDisconnectBtn"
+                                                                        <button id="focuserDisconnectBtn"
                                                                             class="btn btn-danger btn-sm m-1 px-1 flex-fill doubleConfirm waves-effect waves-light"
-                                                                            value="断开与赤道仪连接">
+                                                                            value="断开与电调连接">
                                                                             <i class="fas fa-unlink mr-1"></i>断连
                                                                         </button>
                                                                     </div>
@@ -250,13 +250,13 @@
                                         <!-- /.Status and Action Text-->
                                     </div>
                                 </div>
-                                <!-- /.mount Connection-->
-                                <!-- mount Infomation -->
+                                <!-- /.focuser Connection-->
+                                <!-- focuser Infomation -->
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fa-solid fa-info"></i>
-                                            赤道仪信息
+                                            电调信息
                                         </h3>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool btn-sm"
@@ -270,21 +270,21 @@
                                         <ul class="list-group">
                                             <li
                                                 class="list-group-item d-flex align-items-center justify-content-between">
-                                                <div class="statusLed" id="mountStatLed"></div>
-                                                <span id="mountConnText">赤道仪信息</span>
+                                                <div class="statusLed" id="focuserStatLed"></div>
+                                                <span id="focuserConnText">电调信息</span>
                                             </li>
                                 
-                                            <ul class="list-group text-small" id="mountStatusBar"></ul>                     
+                                            <ul class="list-group text-small" id="focuserStatusBar"></ul>                     
                                         </ul>
                                     </div>
                                 </div>
-                                <!-- /.mount Infomation-->
-                                <!-- mount Log -->
+                                <!-- /.focuser Infomation-->
+                                <!-- focuser Log -->
                                 <div class="card">
                                     <div class="card-header">
                                         <h3 class="card-title">
                                             <i class="fas fa-clipboard-list"></i>
-                                            赤道仪日志
+                                            电调日志
                                         </h3>
                                         <div class="card-tools">
                                             <button type="button" class="btn btn-tool btn-sm"
@@ -302,9 +302,9 @@
                                         <div id="logDiv" class="p-1 text-left"></div>
                                     </div>
                                 </div>
-                                <!-- /.mount Log-->
+                                <!-- /.focuser Log-->
                             </div>
-                            <!-- /.mount Connection and Infomation -->
+                            <!-- /.focuser Connection and Infomation -->
                             <div class="card-footer text-muted text-center">
                                 <div class="status-item d-inline-flex">
                                     <div class="led-circle mr-2" div="" id="connStatus" name="connStatus"></div>
@@ -315,14 +315,14 @@
                             </div>
                         </div>
                     </div>
-                    <!-- /.mount Info -->
-                    <!-- mount Control -->
+                    <!-- /.focuser Info -->
+                    <!-- focuser Control -->
                     <div class="col-md-4">
                         <div class="card card-default card-primary">
                             <div class="card-header">
                                 <div class="card-title">
                                     <i class="fa-solid fa-earth"></i>
-                                    赤道仪控制
+                                    电调控制
                                 </div>
                                 <div class="card-tools">
                                     <button type="button" class="btn btn-tool btn-sm"
@@ -349,303 +349,6 @@
                                         <!-- /.card-tools -->
                                     </div>
                                     <div class="card-body">
-                                        <div class="input-group d-flex mt-0">
-                                            <div class="col">
-                                                <input type="text" id="ra_search" class="form-control form-control-sm text-white text-center bg-dark mr-lg-1" placeholder="RA" aria-label="RA" aria-describedby="RA">
-                                                <small class="p-0 text-muted text-small">RA J2000</small>
-                                            </div>
-                                            <div class="col mx-1">
-                                                <input type="text" id="dec_search" class="form-control form-control-sm text-white text-center bg-dark mr-lg-1" placeholder="DEC" aria-label="DEC" aria-describedby="DEC">
-                                                <small class="p-0 text-muted text-small">DEC J2000</small>
-                                            </div>
-                                        </div>
-
-                                        <div class="input-group">
-                                            <div class="col">
-                                                <button id="goto" class="btn btn-sm btn-outline-primary btn-block" type="button">
-                                                    <i class="fas fa-crosshairs"></i>
-                                                    Goto
-                                                 </button>
-                                            </div>
-                                            <div class="col">
-                                                <button id="abort_goto" class="btn btn-sm btn-outline-danger btn-block" type="button">
-                                                   <i class="fas fa-cancel"></i>
-                                                   停止
-                                                </button>
-                                            </div>
-                                            
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Setting -->
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h3 class="card-title">
-                                            <i class="fa-solid fa-joystick"></i>
-                                            控制选项
-                                        </h3>
-                                        <div class="card-tools">
-                                            <button type="button" class="btn btn-tool btn-sm"
-                                                data-card-widget="collapse">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                        </div>
-                                        <!-- /.card-tools -->
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group">
-                                                    <div class="col">
-                                                        <button id="trackBtn" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-camera-viewfinder"></i>
-                                                            跟踪
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="homeBtn" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-home"></i>
-                                                            回家
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="unParkBtn" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-cancel"></i>
-                                                            停止跟踪
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group mt-2">
-                                                    <div class="col">
-                                                        <button id="parkBtn" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-parking"></i>
-                                                            归位
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="unParkBtn" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-stop"></i>
-                                                            归位解锁
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h3 class="card-title">
-                                            <i class="fa-solid fa-search"></i>
-                                            搜索
-                                        </h3>
-                                        <div class="card-tools">
-                                            <button type="button" class="btn btn-tool btn-sm"
-                                                data-card-widget="collapse">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                        </div>
-                                        <!-- /.card-tools -->
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control form-control-sm text-center text-white border-sx-blueVoy bg-dark mr-lg-1 searchField" id="nameToSearch" aria-describedby="Name" value="" placeholder="输入目标名称或编号">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group mt-2">
-                                                    <div class="col">
-                                                        <button id="searchLocalBtn" class="btn btn-sm btn-outline-info btn-block" type="button">
-                                                            <i class="fas fa-search"></i>
-                                                            本地搜索
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="searchOnlineBtn" class="btn btn-sm btn-outline-warning btn-block" type="button">
-                                                            <i class="fas fa-globe"></i>
-                                                            在线搜索
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="suycBtn" class="btn btn-sm btn-outline-success btn-block" type="button">
-                                                            <i class="fas fa-sync"></i>
-                                                            同步
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer text-muted text-center">
-                                <div class="status-item d-inline-flex">
-                                    <span id="lightapt">赤道仪控制</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- mount Control -->
-                    <div class="col-md-4">
-                        <div class="card card-default card-primary">
-                            <div class="card-header">
-                                <div class="card-title">
-                                    <i class="fa-solid fa-earth"></i>
-                                    赤道仪控制
-                                </div>
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-tool btn-sm"
-                                        data-card-widget="collapse">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <!-- /.card-header -->
-                            <div class="card-body">
-                                <!-- Goto Virtual Hand -->
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h3 class="card-title">
-                                            <i class="fa-solid fa-crosshairs-simple"></i>
-                                            Goto虚拟手柄
-                                        </h3>
-                                        <div class="card-tools">
-                                            <button type="button" class="btn btn-tool btn-sm"
-                                                data-card-widget="collapse">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                        </div>
-                                        <!-- /.card-tools -->
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group">
-                                                    <div class="col">
-                                                        <button id="goto_w_n" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-up-left"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_n" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-up"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_e_n" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-up-right"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group mt-3">
-                                                    <div class="col">
-                                                        <button id="goto_w" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-left"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_stop" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-stop-circle"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_e" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-right"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="input-group mt-3">
-                                                    <div class="col">
-                                                        <button id="goto_w_s" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-down-left"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_s" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-down"></i>
-                                                        </button>
-                                                    </div>
-                                                    <div class="col">
-                                                        <button id="goto_e_s" class="btn btn-sm btn-primary btn-block" type="button">
-                                                            <i class="fas fa-arrow-down-right"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12 mt-3">
-                                                <label for="goto_speed">GOTO速度</label>
-                                                <div class="input-group input-group-sm">
-                                                    <select class="browser-default custom-select custom-select-sm text-white border-sx-blue" id="goto_speed">
-                                                        <option value="1" selected="">1x</option>
-                                                        <option value="2">2x</option>
-                                                        <option value="4">4x</option>
-                                                        <option value="8">8x</option>
-                                                        <option value="16">16x</option>
-                                                        <option value="32">32x</option>
-                                                        <option value="64">64x</option>
-                                                        <option value="128">128x</option>
-                                                        <option value="256">256x</option>
-                                                    </select>
-                                                    <button id="track_mode_setting" type="button" class="btn btn-outline-info btn-sm">
-                                                        <i class="fas fa-gear"></i>
-                                                        设置
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h3 class="card-title">
-                                            <i class="fa-solid fa-gears"></i>
-                                            参数设置
-                                        </h3>
-                                        <div class="card-tools">
-                                            <button type="button" class="btn btn-tool btn-sm"
-                                                data-card-widget="collapse">
-                                                <i class="fas fa-minus"></i>
-                                            </button>
-                                        </div>
-                                        <!-- /.card-tools -->
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <label for="track_mode">跟踪模式</label>
-                                                <div class="input-group input-group-sm">
-                                                    <select class="browser-default custom-select custom-select-sm text-white border-sx-blue" id="ipPort">
-                                                        <option value="0" selected="">恒星</option>
-                                                        <option value="1">太阳</option>
-                                                        <option value="2">月球</option>
-                                                        <option value="3">自定义</option>
-                                                    </select>
-                                                    <button id="track_mode_setting" type="button" class="btn btn-outline-info btn-sm">
-                                                        <i class="fas fa-gear"></i>
-                                                        设置
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -717,8 +420,8 @@
     <script src="/static/js/plugins/viewer.min.js"></script>
     <!-- AdminLTE App -->
     <script src="/static/js/adminlte.min.js"></script>
-    <!-- Custom mount Js -->
-    <script src="/static/js/client/mount.js"></script>
+    <!-- Custom focuser Js -->
+    <script src="/static/js/client/focuser.js"></script>
 </body>
 
 </html>
