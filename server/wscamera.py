@@ -18,1554 +18,568 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from server.basic.camera import BasicCameraAPI,BasicCameraInfo
-from server.basic.wsdevice import wsdevice,basic_ws_info
-from server.wsexception import WSCameraError as error
-from server.wsexception import WSCameraWarning as warning
-from server.wsexception import WSCameraSuccess as success
+# System Library
+import datetime
+from json import JSONDecodeError, dumps
+from secrets import randbelow
+# Third Party Library
 
+# Built-in Library
+from server.basic.camera import BasicCameraAPI,BasicCameraInfo
+
+import server.config as c
+
+from utils.i18n import _
 from utils.utility import switch
 from utils.lightlog import lightlog
-log = lightlog(__name__)
+logger = lightlog(__name__)
 
-from secrets import randbelow
-import gettext
-_ = gettext.gettext
-import json
-
-__version__ = '1.0.0'
-
-class wscamera_info(basic_ws_info,BasicCameraInfo):
+class WsCameraInterface():
     """
-        Websocket camera information container
-        Public basic_ws_info and CameraInfo
+        Websocket camera interface
     """
 
-    _type : str
-    _name : str
-    _latest_json_message : str
-
-    def get_dict(self) -> dict:
-        """Return camera infomation in a dictionary"""
-        r = {
-            "ws" : {
-                "host" : self.host,
-                "port" : self.port,
-                "debug" : self.debug,
-                "threaded" : self.threaded,
-                "running" : self.running,
-                "connected" : self.connected,
-                "name" : self._name,
-                "type" : self._type
-            },
-            "address": self._address,
-            "api_version" : self._api_version,
-            "description": self._description,
-            "id": self._id,
-            "timeout" : self._timeout,
-            "ability" : {
-                "can_stop_exposure" : self._can_stop_exposure,
-                "can_abort_exposure" : self._can_abort_exposure,
-                "can_guiding" : self._can_guiding,
-                "can_binning" : self._can_bin,
-                "can_gain" : self._can_gain,
-                "can_offset" : self._can_offset,
-                "can_set_temperature" : self._can_set_temperature,
-                "can_get_coolpower" : self._can_get_coolpower,
-                "can_fast_readout" : self._can_fast_readout,
-                "has_shutter" : self._has_shutter
-            },
-            "properties" : {
-                "bayer_offset_x" : self._bayer_offset_x,
-                "bayer_offset_y" : self._bayer_offset_y,
-                "height" : self._height,
-                "width" : self._width,
-                "max_expansion" : self._max_exposure,
-                "min_expansion" : self._min_exposure,
-                "resolution_exposure" : self._resolution_exposure,
-                "full_capacit" : self._full_capacit,
-                "max_gain" : self._max_gain,
-                "min_gain" : self._min_gain,
-                "max_offset" : self._max_offset,
-                "min_offset" : self._min_offset,
-                "highest_temperature" : self._highest_temperature,
-                "last_exposure_time" : self._last_exposure_time,
-                "max_adu" : self._max_adu,
-                "max_bin_x" : self._max_bin_x,
-                "max_bin_y" : self._max_bin_y,
-                "subframe_x" : self._subframe_x,
-                "subframe_y" : self._subframe_y,
-                "pixel_height" : self._pixel_height,
-                "pixel_width" : self._pixel_width,
-                "readout_mode" : self._readout_mode,
-                "readout_modes" : self._readout_modes,
-                "sensor_name" : self._sensor_name,
-                "sensor_type" : self._sensor_type,
-                "start_x" : self._start_x,
-                "start_y" : self._start_y,
-            },
-            "current" : {
-                "cooling_power" : self._cooling_power,
-                "temperature" : self._temperature,
-                "last_exposure" : self._last_exposure,
-                "gain" : self._gain,
-                "offset" : self._offset,
-                "gains" : self._gains,
-                "offsets" : self._offsets,
-                "bin_x" : self._bin_x,
-                "bin_y" : self._bin_y,
-                "percent_complete" : self._percent_complete
-            },
-            "status" : {
-                "connected" : self._is_connected,
-                "exposure" : self._is_exposure,
-                "video" : self._is_video,
-                "guiding" : self._is_guiding,
-                "cooling" : self._is_cooling,
-                "fastreadout" : self._is_fastreadout,
-                "imgready" : self._is_imgready,
-            }
-        }
-        return r
-
-class wscamera(wsdevice,BasicCameraAPI):
-    """
-        Websocket Camera Main Class
-    """
-
-    def __init__(self,_type : str, name : str, host : str, port : int, debug : bool, threaded : bool, ssl : dict) -> None:
+    def __init__(self) -> None:
         """
-            Initializer function | 初始化\n
-            Args:
-                type : str # Type of camera
-                name : str # Name of camera
-                host : str # Host name
-                port : int # Port number
-                debug : bool # Debug mode
-                ssl : {
-                    "enable" : False # Enable SSL
-                    "cert" : str # Certificate
-                }
-            Returns: None
-            NOTE: This function override the parent function!
-        """
-        self.info = wscamera_info()
-
-        self.info.host = host if host is not None else "127.0.0.1"
-        self.info.port = port if port is not None else 5000
-        self.info.debug = debug if debug is not None else False
-        self.info.threaded = threaded if threaded is not None else True
-        res = self.start_server(self.info.host,self.info.port,False,True)
-        if res.get('status') == 1:
-            log.loge(_("Failed to start websocket server"))
-        elif res.get("status") == 2:
-            log.logw(_("Start websocket server with warning"))
-        self.info._name = name
-        self.info._type = _type
-        self.info.running = True
-        
-    def __del__(self) -> None:
-        """Destructor"""
-        if self.info._is_connected:
-            self.disconnect()
-        if self.info.running:
-            self.stop_server()
-
-    # #################################################################
-    # Public from wsdevice
-    # #################################################################
-
-    def start_server(self, host : str, port : int, debug = False, ssl = {}) -> dict:
-        """Public from parent class"""
-        return super().start_server(host, port, debug, ssl)
-
-    def stop_server(self) -> dict:
-        """Public from parent class"""
-        if self.info.running:
-            self.info.running = False
-            log.log(_("Shutting down server ... please wait for a moment"))
-            return super().stop_server()
-
-    def restart_server(self) -> dict:
-        """Public from parent class"""
-        return super().restart_server()
-
-    def on_connect(self, client, server):
-        log.logd(_("Established connection with client"))
-        return super().on_connect(client, server)
-
-    def on_disconnect(self, client, server):
-        log.logd(_("Disconnected from client"))
-        return super().on_disconnect(client, server)
-    
-    def on_message(self, client, server, message):
-        msg = message.replace('\n','')
-        log.logd(_("Received message : {}").format(msg))
-        return super().on_message(client, server, message)
-
-    def on_send(self, message: dict) -> bool:
-        return super().on_send(message)
-
-    def parser_json(self, message) -> None:
-        """
-            Override parent function | 解析JSON信息
-            Args:
-                message : json message
-                {
-                    "event" : str,
-                    "uuid" : str,
-                    "params" : dict
-                }
-            Returns:
-                None
-            NOTE: This is main manager of server
-        """
-        _message : dict
-        try:
-            self.info._latest_json_message = json.loads(message)
-            _message = self.info._latest_json_message
-        except json.JSONDecodeError:
-            log.loge(_("Failed to parse JSON message"))
-            return
-        event = _message.get('event')
-        if event is None:
-            log.loge(_("No event found from message , {}").format(message))
-        # There may need a thread pool to execute some functions which will cause a little time
-        for case in switch(event):
-            if case("RemoteStartServer"):
-                self.remote_start_server(_message.get("params"))
-                break
-            if case("RemoteStopServer"):
-                self.remote_stop_server()
-                break
-            if case("RemoteShutdownServer"):
-                self.remote_shutdown_server()
-                break
-            if case("RemoteRestartServer"):
-                self.remote_restart_server()
-                break
-            if case("RemoteDashboardSetup"):
-                self.remote_dashboard_setup()
-                break
-            if case("RemoteConnect"):
-                self.remote_connect(_message.get("params"))
-                break
-            if case("RemoteDisconnect"):
-                self.remote_disconnect()
-                break
-            if case("RemoteReconnect"):
-                self.remote_reconnect()
-                break
-            if case("RemoteScanning"):
-                self.remote_scanning()
-                break
-            if case("RemotePolling"):
-                self.remote_polling()
-                break
-            if case("RemoteStartExposure"):
-                self.remote_start_exposure(_message.get("params"))
-                break
-            if case("RemoteAbortExposure"):
-                self.remote_abort_exposure()
-                break
-            if case("RemoteGetExposureStatus"):
-                self.remote_get_exposure_status()
-                break
-            if case("RemoteGetExposureResult"):
-                self.remote_get_exposure_result()
-                break
-            if case("RemoteStartSequenceExposure"):
-                self.remote_start_sequence_exposure(_message.get("params"))
-                break
-            if case("RemoteAbortSequenceExposure"):
-                self.remote_abort_sequence_exposure()
-                break
-            if case("RemotePauseSequenceExposure"):
-                self.remote_pause_sequence_exposure()
-                break
-            if case("RemoteContinueSequenceExposure"):
-                self.remote_continue_sequence_exposure()
-                break
-            if case("RemoteGetSequenceExposureStatus"):
-                self.remote_get_sequence_exposure_status()
-                break
-            if case("RemoteGetSequenceExposureResults"):
-                self.remote_get_sequence_exposure_results()
-                break
-            if case("RemoteCooling"):
-                self.remote_cooling(_message.get("params"))
-                break
-            if case("RemoteCoolingTo"):
-                self.remote_cooling_to(_message.get("params"))
-                break
-            if case("RemoteGetCoolingStatus"):
-                self.remote_get_cooling_status()
-                break
-            if case("RemoteGetConfiguration"):
-                self.remote_get_configuration(_message.get("params"))
-                break
-            if case("RemoteSetConfiguration"):
-                self.remote_set_configuration(_message.get("params"))
-                break
-            log.loge(_("Unknown event received from remote client"))
-            break
-        
-
-    # #################################################################
-    #
-    # Following methods have no return value and just send results to client
-    #
-    # #################################################################
-
-    def remote_start_server(self, params: dict) -> None:
-        """
-            Remote start server | 远程启动服务器
-            Args:
-                params : dict
-            Returns:
-                None
-            NOTE: This can only start other servers not self restart
-        """
-        res = self.start_server(params.get("host"),params.get("port"),params.get("debug"),params.get("ssl"))
-        r = {
-            "event" : "RemoteStartServer",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendStartServer.value)
-        
-    def remote_stop_server(self) -> None:
-        """
-            Remote stop server | 停止服务器
-            Args:
-                None
-            Returns:
-                None
-            NOTE: This can only stop other servers not self restart
-        """
-        res = self.stop_server()
-        r = {
-            "event" : "RemoteStopServer",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendStopServer.value)
-
-    def remote_shutdown_server(self) -> None:
-        """
-            Remote shutdown server | 远程关闭服务器
-            Args:
-                None
-            Returns:
-                None
-            NOTE : After shutdown server , you will lose connection with client , and can only be restart!
-        """
-        res = self.shutdown_server()
-        r = {
-            "event" : "RemoteShutdownServer",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendShutdownServer.value)
-
-    def remote_dashboard_setup(self) -> None:
-        """
-            Remote dashboard setup function | 建立连接并且初始化客户端
+            Initialize the camera object
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteDashboardSetup",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "version" : __version__
-                }
-            }
-            NOTE : This function should be called when connection is established
         """
-        r = {
-            "event" : "RemoteDashboardSetup",
-            "id" : randbelow(1000),
-            "status" : 0,
-            "message" : "Established connection successfully",
-            "params" : {
-                "version" : __version__
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendDashboardSetup.value)
+        self.info = BasicCameraInfo()
+        self.device = None
+
+    def __del__(self) -> None:
+        """
+            Cleanup the camera object
+            Args : None
+            Returns : None
+        """
+        if self.info._is_connected:
+            self.device.disconnect()
+        self.device = None
+
+    def on_send(self, message : dict) -> bool:
+        """
+            Send message to client | 将信息发送至客户端
+            Args:
+                message: dict
+            Returns: True if message was sent successfully
+            Message Example:
+                {
+                    "status" : int ,
+                    "message" : str,
+                    "params" : dict
+                }
+        """
+        if not isinstance(message, dict) or message.get("status") is None or message.get("message") is None:
+            logger.loge(_("Unknown format of message"))
+            return False
+        try:
+            c.ws.send_message_to_all(dumps(message))
+        except JSONDecodeError as exception:
+            logger.loge(_(f"Failed to parse message into JSON format , error {exception}"))
+            return False
+        return True 
 
     def remote_connect(self,params : dict) -> None:
         """
-            Remote connect function | 连接相机
-            Args : {
-                "name" : str # name of the camera,
-                "type" : str # type of the camera,
-                "params" : {
-                    "host" : str,
-                    "port" : int,
-                }
-            }
+            Connect to the camera
+            Args : 
+                params : dict
+                    "host" : str # default is "localhost"
+                    "port" : int # port of the INDI or ASCOM server
+                    "type" : str # default is "indi"
+                    "name" : str # name of the camera , default is "CCD Simulator"
             Returns : None
-            ServerResult : {
-                "event" : "RemoteConnect",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : BasicCameraInfo object
-                }
-            }
+            ClientReturn:
+                event : str # event name
+                status : int # status of the connection
+                id : int # just a random number
+                message : str # message of the connection
+                params : info : BasicCameraInfo object
         """
-        res = self.connect(params)
+        _host = params.get("host", "localhost")
+        _port = int(params.get("port", 7624))
+        _type = params.get("type", "indi")
+        _name = params.get("name", "CCD Simulator")
+
         r = {
             "event" : "RemoteConnect",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get("message")),
-            "params" : res.get('params')
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendConnect.value)
+        param = {
+            "host" : _host,
+            "port" : _port
+        }
+        # If the camera had already connected
+        if self.info._is_connected:
+            logger.logw(_("Camera is connected"))
+            r["status"] = 2
+            r["message"] = "Camera is connected"
+            r["params"]["info"] = self.info.get_dict()
+            return
+        # Check if the type of the camera is supported
+        if _type in ["indi","ascom"]:
+            # Connect to ASCOM camera , the difference between INDI is the devie_number
+            if _type == "ascom":    
+                from server.driver.camera.ascom import AscomCameraAPI as ascom_camera
+                self.device = ascom_camera()
+                param["device_number"] = 0
+            # Connect to INDI camera , the name of the device is needed
+            elif _type == "indi":
+                from server.driver.camera.indi import INDICameraAPI as indi_camera
+                self.device = indi_camera()
+                param["name"] = _name
+            # Trying to connect the camera
+            res = self.device.connect(params=param)
+            if res.get('status') != 0:
+                logger.loge(_(f"Failed to connect to {_host}:{_port}, error {res.get('status')}"))
+                r["message"] = _("Failed to connect to camera")
+                # If there is no error infomation
+                try:
+                    r["params"]["error"] = res.get('params').get('error')
+                except:
+                    pass
+            else:
+                r["status"] = 0
+                r["message"] = _("Connected to camera successfully")
+                r["params"]["info"] = res.get("params").get("info")
+                self.info._is_connected = True
+        # Unkown type of the camera
+        else:
+            logger.loge(_(f"Unknown type {_type}"))
+            r["message"] = _("Unknown type")
+        if self.on_send(r) is False:
+            logger.loge(_("Failed to send message while executing connect command"))
 
-    def remote_disconnect(self) -> None:
+    def remote_disconnect(self):
         """
-            Remote disconnect function | 关闭相机
+            Disconnect from the camera
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteDisconnect",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
+            ClientReturn:
+                event : str # event name
+                status : int # status of the disconnection
+                id : int # just a random number
+                message : str # message of the disconnection
+                params : None
         """
-        res = self.disconnect()
         r = {
             "event" : "RemoteDisconnect",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : res.get('params')
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendDisconnect.value)
+
+        if not self.info._is_connected:
+            logger.loge(_("Camera is not connected"))
+            r["message"] = _("Camera is not connected")
+
+        res = self.device.disconnect()
+        if res.get('status')!= 0:
+            logger.loge(_(f"Failed to disconnect from the camera"))
+            r["message"] = _("Failed to disconnect from camera")
+            try:
+                r["params"]["error"] = res.get('params').get('error')
+            except:
+                pass
+        else:
+            r["status"] = 0
+            r["message"] = _("Disconnected from camera successfully")
+            self.info._is_connected = False
+            logger.log(_("Disconnected from camera successfully"))
+        if self.on_send(r) is False:
+            logger.loge(_("Failed to send message while executing disconnect command"))
 
     def remote_reconnect(self) -> None:
         """
-            Remote reconnect function | 重连相机
+            Reconnect to the camera
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteReconnect",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : This function will automatically be called when camera is disconnected suddenly
+            ClientReturn:
+                event : str # event name
+                status : int # status of the reconnection
+                id : int # just a random number
+                message : str # message of the reconnection
+                params : info : BasicCameraInfo object
         """
-        res = self.reconnect()
         r = {
             "event" : "RemoteReconnect",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : res.get('params')
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendReconnect.value)
+        res = self.device.reconnect()
+        if res.get('status')!= 0:
+            logger.loge(_(f"Failed to reconnect to the camera"))
+            r["message"] = _("Failed to reconnect to camera")
+            try:
+                r["params"]["error"] = res.get('params').get('error')
+            except:
+                pass
+        else:
+            r["status"] = 0
+            r["message"] = _("Reconnected to camera successfully")
+            r["params"]["info"] = res.get("params").get("info")
+            self.info._is_connected = True
+            logger.log(_("Reconnected to camera successfully"))
+        if self.on_send(r) is False:
+            logger.loge(_("Failed to send message while executing reconnect command"))
 
     def remote_scanning(self) -> None:
         """
-            Remote scanning function | 扫描相机
+            Scannings from the camera
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteScanning",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "camera" : list # list of found cameras
-                }
-            }
+            ClientReturn:
+                event : str # event name
+                status : int # status of the scanning
+                id : int # just a random number
+                message : str # message of the scanning
+                params : list : a list of camera name
         """
-        res = self.scanning()
         r = {
             "event" : "RemoteScanning",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "camera" : res.get('params').get('camera')
-            }
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendScanning.value)
+        res = self.device.scanning()
+        if res.get('status')!= 0:
+            logger.loge(_(f"Failed to scan from the camera"))
+            r["message"] = _("Failed to scan camera")
+            try:
+                r["params"]["error"] = res.get('params').get('error')
+                logger.log(_("Error : {}").format(r["params"]["error"]))
+            except:
+                pass
+        else:
+            r["status"] = 0
+            r["message"] = _("Scannings from camera successfully")
+            r["params"]["list"] = res.get("params").get("list")
+            logger.log(_("Scanning camera successfully, found {} camera").format(len(r["params"]["list"])))
 
     def remote_polling(self) -> None:
         """
-            Remote polling function | 刷新相机信息
+            Polling newest message from the camera
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemotePolling",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : CameraInfo object
-                }
-            }
+            ClientReturn:
+                event : str # event name
+                status : int # status of the polling
+                id : int # just a random number
+                message : str # message of the polling
+                params : info : BasicCameraInfo object
         """
-        res = self.polling()
         r = {
             "event" : "RemotePolling",
             "id" : randbelow(1000),
-            "status" : res.get("status"),
-            "message" : str(res.get('message')),
-            "params" : {
-                "info" : res.get('params').get('info')
-            }
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendPolling.value)
+        res = self.device.polling()
+        if res.get('status')!= 0:
+            logger.loge(_(f"Failed to poll from the camera"))
+            r["message"] = _("Failed to poll camera")
+            try:
+                r["params"]["error"] = res.get('params').get('error')
+                logger.loge(_("Error : {}").format(r["params"]["error"]))
+            except:
+                pass
+        else:
+            r["status"] = 0
+            r["message"] = _("Polling camera successfully")
+            r["params"]["info"] = res.get("params").get("info")
+            logger.logd(_("Get camera information : {}").format(r["params"]["info"]))
+        if self.on_send(r) is False:
+            logger.loge(_("Failed to send message while executing polling command"))
+    
+    # #################################################################
+    #
+    # Camera control functions
+    #
+    # #################################################################
 
-    def remote_start_exposure(self,params : dict) -> None:
+    def remote_start_exposure(self , params : dict) -> None:
         """
-            Remote start exposure function | 开始曝光
-            Args : {
+            Start the exposure of the camera
+            Args :
                 "params" : {
                     "exposure" : float # exposure time
                     "gain" : int # gain
                     "offset" : int # offset
                     "binning" : int # binning
+                    "roi" : {
+                        "height" : int # height of the camera frame
+                        "width" : int # width of the camera frame
+                        "start_x" : int # start x position of the camera frame
+                        "start_y" : int # start y position of the camera frame
+                    }
                     "image" : {
                         "is_save" : bool
+                        "is_dark" : bool
                         "name" : str
                         "type" : str # fits or tiff of jpg
                     }
-                    "filterwheel" : {
-                        "enable" : boolean # enable or disable
-                        "filter" : int # id of filter
-                    }
                 }
-            }
             Returns : None
-            ServerResult : {
-                "event" : "RemoteStartExposure",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : None
-                }
-            NOTE : This function is a non-blocking function,will return exposure results
+            ClientReturn:
+                event : str # event name
+                status : int # status of the exposure
+                id : int # just a random number
+                message : str # message of the exposure
+                params : dict
+            NOTE : This is a non-blocking function , will not return the result of the exposure
         """
-        res = self.start_exposure(params)
         r = {
-            "event" : "RemoteStartExposure",
+            "event" : "RemoteExposure",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendStartExposure.value)
+        # If the exposure had already started
+        if self.info._is_exposure:
+            logger.loge(_(f"Exposure is already in progress"))
+            r["message"] = _("Exposure is already in progress")
+            if self.on_send(r) is False:
+                logger.loge(_(f"Failed to send message while executing exposure command"))
+            return
+
+        _exposure = params.get("exposure")
+        _gain = params.get("gain")
+        _offset = params.get("offset")
+        _binning = params.get("binning")
+        _roi = params.get("roi")
+        _image = params.get("image")
+
+        flag = False
+        # Check if the value of exposure is valid
+        if _exposure is None or not isinstance(_exposure,float) or not 0 < _exposure < 3600:
+            logger.loge(_(f"Invalid exposure time : {_exposure}"))
+            r["message"] = _("Invalid exposure time")
+            r["params"]["error"] = _exposure
+            flag = True
+        # Check if the gain is changed and whether the value is correct
+        if _gain is not None and (not isinstance(_gain,int) or not 0 < _gain < 100):
+            logger.loge(_(f"Invalid gain : {_gain}"))
+            r["message"] = _("Invalid gain")
+            r["params"]["error"] = _gain
+            flag = True
+        # Check if the offset is changed and whether the value is correct
+        if _offset is not None and (not isinstance(_offset,int) or not 0 < _offset < 100):
+            logger.loge(_(f"Invalid offset : {_offset}"))
+            r["message"] = _("Invalid offset")
+            r["params"]["error"] = _offset
+            flag = True
+        # Check if the binning is changed and whether the value is correct
+        if _binning is not None and (not isinstance(_binning,int) or not 0 < _binning <= 8):
+            logger.loge(_(f"Invalid binning : {_binning}"))
+            r["message"] = _("Invalid binning")
+            r["params"]["error"] = _binning
+            flag = True
+        # If any of the parameters is invalid
+        if flag:
+            if self.on_send(r) is False:
+                logger.loge(_(f"Failed to send message while executing exposure command"))
+            return
+
+        # If the ROI setting is None , just use the biggest frame
+        if _roi is None:
+            _roi = {
+                "height" : self.info._height,
+                "width" : self.info._width,
+                "start_x" : 0,
+                "start_y" : 0
+            }
+        else:
+            # Check if the height and width of image are provided and if they are correct. If not , use the biggest frame
+            _roi["height"] = _roi.get("height") if _roi.get("height") is not None and 0 < _roi.get("height") < self.info._max_height else self.info._max_height
+            _roi["width"] = _roi.get("width") if _roi.get("width") is not None and 0 < _roi.get("width") < self.info._max_width else self.info._max_width
+            # Check if the start_x and start_y are provided and if they are correct
+            _roi["start_x"] = _roi.get("start_x") if _roi.get("start_x") is not None and 0 < _roi.get("start_x") < self.info._max_width else 0
+            _roi["start_y"] = _roi.get("start_y") if _roi.get("start_y") is not None and 0 < _roi.get("start_y") < self.info._max_height else 0
+        # If the Image setting is empty
+        if _image is None:
+            _image = {
+                "is_save": True,
+                "is_dark" : False,
+                "name" : datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "type" : "fits"
+            }
+        # Generate the parameters
+        param = {
+            "exposure" : _exposure,
+            "gain" : _gain,
+            "offset" : _offset,
+            "binning" : _binning,
+            "roi" : _roi,
+            "image" : _image
+        }
+        # Start exposure
+        res = self.device.start_exposure(params=param)
+        if res.get("status") != 0:
+            r["message"] = res.get("message")
+            try:
+                r["params"]["error"] = res.get("params").get("error")
+            except:
+                pass
+        else:
+            r["message"] = _("Exposure started")
+            self.info._is_exposure = True
+        if self.on_send(r) is False:
+            logger.loge(_(f"Failed to send message while executing exposure command"))
 
     def remote_abort_exposure(self) -> None:
         """
-            Remote abort exposure function | 停止曝光
+            Abort exposure | 停止曝光
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteAbortExposure",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "result" : str
-                }
-            }
-            NOTE : This is a blocking function
+            ClientReturn:
+                event : str # name of the event
+                id : int # just a random number
+                status : int # status of the event
+                message : str # message of the event
+                params : dict # default is None
+            NOTE : This function must be called if the server is shutting down while exposure
         """
-        res = self.abort_exposure()
         r = {
             "event" : "RemoteAbortExposure",
             "id" : randbelow(1000),
-            "status" : res.get("status"),
-            "message" : str(res.get('message')),
-            "params" : {
-                "result" : res.get('params').get('result')
-            }
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendAbortExposure.value)
+        # Check if the exposure is not started
+        if not self.info._is_exposure:
+            logger.loge(_("Exposure is not started"))
+            r["message"] = _("Exposure is not started")
+            if self.on_send(r) is False:
+                logger.loge(_(f"Failed to send message while executing aborting exposure command"))
+            return
+        # Trying to stop the exposure
+        res = self.device.stop_exposure()
+        if res.get("status")!= 0:
+            r["message"] = res.get("message")
+            try:
+                r["params"]["error"] = res.get("params").get("error")
+            except:
+                pass
+        else:
+            r["message"] = res.get("message")
+            self.info._is_exposure = False
+        if self.on_send(r) is False:
+            logger.loge(_(f"Failed to send message while executing aborting exposure command"))
 
     def remote_get_exposure_status(self) -> None:
         """
-            Remote get exposure status function | 获取相机曝光状态
+            Get exposure status | 停止曝光
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteGetExposureStatus",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "status" : Camera Exposure Status Object
-                }
-            }
+            ClientReturn:
+                event : str # name of the event
+                id : int # just a random number
+                status : int # status of the event
+                message : str # message of the event
+                params : dict # default is None
+            NOTE : This function should be called during the exposure process
         """
-        res = self.get_exposure_status()
         r = {
             "event" : "RemoteGetExposureStatus",
             "id" : randbelow(1000),
-            "status" : res.get("status"),
-            "message" : str(res.get('message')),
-            "params" : {
-                "status" : res.get('params').get('status')
-            }
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetExposureStatus.value)
+        # Check if the exposure is not started
+        if not self.info._is_exposure:
+            logger.loge(_("Exposure is not started"))
+            r["message"] = _("Exposure is not started")
+            if self.on_send(r) is False:
+                logger.loge(_(f"Failed to send message while executing get_exposure_status command"))
+            return
+        # Trying to get the status of exposure
+        res = self.device.get_exposure_status()
+        if res.get("status")!= 0:
+            r["message"] = res.get("message")
+            try:
+                r["params"]["error"] = res.get("params").get("error")
+            except:
+                pass
+        else:
+            r["message"] = res.get("message")
+            # Why python doesn't support continuous assignment
+            r["params"]["status"] = res.get("params").get("status")
+            self.info._is_exposure = res.get("params").get("status")
+        if self.on_send(r) is False:
+            logger.loge(_(f"Failed to send message while executing get_exposure_status command"))
 
     def remote_get_exposure_result(self) -> None:
         """
-            Remote get exposure result | 获取相机曝光结果
+            Get exposure result | 获取曝光结果
             Args : None
             Returns : None
-            ServerResult : {
-                "event" : "RemoteGetExposureResult",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "image" : Base64 encoded image,
-                    "histogram" : list,
-                    "info" : Image Info object
-                }
-            }
-            NOTE : This function will be executing when the exposure is finished , don't need to call
+            ClientReturn:
+                event : str # name of the event
+                id : int # just a random number
+                status : int # status of the event
+                message : str # message of the event
+                params : dict # default is None
+            NOTE : This function should be called after the exposure is finished successfully
         """
-        res = self.get_exposure_result()
         r = {
             "event" : "RemoteGetExposureResult",
             "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "image" : res.get('params').get('image'),
-                "histogram" : res.get('params').get('histogram'),
-                "info" : res.get('params').get('info')
-            }
+            "status" : 1,
+            "message" : "",
+            "params" : {}
         }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetExposureResult.value)
-    
-    def remote_start_sequence_exposure(self, params : dict) -> None:
-        """
-            Remote start exposure function | 开始录屏
-            Args :
-                params : {
-                    "sequence_number" : int
-                    "sequence" : dict
-                }
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteStartSequenceExposure",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-        """
-        res = self.start_sequence_exposure(params)
-        r = {
-            "event" : "RemoteStartSequenceExposure",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendStartSequence.value)
-
-    def remote_abort_sequence_exposure(self) -> None:
-        """
-            Remote abort exposure function | 停止计划拍摄
-            Args :
-                None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteAbortSequenceExposure",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : After executing this command , we will totally cancel the sequence exposure
-        """
-        res = self.abort_sequence_exposure()
-        r = {
-            "event" : "RemoteAbortSequenceExposure",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendAbortSequence.value)
-
-    def remote_pause_sequence_exposure(self) -> None:
-        """
-            Remote pause exposure function | 停止计划拍摄
-            Args :
-                None
-            Returns : None
-            ServerResult : {
-                "event" : "RemotePauseSequenceExposure",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : After executing this command, you can still continue sequence exposures
-        """
-        res = self.pause_sequence_exposure()
-        r = {
-            "event" : "RemotePauseSequenceExposure",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendPauseSequence.value)
-
-    def remote_continue_sequence_exposure(self) -> None:
-        """
-            Remote continue sequence exposure | 继续计划拍摄
-            Args :
-                None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteContinueSequenceExposure",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : After executing this command, you will continue sequence exposures
-        """
-        res = self.continue_sequence_exposure()
-        r = {
-            "event" : "RemoteContinueSequenceExposure",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : None
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendContinueSequence.value)
-
-    def remote_get_sequence_exposure_status(self) -> None:
-        """
-            Remote get exposure status function | 获取计划拍摄进度
-            Args :
-                None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteGetSequenceExposureStatus",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "percent" : float, # show how many jobs were finished
-                    "sequence" : int, # number of sequences
-                    "id" : int, # id of the image in the sequence
-                }
-            }
-            NOTE : After executing this command, you will get the status of the exposure
-        """
-        res = self.get_sequence_exposure_status()
-        r = {
-            "event" : "RemoteGetSequenceExposureStatus",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "percent" : res.get("params").get('percent'),
-                "sequence" : res.get("params").get('sequence'),
-                "id" : res.get("params").get('id')
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetSequenceExposureStatus.value)
-
-    def remote_get_sequence_exposure_results(self) -> None:
-        """
-            Remote get exposure results function | 获取计划拍摄结果
-            Args :
-                None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteGetSequenceExposureResults",
-                "id" : int,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "image" : image object list
-                }
-            }
-            NOTE : After executing this command, you will get the results of the exposure
-            TODO : How to send so many images,will the websocket support such big files
-        """
-        res = self.get_sequence_exposure_results()
-        r = {
-            "event" : "RemoteGetSequenceExposureResults",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : res.get('params')
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetSequenceExposureResults.value)
-
-    def remote_cooling(self , params : dict) -> None:
-        """
-            Remote cooling function | 相机制冷
-            Args : {
-                "params" : {
-                    "cooling" : boolean,
-                    "temperature" : float,
-                    "power" : float, # need camera support
-                }
-            }
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteCooling",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "result" : str
-                }
-            }
-            NOTE : This function needs camera support , if camera is not a cooling camera , something terrible will happen 
-        """
-        res = self.cooling(params)
-        r = {
-            "event" : "RemoteCooling",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "result" : res.get('params').get('result')
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendCooling.value)
-
-    def remote_get_cooling_status(self) -> None:
-        """
-            Remote get cooling status function | 获取相机制冷状态
-            Args : None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteGetCoolingStatus",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "status" : Camera Cooling Status Object
-                }
-            }
-            NOTE : This function needs camera support, if camera is not a cooling camera, something ter
-        """
-        res = self.get_cooling_status()
-        r = {
-            "event" : "RemoteGetCoolingStatus",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "status" : res.get('params').get('status')
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetCoolingStatus.value)
-
-    def remote_get_configuration(self,params : dict) -> None:
-        """
-            Remote get configuration function | 获取相机参数
-            Args : None
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteGetConfiguration",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : CameraInfo object
-                }
-            }
-            NOTE : This function is blocking function, will return result to client
-        """
-        res = self.get_configration(params)
-        r = {
-            "event" : "RemoteGetConfiguration",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-            "info" : res.get('params').get('info')
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge(error.SendGetConfigration.value)
-
-    def remote_set_configuration(self, params : dict) -> None:
-        """
-            Remote set configuration function | 设置相机参数
-            Args : {
-                "params" : {
-                    "type" : str # type of configuration
-                    "value" : float # value of configuration
-                }
-            }
-            Returns : None
-            ServerResult : {
-                "event" : "RemoteSetConfiguration",
-                "id" : int # just a random number,
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "result" : str
-                }
-            }
-            NOTE : This function is blocking function , will return result to client
-        """
-        res = self.set_configration(params)
-        r = {
-            "event" : "RemoteSetConfiguration",
-            "id" : randbelow(1000),
-            "status" : res.get('status'),
-            "message" : str(res.get('message')),
-            "params" : {
-                "result" : res.get('params').get('result')
-            }
-        }
-        if self.on_send(r) is not True:
-            log.loge_(error.SendSetConfigration.value)
-
-    # #################################################################
-    #
-    # The following functions are used to communicate with the hardware driver
-    #
-    # #################################################################
-
-    def connect(self,params : dict) -> dict:
-        """
-            Connect to the camera | 连接相机
-            Args : {
-                "name" : str # name of the camera
-                "type" : str # type of the camera
-                "params" : {    # parameters , depending on camera type
-                    "host" : str,
-                    "port" : int,
-                }
-            }
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "name" : str # name of the camera
-                    "type" : str # type of the camera
-                    "info" : CameraInfo object # information about the camera
-                }
-            }
-        """
-        if self.info._is_connected:
-            log.logw(_("Had already connected to the camera , please do not connect again"))
-            self.remote_polling()
-            return log.return_warning(_("Had already connected to the camera"),{"info" : self.device.info.get_dict()})
-        if params.get("type") is None or params.get("name") is None:
-            log.loge(_("Please provide a type and name for the camera"))
-            return log.return_error(_("Please provide a type and name for the"),{})
-        try:
-            _type = params.get('type')
-            # Initialize camera object,dynamic import camera class
-            # Connect to camera after initialization
-            for case in switch(_type):
-                if case("ascom"):
-                    from server.driver.camera.ascom import AscomCameraAPI as camera
-                    self.device = camera()
-                    res = self.device.connect({"host" : params.get('host'),"port" : params.get('port'),"device_number" : 0})
-                    if res.get("status") != 0:
-                        log.loge(error.ConnectError)
-                        return log.return_error(error.ConnectError,{"error":str(res.get("message"))})
-                    break
-                if case("indi"):
-                    from server.driver.camera.indi import camera as indi
-                    self.device = indi()
-                    res = self.device.connect({"host" : params.get('host'),"port" : params.get('port')})
-                    if res.get("status") != 0:
-                        log.loge(error.ConnectError)
-                        return log.return_error(error.ConnectError,{"error":str(res.get("message"))})
-                    break
-                if case("asi"):
-                    from server.driver.camera.zwoasi import camera as asi
-                    self.device = asi()
-                    res = self.device.connect({"name" : params.get("name")})
-                    if res.get("status") != 0:
-                        log.loge(error.ConnectError)
-                        return log.return_error(error.ConnectError,{"error":res.get("mesaage")})
-                    break
-                if case("qhy"):
-                    from server.driver.camera.qhyccd import camera as qhy
-                    self.device = qhy()
-                    res = self.device.connect({"name" : params.get("name")})
-                    if res.get("status") != 0:
-                        log.loge(error.ConnectError)
-                        return log.return_error(error.ConnectError,{"error":res.get("error")})
-                    break
-                log.loge(_("Unknown camera type , please provide a correct camera type"))
-                return log.return_error(_("Unknown camera type, please provide a correct camera type"),{})
-        except Exception as e:
-            log.loge(_("Some error occurred during connect to camera, error : {}").format(e))
-            return log.return_error(_("Some error occurred during connect to camera"),{"error":e})
-        log.log(success.ConnectSuccess.value)
-        self.info._is_connected = True
-        return log.return_success(success.ConnectSuccess.value,{"info" : self.device.info.get_dict()})
-
-    def disconnect(self) -> dict:
-        """
-            Disconnect from the camera | 与相机断开连接
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-        """
-        if not self.info._is_connected:
-            log.logw(_("The camera is not connected , please do not execute disconnect command"))
-            return log.return_warning(_("The camera is not connected, please do not execute disconnect command"),{})
-        res = self.device.disconnect()
-        if res.get("status") == 1:
-            log.loge(_("Failed to disconnect from the camera"))
-            return log.return_error(_("Failed to disconnect from the camera"),{"advice" : _("Disconnect again")})
-        elif res.get("status") == 2:
-            log.logw(_("Disconnect with the camera with warning"))
-            return log.return_warning(_("Disconnect with the camera with warning"),{"warning" : res.get("params").get("warning")})
-        self.info._is_connected = False
-        log.log(_("Disconnect from the camera successfully"))
-        return log.return_success(_("Disconnected from the camera successfully"))
-
-    def reconnect(self) -> dict:
-        """
-            Reconnect to the camera | 重连相机
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "result" : str
-                }
-            }
-            NOTE : This function will automatically execute when camera disconnect in suddenly
-        """
-        if not self.info._is_connected:
-            log.logw(_("The camera is not connected, please do not execute reconnect command"))
-            return log.return_warning(_("The camera is not connected, please do not execute reconnect command"),{})
-        res = self.device.reconnect()
-        if res.get("status") == 1:
-            log.loge(_("Failed to reconnect to the camera"))
-            return log.return_error(_("Failed to reconnect to the camera"),{"advice" : _("Reconnect again")})
-        elif res.get("status") == 2:
-            log.logw(_("Reconnect with the camera with warning"))
-            return log.return_warning(_("Reconnect with the camera with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Reconnect to camera successfully"))
-        return log.return_success(_("Reconnect to camera successfully"),{})
-
-    def scanning(self) -> dict:
-        """
-            Scanning the camera | 扫描所有相机
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "list" : Camera List
-                }
-            }
-            NOTE : This function must be called before connection
-        """
-        res = self.device.scanning()
-        if res.get("status") == 1:
-            log.loge(_("Failed to scan the camera"))
-            return log.return_error(_("Failed to scan the camera"),{"advice" : _("Scan again")})
-        elif res.get("status") == 2:
-            log.logw(_("Scan with the camera with warning"))
-            return log.return_warning(_("Scan with the camera with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(success.ScanningSuccess.value + " : " + res.get("params").get("list"))
-        return log.return_success(success.ScanningSuccess.value,{"list" : res.get("params").get("list")})
-
-
-    def polling(self) -> dict:
-        """
-            Refresh the camera infomation | 刷新相机信息
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : Camera Info object
-                }
-            }
-        """
-        res = self.device.polling()
-        if res.get("status") == 1:
-            log.loge(_("Failed to refresh the camera infomation"))
-            return log.return_error(_("Failed to refresh the camera infomation"),{"advice" : _("Refresh again")})
-        elif res.get("status") == 2:
-            log.logw(_("Refresh the camera infomation with warning"))
-            return log.return_warning(_("Refresh the camera infomation with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Refresh the camera infomation successfully"))
-        return log.return_success(_("Refresh the camera infomation successfully"),{"info" : res.get('params').get('info')})
-
-    def update_config(self) -> dict:
-        """
-            Update the configuration of the camera | 更新相机信息
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : CameraInfo object
-                }
-            }
-            NOTE : This function must be called after initialization
-        """
-        res = self.device.update_config()
-        if res.get("status") == 1:
-            log.loge(_("Failed to update the camera configuration"))
-            return log.return_error(_("Failed to update the camera configuration"),{"advice" : _("Update the camera configuration again")})
-        elif res.get("status") == 2:
-            log.logw(_("Update the camera configuration with warning"))
-            return log.return_warning(_("Update the camera configuration with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Update camera configuration successfully"))
-        return log.return_success(_("Update camera configuration successfully"),{"info" : res.get("info")})
-
-    def start_exposure(self, params : dict) -> dict:
-        """
-            Start the exposure | 开始曝光
-            Args :
-                params : {
-                    "exposure" : float # exposure time
-                    "gain" : int # gain
-                    "offset" : int # offset
-                    "binning" : int # binning
-                    "filterwheel" : {
-                        "enable" : boolean # enable or disable
-                        "filter" : int # id of filter
-                    }
-                }
-            Returns :
-                {
-                    "status" : int,
-                    "message" : str,
-                    "params" : {
-                        "result" : str
-                    }
-                }
-            NOTE : This function is a blocking function
-        """
-        if params.get("exposure") is None or not 0 < params.get('exposure') < 1000000:
-            log.loge(_("Unreasonable exposure time was given , please give a possible number"))
-        if params.get("gain") is None or params.get('gain') < 0:
-            log.loge(_("Unreasonable gain was given, please give a possible number"))
-        if params.get("offset") is None or params.get('offset') < 0:
-            log.loge(_("Unreasonable offset was given, please give a possible number"))
-        if params.get("binning") is None or not 1 <= params.get('bin') <= 8:
-            log.loge(_("Unreasonable binning was given, please give a possible number"))
-        res = self.device.start_exposure(params)
-        if res.get("status") == 1:
-            log.loge(_("Failed to start the exposure"))
-            return log.return_error(_("Failed to start the exposure"),{"advice" : _("Start exposure again")})
-        elif res.get("status") == 2:
-            log.logw(_("Start exposure with warning"))
-            return log.return_warning(_("Start exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Exposure started successfully"))
-        return log.return_success(_("Exposure started successfully"),{"result" : res.get("params").get("result")})
-        
-
-    def abort_exposure(self) -> dict:
-        """
-            Abort the exposure | 停止曝光
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : This function is blocking
-        """
-        res = self.device.abort_exposure()
-        if res.get("status") == 1:
-            log.loge(_("Failed to abort the exposure"))
-            return log.return_error(_("Failed to abort the exposure"),{"advice" : _("Abort exposure again")})
-        elif res.get("status") == 2:
-            log.logw(_("Abort exposure with warning"))
-            return log.return_warning(_("Abort exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Exposure aborted successfully"))
-        return log.return_success(_("Exposure aborted successfully"),{})
-
-    def get_exposure_status(self) -> dict:
-        """
-            Get the exposure status | 获取曝光状态
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "status" : Camera Exposure Status Object
-                }
-            }
-            NOTE : This function should be called while exposuring
-        """
-        res = self.device.get_exposure_status()
-        if res.get("status") == 1:
-            log.loge(_("Failed to get the exposure status"))
-            return log.return_error(_("Failed to get the exposure status"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get exposure status with warning"))
-            return log.return_warning(_("Get exposure status with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Get exposure status successfully"))
-        return log.return_success(_("Get exposure status successfully"),{"params" : res.get("params").get("status")})
-
-    def get_exposure_result(self) -> dict:
-        """
-            Get the exposure result | 获取曝光结果
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "image" : Base64 encoded image
-                    "histogram" : list
-                    "info" : Image Info Object
-                }
-            }
-            NOTE : This function must be called after exposure is finished
-        """
+        # Check if the exposure is not finished
+        if self.info._is_exposure:
+            r["message"] = _("Exposure is not finished")
+            if self.on_send(r) is False:
+                logger.loge(_(f"Failed to send message while executing get_exposure_result command"))
+            return
+        # Trying to get the result of exposure
         res = self.device.get_exposure_result()
-        if res.get("status") == 1:
-            log.loge(_("Failed to get the exposure result"))
-            return log.return_error(_("Failed to get the exposure result"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get exposure result with warning"))
-            return log.return_warning(_("Get exposure result with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Get exposure result successfully"))
-        return log.return_success(_("Get exposure result successfully"),{"params" : res.get("params")})
+        if res.get("status")!= 0:
+            r["message"] = res.get("message")
+            try:
+                r["params"]["error"] = res.get("params").get("error")
+            except:
+                pass
+        else:
+            r["message"] = res.get("message")
+            # Get the base64 encoded image data
+            r["params"]["image"] = res.get("params").get("image")
+            # Get the histogram of the image
+            r["params"]["histogram"] = res.get("params").get("histogram")
+            # Get the infomation of the image
+            r["params"]["info"] = res.get("params").get("info")
+        if self.on_send(r) is False:
+            logger.loge(_(f"Failed to send message while executing get_exposure_result command"))
 
-    def start_sequence_exposure(self, params: dict) -> dict:
+    def remote_start_sequence_exposure(self,params : dict) -> None:
         """
-            Start the sequence exposure | 计划拍摄
+            Start exposure sequence
             Args : 
-                params : {
-                    "sequence_number" : int, # number of sequences
-                    "sequence" : {
-                        {
-                            "name" : str # name of the sequence
-                            "type" : str # type of the sequence , light dark flat
-                            "exposure" : float # exposure time of each image
-                            "repeat" : int # number of times to repeat
-                            "start_time" : int # start time of the sequence
-                            "duration" : int # duration of the sequence
-                        }
-                    }
-                }
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            TODO : This function should be considered carefully
+                params : dict
+                    "number" : int # number of sequences
+                    "sequence" : list
+                        start_time : time string , format is "YYYY-MM-DD-hh:mm:ss"
+            Returns : None
+            ClientReturn:
+                event : str # name of the event
+                id : int # just a random number
+                status : int # status of the event
+                message : str # message of the event
+                params : dict # default is None
+            NOTE : This function's parameters should be thinked carefully
         """
-        if params.get("sequence_number") is None:
-            return log.return_error(_("Sequence number is required"),{})
-        if params.get("sequence") is None:
-            return log.return_error(_("Sequence is required"),{})
-        res = self.device.start_sequence_exposure(params.get("sequence_number"))
-        if res.get("status") == 1:
-            log.loge(_("Failed to start sequence exposure"))
-            return log.return_error(_("Failed to start sequence exposure"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Start sequence exposure with warning"))
-            return log.return_warning(_("Start sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Finish sequence exposure successfully"))
-        return log.return_success(_("Finish sequence exposure successfully"),{"params" : res.get("params")})
-
-    def abort_sequence_exposure(self) -> dict:
-        """
-            Abort the sequence exposure | 停止计划拍摄
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-        """
-        res = self.device.abort_sequence_exposure()
-        if res.get("status") == 1:
-            log.loge(_("Failed to abort sequence exposure"))
-            return log.return_error(_("Failed to abort sequence exposure"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Abort sequence exposure with warning"))
-            return log.return_warning(_("Abort sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Abort sequence exposure successfully"))
-        return log.return_success(_("Abort sequence exposure successfully"),{})
-
-    def pause_sequence_exposure(self) -> dict:
-        """
-            Pause the sequence exposure | 中止计划拍摄
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-        """
-        res = self.device.pause_sequence_exposure()
-        if res.get("status") == 1:
-            log.loge(_("Failed to pause sequence exposure"))
-            return log.return_error(_("Failed to pause sequence exposure"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Pause sequence exposure with warning"))
-            return log.return_warning(_("Pause sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Pause sequence exposure successfully"))
-        return log.return_success(_("Pause sequence exposure successfully"),{})
-
-    def continue_sequence_exposure(self) -> dict:
-        """
-            Continue the sequence exposure | 继续计划拍摄
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-        """
-        res = self.device.continue_sequence_exposure()
-        if res.get("status") == 1:
-            log.loge(_("Failed to continue sequence exposure"))
-            return log.return_error(_("Failed to continue sequence exposure"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Continue sequence exposure with warning"))
-            return log.return_warning(_("Continue sequence exposure with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Continue sequence exposure successfully"))
-        return log.return_success(_("Continue sequence exposure successfully"),{})
-
-    def get_sequence_exposure_status(self) -> dict:
-        """
-            Get sequence exposure status | 获取计划拍摄进度
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "percent" : float,
-                    "sequence" : int,
-                    "id" : int,
-                }
-            }
-        """
-        res = self.device.get_sequence_exposure_status()
-        if res.get("status") == 1:
-            log.loge(_("Failed to get sequence exposure status"))
-            return log.return_error(_("Failed to get sequence exposure status"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get sequence exposure status with warning"))
-            return log.return_warning(_("Get sequence exposure status with warning"),{"warning" : res.get("params").get("warning")})
-        log.log_("Get sequence exposure status successfully")
-        r = {
-            "percent" : res.get("params").get("percent"),
-            "sequence" : res.get("params").get("sequence"),
-            "id" : res.get("params").get("id"),
-        }
-        return log.return_success(_("Get sequence exposure status successfully"),r)
-
-    def get_sequence_exposure_result(self) -> dict:
-        """
-            Get sequence exposure result | 获取计划拍摄结果
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "image" : list
-                }
-            }
-        """
-        res = self.device.get_sequence_exposure_result()
-        if res.get("status") == 1:
-            log.loge(_("Failed to get sequence exposure result"))
-            return log.return_error(_("Failed to get sequence exposure result"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get sequence exposure result with warning"))
-            return log.return_warning(_("Get sequence exposure result with warning"),{"warning" : res.get("params").get("warning")})
-        log.log_("Get sequence exposure result successfully")
-        r = {
-            "image" : res.get("params").get("image"),
-        }
-        return log.return_success(_("Get sequence exposure result successfully"),r)
-
-    def cooling(self , params : dict) -> dict:
-        """
-            Cooling the camera | 相机制冷
-            Args :
-                params : {
-                    "enable" : boolean # enable or disable
-                    "temperature" : float # temperature
-                    "power" : float
-                }
-            Returns :{
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : This function needs camera support
-        """
-        if not self.info._can_set_temperature:
-            log.loge(error.NotSupportTemperatureControl)
-            return log.return_error(error.NotSupportTemperatureControl,{})
-        if params.get('enable') is None:
-            params['enable'] = False
-        if params.get('temperature') is None:
-            return log.return_error(_("Please provide a temperature"),{})
-        if params.get('power') is None:
-            return log.return_error(_("Please provide a power"),{})
-        res = self.device.cooling(params)
-        if res.get("status") != 0:
-            log.loge(error.CoolingError)
-            return log.return_error(error.CoolingError,{"error":str(res.get("message"))})
-        log.log(success.CoolingSuccess)
-        return log.return_success(success.CoolingSuccess,{})
-
-    def cooling_to(self, params: dict) -> dict:
-        """
-            Cooling the camera | 打开拍摄
-            Args :
-                params : {
-                    "temperature" : float # temperature
-                }
-            Returns:
-                {
-                    "status" : int,
-                    "message" : str,
-                    "params" : None
-                }
-        """
-        if not self.info._can_set_temperature:
-            log.loge(_("Camera does not support temperature control"))
-            return log.return_error(_("Camera does not support temperature control"),{})
-        if params.get('temperature') is None or not -100 < params.get('temperature') < 50:
-            return log.return_error(_("Please provide a valid temperature"),{})
-        res = self.device.cooling_to(params)
-        if res.get("status") == 1:
-            log.loge(_("Failed to set the cooling"))
-            return log.return_error(_("Failed to set the cooling"),{"advice" : _("Set cooling failed")})
-        elif res.get("status") == 2:
-            log.logw(_("Set cooling with warning"))
-            return log.return_warning(_("Set cooling with warning"),{"warning" : res.get("params").get("warning")})
-        log.log(_("Set cooling successfully"))
-        return log.return_success(_("Set cooling successfully"),{})
-
-    def get_cooling_status(self) -> dict:
-        """
-            Get the cooling status | 获取制冷状态
-            Args : None
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "status" : Camera Cooling Status Object
-                }
-            }
-            NOTE : This function is suggested to be called while cooling
-        """
-        res = self.device.get_cooling_status()
-        if res.get("status") == 1:
-            log.loge(_("Failed to get the cooling status"))
-            return log.return_error(_("Failed to get the cooling status"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get cooling status with warning"))
-            return log.return_warning(_("Get cooling status with warning"),{})
-        log.log(_("Get cooling status successfully"))
-        return log.return_success(_("Get cooling status successfully"),{"params" : res.get("params").get("status")})
-
-    def get_configration(self , params : dict) -> dict:
-        """
-            Get the configration | 获取配置信息
-            Args : 
-                params:{
-                    "type" : str
-                }
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : {
-                    "info" : Camera Configuration Object
-                }
-            }
-            NOTE : This function is suggested to be called before setting configuration
-        """
-        if params.get("type") is None:
-            return log.return_error(_("Please provide a type"),{})
-        res = self.device.get_configration(params)
-        if res.get("status") == 1:
-            log.loge(_("Failed to get the configration"))
-            return log.return_error(_("Failed to get the configration"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Get configration with warning"))
-            return log.return_warning(_("Get configration with warning"),{})
-        log.log(_("Get configration successfully"))
-        return log.return_success(_("Get configration successfully"),{"params" : res.get("params").get("configration")})
-
-    def set_configration(self, params : dict) -> dict :
-        """
-            Set configration | 设置配置信息
-            Args :
-                params : {
-                    "type" : str # type of configuration
-                    "value" : str # value of configuration
-                }
-            Returns : {
-                "status" : int,
-                "message" : str,
-                "params" : None
-            }
-            NOTE : After executing this function , we suggest to call get_configration()
-        """
-        if params.get('type') is None or params.get('value') is None:
-            return log.return_error(_("Please provide a valid configration"),{})
-        res = self.device.set_configration(params)
-        if res.get("status") == 1:
-            log.loge(_("Failed to set the configration"))
-            return log.return_error(_("Failed to set the configration"),{})
-        elif res.get("status") == 2:
-            log.logw(_("Set configration with warning"))
-            return log.return_warning(_("Set configration with warning"),{})
-        log.log_("Set configration successfully")
-        return log.return_success(_("Set configration successfully"),{})

@@ -18,22 +18,9 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from server.basic.camera import BasicCameraAPI,BasicCameraInfo
+# #################################################################
+# This file contains all of the global variables
+# #################################################################
 
-from utils.utility import switch
-from utils.lightlog import lightlog
-log = lightlog(__name__)
-
-import gettext
-_ = gettext.gettext
-
-import ctypes
-import numpy as np
-import astropy.io.fits as fits
-from enum import Enum
-from base64 import b64encode
-from datetime import datetime
-from io import BytesIO
-from json import dumps
-from os import mkdir,path,environ,getcwd
-from time import sleep
+config = {}
+ws = None

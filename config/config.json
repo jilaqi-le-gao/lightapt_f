@@ -2,5 +2,27 @@
     "host" : "0.0.0.0",
     "port" : 8000,
     "debug" : true,
-    "threaded" : true
+    "threaded" : true,
+    "ws" : {
+        "host" : "0.0.0.0",
+        "port" : 5000,
+        "threaded" : true,
+        "ssl" : false,
+        "key" : null,
+        "cert" : null
+    },
+    "indiweb" : {
+        "host" : "127.0.0.1",
+        "port" : 7624,
+        "data" : "/usr/share/indi",
+        "fifo" : "/tmp/indiFIFO",
+        "config" : ""
+    },
+    "device" : {
+        "camera" : "",
+        "telescope" : "",
+        "focuser" : "",
+        "guider" : "",
+        "solver" : ""
+    }
 }

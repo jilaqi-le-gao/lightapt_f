@@ -25,7 +25,7 @@ Inspired by INDI (https://github.com/indilib/indi)
     Client       INET         Server       Driver          Hardware
     processes    websocket    process      processes       devices
 
-### Standard Architecture
+### Standard Architecture (After some testing , I found this is fucking stupid)
 This method is likes P2P mode. Every device has its own websocket server and every client can only connect a device. This make sure that all devices can be connected flexible.
 
     LightAPT Client 1 <-(websocket)-> wsdevice <-(alpyca or pyindi)-> Driver 1
