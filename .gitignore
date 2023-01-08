@@ -9,7 +9,7 @@ test/
 test.py
 .vscode
 obsolete
-
+kd-u64.fits
 # Distribution / packaging
 .Python
 build/

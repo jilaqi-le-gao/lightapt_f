@@ -20,6 +20,58 @@ Boston, MA 02110-1301, USA.
 
 from .device import BasicDeviceAPI
 
+class BasicTelescopeInfo(object):
+    """
+        Basic Telescope Info container
+    """
+
+    _ipaddress : str # IP address only ASCOM and INDI
+    _api_version : str # API version only ASCOM and INDI
+    _name : str # name of the camera
+    _id : int # id of the camera
+    _description : str
+    _configration = "" # path to the configuration file
+
+    timeout = 30
+
+    ra = ""
+    dec = ""
+    az = ""
+    alt = ""
+    # If the GPS is enabled
+    lon = ""
+    lat = ""
+
+    slewing_rate : int
+    track_mode : int
+    track_ra_rate : float
+    track_dec_rate : float
+
+    _can_goto = False
+    _can_ahort_goto = False
+    _can_sync = False
+    _can_track = False
+    _can_park = False
+    _can_home = False
+    _can_set_track_rate = False
+    _can_set_track_mode = False
+    _can_track_satellite = False
+    _can_get_location = False
+
+
+    _is_connected = False
+    _is_slewing = False
+    _is_tracking = False
+    _is_parked = False
+
+    def get_dict(self):
+        """
+            Return a dictionary containing all of the information
+        """
+        return {
+            "timeout" : self.timeout,
+        }
+
 class BasicTelescopeAPI(BasicDeviceAPI):
     """
         Basic Telescope API

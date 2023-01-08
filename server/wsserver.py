@@ -53,11 +53,11 @@ class ws_server(object):
     """
         Wescoket server class.
         Architecture:
-                                             |-- wscamera -- pyindi/alpyca -- indi/ascom -- camera
+                                             |-- wscamera -- camera -- pyindi/alpyca -- indi/ascom -- camera
                                              |
-                                             |-- wstelescope -- pyindi/alpyca -- indi/ascom -- telescope
+                                             |-- wstelescope -- telescope -- pyindi/alpyca -- indi/ascom -- telescope
                                              |
-            WebUI -- websocket -- wsserver --|-- wsfocuser -- pyindi/alpyca -- indi/ascom -- focuser
+            WebUI -- websocket -- wsserver --|-- wsfocuser -- focuser -- pyindi/alpyca -- indi/ascom -- focuser
                                              |
                                              |-- wsguider -- guider -- socket -- PHD2
                                              |
@@ -200,7 +200,7 @@ class ws_server(object):
             Returns: None
             NOTE: This function can be overriden by subclasses
         """
-        logger.info(_("Disconnecting from the client , id : {} , on {}").format(client.id,client.address))
+        logger.log(_("Disconnecting from the client , id : {} , on {}").format(client.id,client.address))
         self.info.client_id -= 1
 
     def on_message(self, client, server, message) -> None:

@@ -155,6 +155,8 @@ def logout_():
 if not DEBUG:
     logger = logging.getLogger('werkzeug')
     logger.setLevel(logging.ERROR)
+logger = logging.getLogger('waitress')
+logger.setLevel(logging.ERROR)
 
 import server.config as c
 
@@ -172,6 +174,9 @@ def run_server() -> None:
     """
     if c.config.get("debug") is True:
         log.log(_("Running debug web server on {}:{}").format(c.config.get('host'),c.config.get('port')))
+        app.run(host=c.config.get("host"), port=c.config.get("port"),threaded=c.config.get("threaded"),debug=c.config.get("debug"))
     else:
         log.log(_("Running web server on {}:{}").format(c.config.get('host'),c.config.get('port')))
-    app.run(host=c.config.get("host"), port=c.config.get("port"),threaded=c.config.get("threaded"),debug=c.config.get("debug"))
+        from waitress import serve
+        log.log(_("Using waitress as wsgi server"))
+        serve(app,host = c.config.get("host"),port=c.config.get("port"))
