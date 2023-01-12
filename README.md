@@ -67,7 +67,9 @@ However , when we tested this on Python3.7 , we can not install astropy from Pyp
 + flask
 + flask-login
 + numpy
-+ requsets 
++ paramiko(optional)
++ requsets
++ waitress(optional)
 
 ## Support
 + QQ Group 710622107

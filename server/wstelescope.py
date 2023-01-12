@@ -35,7 +35,7 @@ from utils.utility import switch
 from utils.lightlog import lightlog
 logger = lightlog(__name__)
 
-class ws_telescope(object):
+class WsTelescopeInterface(object):
     """
         Websocket Telescope Interface.\n
         Needed Telescope API:
@@ -150,11 +150,6 @@ class ws_telescope(object):
                 message : str # message of the connection
                 params : info : BasicTelescopeInfo object
         """
-        _host = params.get("host", "localhost")
-        _port = int(params.get("port", 7624))
-        _type = params.get("type", "indi")
-        _name = params.get("name", "Telescope Simulator")
-
         r = {
             "event" : "RemoteConnect",
             "id" : randbelow(1000),
@@ -162,16 +157,30 @@ class ws_telescope(object):
             "message" : "",
             "params" : {}
         }
+        # If the parameters are not specified
+        if params is None:
+            r["message"] = _("No parameters provided")
+            if self.on_send(r) is False:
+                logger.loge(_("Failed to send message while executing connect command"))
+            return
+
+        _host = params.get("host", "localhost")
+        _port = int(params.get("port", 7624))
+        _type = params.get("type", "indi")
+        _name = params.get("name", "Telescope Simulator")
+
         param = {
             "host" : _host,
             "port" : _port
         }
         # If the telescope had already connected
-        if self.device.info._is_connected:
+        if self.device is not None and self.device.info._is_connected:
             logger.logw(_("Telescope is connected"))
             r["status"] = 2
             r["message"] = "Telescope is connected"
             r["params"]["info"] = self.device.info.get_dict()
+            if self.on_send(r) is False:
+                logger.loge(_("Failed to send message while executing connect command"))
             return
         # Check if the type of the telescope is supported
         if _type in ["indi","ascom"]:

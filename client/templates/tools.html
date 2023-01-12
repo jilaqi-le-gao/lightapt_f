@@ -1,0 +1,154 @@
+<!--
+
+   Copyright(c) 2022 Max Qian  <astroair.cn>
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Tools</title>
+
+     <!-- Icon -->
+     <link rel="icon" sizes="16x16" type="image/png" href="{{url_for('static',filename='textures/icons/telescope.png')}}">
+
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="/static/css/fontawesome/fontawesome.min.css">
+    <link rel="stylesheet" href="/static/css/fontawesome/solid.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="/static/css/adminlte.min.css">
+    <!-- Loading animation -->
+    <link rel="stylesheet" href="/static/css/client/loading.css">
+
+</head>
+
+<body style="height: auto;" class="sidebar-mini sidebar-closed sidebar-collapse dark-mode">
+    <!-- loading开始 -->
+    <div id="loading-animation">
+        <div id="loading-animation-center">
+            <div id="loading-animation-center-absolute">
+                <div class="loading_object" id="loading_four"></div>
+                <div class="loading_object" id="loading_three"></div>
+                <div class="loading_object" id="loading_two"></div>
+                <div class="loading_object" id="loading_one"></div>
+            </div>
+        </div>
+    </div>
+    <script>!function () { function e() { setTimeout(() => { $("#loading-animation").fadeOut(540) }, 500) } window.jQuery ? $(document).ready(() => { e() }) : document.onreadystatechange = (() => { "interactive" === document.readyState && e() }) }();</script>
+    <!-- loading 结束 -->
+    <div class="wrapper">
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="card card-default card-primary">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-timer"></i>
+                                    时间同步
+                                </div>
+                                <div class="card-tools">
+                                    <button type="button" class="btn btn-tool"
+                                        data-card-widget="collapse" title="Collapse">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="input-group input-group-sm">
+                                            <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
+													id='inputsearch' placeholder="客户端时间">
+											<button id='search_com' class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-redo"></i>
+                                                获取
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+		<!-- Central Modal Medium Danger -->
+		<div class="modal fade" id="centralModalDanger" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+			aria-hidden="true">
+			<div class="modal-dialog modal-notify modal-danger" role="document">
+				<!--Content-->
+				<div class="modal-content">
+					<!--Header-->
+					<div class="modal-header">
+						<p class="heading lead" id="errorModalTitle">错误信息</p>
+						<button type="button" class="close modal-voy-btn" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true" class="white-text">&times;</span>
+						</button>
+					</div>
+
+					<!--Body-->
+					<div class="modal-body">
+						<div class="text-center">
+							<i class="fas fa-exclamation-triangle fa-4x mb-3 animated bounceIn"></i>
+							<p id="errorMessage" class="note note-danger">
+								未知错误
+							</p>
+							<p id="contactMessage" class="text-muted">
+								<small>如果你有任何问题，请将详细细节告知开发者</small>
+							</p>
+						</div>
+					</div>
+
+					<!--Footer-->
+					<div class="modal-footer justify-content-center">
+						<a class="btn btn-outline-danger modal-voy-btn"
+							href="mailto:astro_air@126.com,fran.dibiase@gmail.com">
+							<i class="fas fa-envelope mr-1"></i>联系我们</a>
+						<button type="button" class="btn btn-danger waves-effect modal-voy-btn" data-dismiss="modal">
+							Ok
+						</button>
+					</div>
+				</div>
+				<!--/.Content-->
+			</div>
+		</div>
+	</div>
+	<!-- Modal container end -->
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/static/js/adminlte.min.js"></script>
+    <!-- Tools JS -->
+    <script src="/static/js/client/tools.js"></script>
+</body>
+</html>

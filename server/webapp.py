@@ -18,12 +18,14 @@ Boston, MA 02110-1301, USA.
 
 """
 
-from utils.lightlog import lightlog,DEBUG
+
+from utils.lightlog import lightlog
 log = lightlog(__name__)
 
 import os,json,logging,uuid
 
 from utils.i18n import _
+import server.config as c
 
 from flask import Flask,render_template,redirect,Blueprint,request
 from flask_login import LoginManager,login_required,login_user,logout_user,UserMixin
@@ -152,7 +154,7 @@ def logout_():
     return redirect('/logout')
 
 # Disable Flask logging system
-if not DEBUG:
+if not c.config.get('debug'):
     logger = logging.getLogger('werkzeug')
     logger.setLevel(logging.ERROR)
 logger = logging.getLogger('waitress')
@@ -177,6 +179,12 @@ def run_server() -> None:
         app.run(host=c.config.get("host"), port=c.config.get("port"),threaded=c.config.get("threaded"),debug=c.config.get("debug"))
     else:
         log.log(_("Running web server on {}:{}").format(c.config.get('host'),c.config.get('port')))
-        from waitress import serve
-        log.log(_("Using waitress as wsgi server"))
-        serve(app,host = c.config.get("host"),port=c.config.get("port"))
+        try:
+            # We hope to use waitress as a high performance wsgi server
+            from waitress import serve
+            log.log(_("Using waitress as wsgi server"))
+            serve(app,host = c.config.get("host"),port=c.config.get("port"))
+        except ImportError as e:
+            logger.logw(_("Failed to import waitress as wsgi server , use default server"))
+            app.run(host=c.config.get("host"),port=c.config.get("port"),threaded=True)
+        

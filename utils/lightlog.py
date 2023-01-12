@@ -152,3 +152,56 @@ class lightlog():
             "message" : info if info is not None else None,
             "params" : params if params is not None else {}
         }
+
+class new_lightlog():
+    """
+        Light weight log system for LightAPT to replace the old logging module
+        Initial : logger = new_lightlog(__name__)
+        NOTE : Every file should include this.
+    """
+
+    def __init__(self,name : str) -> None:
+        """
+            Initialize a new lightlog object
+            Args:
+                name : str
+            Returns:
+        """
+        self.uname = name
+
+    def info(self,msg : str) -> None:
+        """
+            Log normal message | 普通信息日志\n
+            Args:
+                msg: str # can be format string
+            Return: None
+        """
+        logger.info(f"[{self.uname}][INFO] - {msg}")
+
+    def error(self,msg : str) -> None:
+        """
+            Log error message | 错误信息日志\n
+            Args:
+                msg: str # can be format string
+            Return: None
+        """
+        logger.info(f"[{self.uname}][ERROR] - "+ f"{msg}")
+
+    def warning(self,msg : str) -> None:
+        """
+            Log warning message | 警告信息日志\n
+            Args:
+                msg: str # can be format string
+            Return: None
+        """
+        logger.info(f"[{self.uname}][WARNING] - " + f"{msg}")
+        
+    def debug(self,msg) -> None:
+        """
+            Log debug message | 调试日志\n
+            Args:
+                msg: str # can be format string
+            Return: None
+        """
+        if DEBUG:
+            logger.info(f"[{self.uname}][DEBUG] - " + f"{msg}")

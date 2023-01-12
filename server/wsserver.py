@@ -21,11 +21,13 @@ Boston, MA 02110-1301, USA.
 from json import JSONDecodeError,dumps, loads
 import os
 from secrets import randbelow
+import threading
 from time import sleep
 # Third party libraries
 from libs.websocket.websocket_server import WebsocketServer
 # Built-in libraries
 from server.wscamera import WsCameraInterface
+from server.wstelescope import WsTelescopeInterface
 from utils.utility import switch
 from utils.i18n import _
 from utils.lightlog import lightlog
@@ -75,6 +77,7 @@ class ws_server(object):
         self.info = wsinfo()
         # Initialize the devices object
         self.camera = WsCameraInterface()
+        self.telescope = WsTelescopeInterface()
 
     def __del__(self) -> None:
         """
@@ -213,7 +216,8 @@ class ws_server(object):
             Returns: None
             NOTE: This function can not be overriden by subclasses.And must call parser_json()
         """
-        self.parser_json(str(message))
+        threading.Thread(target=self.parser_json,kwargs={"message" : str(message)}).start()
+        #self.parser_json(str(message))
 
     def on_send(self, message : dict) -> bool:
         """
@@ -276,11 +280,13 @@ class ws_server(object):
             _message = loads(message)
         except JSONDecodeError as e:
             logger.loge(_("Failed to parse JSON message : {}").format(str(e)))
+            self.on_send({"status" : 1 , "message" : _("Failed to parse JSON message")})
             return
         event = _message.get('event')
         event_type = _message.get('type')
         if event is None or event_type is None:
             logger.loge(_("No event found in message , {}").format(message))
+            self.on_send({"status" : 1 , "message" : _("No event found in message")})
             return
         for case in switch(event_type):
             # Camera event
@@ -301,53 +307,91 @@ class ws_server(object):
                     if _case("RemotePolling"):
                         self.camera.remote_polling()
                         break
-                    if case("RemoteStartExposure"):
+                    if _case("RemoteStartExposure"):
                         self.camera.remote_start_exposure(_message.get("params"))
                         break
-                    if case("RemoteAbortExposure"):
+                    if _case("RemoteAbortExposure"):
                         self.camera.remote_abort_exposure()
                         break
-                    if case("RemoteGetExposureStatus"):
+                    if _case("RemoteGetExposureStatus"):
                         self.camera.remote_get_exposure_status()
                         break
-                    if case("RemoteGetExposureResult"):
+                    if _case("RemoteGetExposureResult"):
                         self.camera.remote_get_exposure_result()
                         break
-                    if case("RemoteStartSequenceExposure"):
+                    if _case("RemoteStartSequenceExposure"):
                         self.camera.remote_start_sequence_exposure(_message.get("params"))
                         break
-                    if case("RemoteAbortSequenceExposure"):
+                    if _case("RemoteAbortSequenceExposure"):
                         self.camera.remote_abort_sequence_exposure()
                         break
-                    if case("RemotePauseSequenceExposure"):
+                    if _case("RemotePauseSequenceExposure"):
                         self.camera.remote_pause_sequence_exposure()
                         break
-                    if case("RemoteContinueSequenceExposure"):
+                    if _case("RemoteContinueSequenceExposure"):
                         self.camera.remote_continue_sequence_exposure()
                         break
-                    if case("RemoteGetSequenceExposureStatus"):
+                    if _case("RemoteGetSequenceExposureStatus"):
                         self.camera.remote_get_sequence_exposure_status()
                         break
-                    if case("RemoteGetSequenceExposureResults"):
+                    if _case("RemoteGetSequenceExposureResults"):
                         self.camera.remote_get_sequence_exposure_results()
                         break
-                    if case("RemoteCooling"):
+                    if _case("RemoteCooling"):
                         self.camera.remote_cooling(_message.get("params"))
                         break
-                    if case("RemoteCoolingTo"):
+                    if _case("RemoteCoolingTo"):
                         self.camera.remote_cooling_to(_message.get("params"))
                         break
-                    if case("RemoteGetCoolingStatus"):
+                    if _case("RemoteGetCoolingStatus"):
                         self.camera.remote_get_cooling_status()
                         break
-                    if case("RemoteGetConfiguration"):
+                    if _case("RemoteGetConfiguration"):
                         self.camera.remote_get_configuration(_message.get("params"))
                         break
-                    if case("RemoteSetConfiguration"):
+                    if _case("RemoteSetConfiguration"):
                         self.camera.remote_set_configuration(_message.get("params"))
                         break
                     logger.loge(_("Unknown camera event received from remote client"))
                     break
+                break
+            # All of the telescope events
+            if case("telescope"):
+                for _case in switch(event):
+                    if _case("RemoteConnect"):
+                        self.telescope.remote_connect(_message.get("params"))
+                        break
+                    if _case("RemoteDisconnect"):
+                        self.telescope.remote_disconnect()
+                        break
+                    if _case("RemoteReconnect"):
+                        self.telescope.remote_reconnect()
+                        break
+                    if _case("RemoteScanning"):
+                        self.telescope.remote_scanning()
+                        break
+                    if _case("RemotePolling"):
+                        self.telescope.remote_polling()
+                        break
+                    if _case("RemoteGoto"):
+                        self.telescope.remote_goto(_message.get("params"))
+                        break
+                    if _case("RemoteAbortGoto"):
+                        self.telescope.remote_abort_goto()
+                        break
+                    if _case("RemotePark"):
+                        self.telescope.remote_park()
+                        break
+                    if _case("RemoteUnpark"):
+                        self.telescope.remote_unpack()
+                        break
+                    if _case("RemoteHome"):
+                        self.telescope.remote_home()
+                        break
+                    logger.loge(_("Unknown telescope event received from remote client"))
+                    break
+                break
+            break
         
 
     # #################################################################

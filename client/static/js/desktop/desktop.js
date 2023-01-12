@@ -706,9 +706,6 @@ window.Win10 = {
         if (!preg.test(url)) {
             url = 'http://' + url;
         }
-        if (!url) {
-            url = '//yuri2.cn';
-        }
         if (!title) {
             title = url;
         }

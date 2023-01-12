@@ -22,7 +22,8 @@ Boston, MA 02110-1301, USA.
 # This file contains all of the html pages needed to create
 # #################################################################
 
-from flask import render_template,redirect
+import requests
+from flask import render_template,redirect,request,url_for
 from flask_login import login_required
 
 def create_html_page(app) -> None:
@@ -217,6 +218,36 @@ def create_html_page(app) -> None:
     @login_required
     def imageviewer_html():
         return redirect("/imageviewer")
+
+    @app.route("/webssh" , methods=['GET'])
+    @login_required
+    def webssh():
+        return redirect("http://127.0.0.1:8888",code=301)
+
+    @app.route("/webssh/", methods=['GET'])
+    @login_required
+    def webssh_():
+        return redirect("/webssh")
+
+    @app.route("/webssh.html", methods=['GET'])
+    @login_required
+    def webssh_html():
+        return redirect("/webssh")
+
+    @app.route("/tools" , methods=['GET'])
+    @login_required
+    def tools():
+        return render_template("tools.html")
+
+    @app.route("/tools/", methods=['GET'])
+    @login_required
+    def tools_():
+        return redirect("/tools")
+    
+    @app.route("/tools.html", methods=['GET'])
+    @login_required
+    def tools_html():
+        return redirect("/tools")
         
     @app.errorhandler(404)
     def page_not_found(error):

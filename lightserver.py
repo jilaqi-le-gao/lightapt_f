@@ -18,11 +18,23 @@ Boston, MA 02110-1301, USA.
 
 """
 
+"""
+  _      _       _     _            _____ _______ 
+ | |    (_)     | |   | |     /\   |  __ \__   __|
+ | |     _  __ _| |__ | |_   /  \  | |__) | | |   
+ | |    | |/ _` | '_ \| __| / /\ \ |  ___/  | |   
+ | |____| | (_| | | | | |_ / ____ \| |      | |   
+ |______|_|\__, |_| |_|\__/_/    \_\_|      |_|   
+            __/ |                                 
+           |___/                                  
+"""
+
 import argparse,os,json
+import threading
 
 import server.config as c
 from utils.i18n import _
-from utils.lightlog import lightlog,DEBUG
+from utils.lightlog import lightlog
 logger = lightlog(__name__)
 
 def main():
@@ -45,28 +57,32 @@ def main():
     # Command line arguments
     parser = argparse.ArgumentParser()
     # Server options
-    parser.add_argument('--port', type=int, default=8000,help=_("Port the server is listening on"))
-    parser.add_argument('--host', type=str, default='0.0.0.0',help=_("Host the server is listening on"))
-    parser.add_argument('--debug', type=bool, default=False,help=_("Enable debug output for better debug"))
-    parser.add_argument('--threaded', type=bool, default=True,help=_("Enable mutiline threading for better performance"))
+    parser.add_argument('--port', type=int,help=_("Port the server is listening on"))
+    parser.add_argument('--host', type=str,help=_("Host the server is listening on"))
+    parser.add_argument('--debug', type=bool,help=_("Enable debug output for better debug"))
+    parser.add_argument('--threaded', type=bool,help=_("Enable mutiline threading for better performance"))
     # Configuration and version
-    parser.add_argument('--config', type=str, default=os.path.join(os.getcwd(), 'config',"config.json"),help=_("Config file"))
-    parser.add_argument('--version', type=bool, default=False,help=_("Show current version"))
+    parser.add_argument('--config', type=str, help=_("Config file"))
+    parser.add_argument('--version', type=bool, help=_("Show current version"))
     # Websocket server options
-    parser.add_argument('--wsport', type=int, default=5000,help=_("Websocket server port"))
-    parser.add_argument('--wshost', type=str, default='0.0.0.0',help=_("Websocket server host"))
-    parser.add_argument('--wsssl',type=bool, default=False,help=_("Websocket SSL mode"))
-    parser.add_argument('--wskey',type=str,default='',help=_("Websocket SSL key"))
-    parser.add_argument('--wscert',type=str,default='',help=_("Websocket SSL certificate"))
+    parser.add_argument('--wsport', type=int, help=_("Websocket server port"))
+    parser.add_argument('--wshost', type=str, help=_("Websocket server host"))
+    parser.add_argument('--wsssl',type=bool, help=_("Websocket SSL mode"))
+    parser.add_argument('--wskey',type=str,help=_("Websocket SSL key"))
+    parser.add_argument('--wscert',type=str,help=_("Websocket SSL certificate"))
     # INDI web manager options
-    parser.add_argument('--indiweb' , type=bool,default=True,help=_("Start the INDI web manager"))
-    parser.add_argument('--indihost',type=str,default="127.0.0.1",help=_("INDI server address"))
-    parser.add_argument('--indiport', type=int,default=7624,help=_("The port where the INDI server is running"))
-    parser.add_argument('--indiconfig', type=str,default="/tmp/indi",help=_("The path of the INDI temp files"))
-    parser.add_argument('--indidata', type=str,default="/usr/share/indi",help=_("The path of the INDI data files"))
-    parser.add_argument('--indififo', type=str,default="/tmp/indiFIFO",help=_("The path of the INDI fifo pipe"))
-    parser.add_argument('--indiauto', type=bool,default=False,help=_("Connect to the INDI device when server is started"))
-
+    parser.add_argument('--indiweb' , type=bool,help=_("Start the INDI web manager"))
+    parser.add_argument('--indihost',type=str,help=_("INDI server address"))
+    parser.add_argument('--indiport', type=int,help=_("The port where the INDI server is running"))
+    parser.add_argument('--indiconfig', type=str,help=_("The path of the INDI temp files"))
+    parser.add_argument('--indidata', type=str,help=_("The path of the INDI data files"))
+    parser.add_argument('--indififo', type=str,help=_("The path of the INDI fifo pipe"))
+    parser.add_argument('--indiauto', type=bool,help=_("Connect to the INDI device when server is started"))
+    # Webssh settings
+    parser.add_argument('--webssh', type=bool,help=_("Start a webssh client"))
+    parser.add_argument('--websshport', type=int,help=_("The port the web ssh server is running on"))
+    parser.add_argument('--sshport', type=int,help=_("The SSH port to connect to"))
+    parser.add_argument('--sshhost', type=str,help=_("The SSH host to connect to"))
     args = parser.parse_args()
     # Change the host if the command line argument is specified
     if args.host:
@@ -85,8 +101,7 @@ def main():
     # Change the debug mode if available
     if args.debug:
         """Debug mode"""
-        global DEBUG
-        DEBUG = args.debug
+        c.config["debug"] = False
         logger.log(_("DEBUG mode is enabled"))
     # Change the threaded mode if available
     if args.threaded:
@@ -118,6 +133,11 @@ def main():
         from server.wsserver import ws_server
         _ws_ = ws_server()
         _ws_.start_server(c.config["ws"]["host"], c.config["ws"]["port"], c.config["ws"]["ssl"],c.config["ws"]["key"], c.config["ws"]["cert"])
+        from server.webssh.webssh import start_webssh
+        from multiprocessing import Process
+        _webssh_ = Process(target=start_webssh)
+        _webssh_.daemon = True
+        _webssh_.start()
         from server.webapp import run_server
         run_server()
     except KeyboardInterrupt:
