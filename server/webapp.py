@@ -166,6 +166,8 @@ from server.webpage import create_html_page
 create_html_page(app)
 from server.webindi import create_indiweb_manager
 create_indiweb_manager(app)
+from server.websys import create_web_sysinfo
+create_web_sysinfo(app)
 
 def run_server() -> None:
     """

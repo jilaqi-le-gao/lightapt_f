@@ -35,6 +35,8 @@
     <!-- Font Awesome 6.2.0 Pro -->
     <link rel="stylesheet" href="/static/css/fontawesome/fontawesome.min.css">
     <link rel="stylesheet" href="/static/css/fontawesome/solid.min.css">
+    <!-- Bootstrap select -->
+    <link rel="stylesheet" href="/static/css/bootstrap/bootstrap-select.min.css">
     <!-- AdminLTE Theme style -->
     <link rel="stylesheet" href="/static/css/adminlte.min.css">
     <!-- Loading animation -->
@@ -62,34 +64,228 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-sm-6">
-                        <div class="card card-default card-primary">
-                            <div class="card-header">
-                                <div class="card-title">
-                                    <i class="fas fa-timer"></i>
-                                    时间同步
-                                </div>
-                                <div class="card-tools">
-                                    <button type="button" class="btn btn-tool"
-                                        data-card-widget="collapse" title="Collapse">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col">
-                                        <div class="input-group input-group-sm">
-                                            <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
-													id='inputsearch' placeholder="客户端时间">
-											<button id='search_com' class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-redo"></i>
-                                                获取
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card card-default card-primary collapsed-card">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <i class="fas fa-timer"></i>
+                                            时间同步
+                                        </div>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool"
+                                                data-card-widget="collapse" title="Collapse">
+                                                <i class="fas fa-minus"></i>
                                             </button>
                                         </div>
                                     </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="input-group input-group-sm">
+                                                    <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
+                                                            id='inputsearch' placeholder="客户端时间">
+                                                    <button id='get_time' class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-times-circle"></i>
+                                                        获取
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-1">
+                                            <div class="col-sm-12">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="col p-0">
+                                                        <button id='sync_time' class="btn btn-sm btn-outline-primary btn-block">
+                                                            <i class="fas fa-sync"></i>
+                                                            同步
+                                                        </button>
+                                                    </div>
+                                                    <div class="col p-0">
+                                                        <button id='reset_time' class="btn btn-sm btn-outline-warning btn-block">
+                                                            <i class="fas fa-redo"></i>
+                                                            重置
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card card-default card-info collapsed-card">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <i class="fas fa-satellite"></i>
+                                            定位
+                                        </div>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool"
+                                                data-card-widget="collapse" title="Collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="col p-0">
+                                                        <label>经度</label>
+                                                        <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
+                                                                id='lon' placeholder="">
+                                                    </div>
+                                                    <div class="col p-0">
+                                                        <label>纬度</label>
+                                                        <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
+                                                        id='lat' placeholder="">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-1">
+                                            <div class="col-sm-12">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="col p-0">
+                                                        <button id='get_location' class="btn btn-sm btn-outline-warning btn-block">
+                                                            <i class="fas fa-refresh"></i>
+                                                            获取
+                                                        </button>
+                                                    </div>
+                                                    <div class="col p-0">
+                                                        <button id='sync_location' class="btn btn-sm btn-outline-primary btn-block">
+                                                            <i class="fas fa-sync"></i>
+                                                            同步
+                                                        </button>
+                                                    </div>
+                                                    <div class="col p-0">
+                                                        <button id='reset_location' class="btn btn-sm btn-outline-danger btn-block">
+                                                            <i class="fas fa-redo"></i>
+                                                            重置
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card card-default card-indigo collapsed-card">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <i class="fas fa-soft-serve"></i>
+                                            更新
+                                        </div>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool"
+                                                data-card-widget="collapse" title="Collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col p-1">
+                                                <button id='update_kstars' class="btn btn-sm btn-info btn-block">
+                                                    <i class="fas fa-telescope"></i>
+                                                    更新Kstars
+                                                </button>
+                                            </div>
+                                            <div class="col p-1">
+                                                <button id='update_phd2' class="btn btn-sm btn-primary btn-block">
+                                                    <i class="fas fa-crosshairs"></i>
+                                                    更新PHD2
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col p-1">
+                                                <button id='update_astap' class="btn btn-sm btn-primary btn-block">
+                                                    <i class="fas fa-camera-viewfinder"></i>
+                                                    更新Astap
+                                                </button>
+                                            </div>
+                                            <div class="col p-1">
+                                                <button id='update_python' class="btn btn-sm btn-info btn-block">
+                                                    <i class="fas fa-map"></i>
+                                                    更新Python
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col p-1">
+                                                <button id='update_plugins' class="btn btn-sm btn-info btn-block">
+                                                    <i class="fas fa-plug"></i>
+                                                    更新插件
+                                                </button>
+                                            </div>
+                                            <div class="col p-1">
+                                                <button id='update_all' class="btn btn-sm btn-primary btn-block">
+                                                    <i class="fas fa-server"></i>
+                                                    更新所有软件
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <textarea id="update_log" rows="5" style="width: 100%; font-family: monospace;" readonly class="text-white form-control form-control-sm"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card card-default card-pink collapsed-card">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <i class="fas fa-file-download"></i>
+                                            下载解析文件
+                                        </div>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool"
+                                                data-card-widget="collapse" title="Collapse">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-12">
+                                                <div class="input-group d-flex">
+                                                    <select id="solver" data-style="btn-outline-warning" class="selectpicker form-control form-control-sm pr-1">
+                                                        <option value="astap">ASTAP</option>
+                                                        <option value="astrometry">Astrometry</option>
+                                                    </select>
+                                                    <select id="template_list" data-live-search="true" data-style="btn-outline-primary" multiple class="selectpicker form-control form-control-sm">
 
-                                
+                                                    </select>
+                                                    <button id='refresh_template_list' class="btn btn-sm btn-outline-success p-0 pl-1">
+                                                        <i class="fas fa-redo"></i>
+                                                        刷新
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-sm-12 pt-2">
+                                                <button id='download_template' class="btn btn-sm btn-outline-primary btn-block">
+                                                    <i class="fas fa-download"></i>
+                                                    下载
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -146,6 +342,8 @@
     <script src="/static/js/jquery/jquery.min.js"></script>
     <!-- Bootstrap 4 -->
     <script src="/static/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap select -->
+    <script src="/static/js/bootstrap/bootstrap-select.min.js"></script>
     <!-- AdminLTE App -->
     <script src="/static/js/adminlte.min.js"></script>
     <!-- Tools JS -->

@@ -60,6 +60,7 @@ pip install -r requirements.txt
 """
 
 However , when we tested this on Python3.7 , we can not install astropy from Pypi.Until now we do not find the solution to this problem.You can just ignore astropy and all of server will run normally.
+Pay attention to that the optional dependencies should be installed as possible for better performance and experience.
 
 #### Requirements
 
@@ -68,8 +69,10 @@ However , when we tested this on Python3.7 , we can not install astropy from Pyp
 + flask-login
 + numpy
 + paramiko(optional)
++ psutil(optional)
 + requsets
 + waitress(optional)
++ tornado(optional)
 
 ## Support
 + QQ Group 710622107
