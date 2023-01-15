@@ -182,3 +182,95 @@ def python2json(_python) -> object:
     except json.JSONDecodeError as exception:
         print(exception)
         return None
+
+# #################################################################
+# Muti thread downloader functions
+# #################################################################
+
+from urllib.request import Request,urlopen
+
+class Download:
+    def __init__(self,url : str, file_path : str, thread_num = 5) -> None:
+        """
+            Construct a Download object
+            Args :
+                url : str # URL to download
+                file_path : str # File path to save the downloaded file
+                thread_num : int # Number of threads , default is 5
+            Returns : None
+        """
+        self.url = url 
+        self.file_path = file_path
+        self.thread_num = thread_num
+        self.threads = []
+
+    def download(self):
+        req = Request(url=self.url, method='GET')
+        req.add_header('Accept', '*/*')
+        req.add_header('Charset', 'UTF-8')
+        req.add_header('Connection', 'Keep-Alive')
+        with urlopen(req) as f:
+        # Get the file size of the file to download
+            self.file_size = int(dict(f.headers).get('Content-Length', 0))
+        # Calculate the file size each thread needs to download
+        current_part_size = self.file_size // self.thread_num + 1
+        for i in range(self.thread_num):
+            # Calculate the start position of the file to download
+            start_pos = i * current_part_size
+            t = open(self.file_path, 'wb')
+            t.seek(start_pos, 0)
+            # Create a temporary thread
+            td = ThreadDownload(self.url, start_pos, current_part_size, t)
+            self.threads.append(td)
+            td.start()
+
+    def get_complete_rate(self) -> int:
+        """
+            Get the complete rate of the download process
+            Args : None
+            Returns : int
+        """
+        sum_size = 0
+        for i in range(self.thread_num):
+            sum_size += self.threads[i].length
+        return sum_size / self.file_size
+
+class ThreadDownload(threading.Thread):
+    def __init__(self,url : str, start_pos : int, current_part_size : int, current_part) -> None:
+        """
+            Construct a new download thread object
+            Args:
+                url : str # URL to download
+                start_pos : int # start position
+                current_part_size : int # current part size
+                current_part : buffer
+            Returns : None
+        """
+        super().__init__()
+        self.url = url
+        self.start_pos = start_pos
+        self.current_part_size = current_part_size
+        self.current_part = current_part
+        self.length = 0
+    
+    def run(self) -> None:
+        """
+            Start to download
+            Args : None
+            Returns : None
+        """
+        req = Request(url = self.url, method='GET')
+        req.add_header('Accept', '*/*')
+        req.add_header('Charset', 'UTF-8')
+        req.add_header('Connection', 'Keep-Alive')
+
+        with urlopen(req) as f:
+            for i in range(self.start_pos):
+                f.read(1)
+            while self.length < self.current_part_size:
+                data = f.read(1024)
+                if data is None or len(data) <= 0:
+                    break
+                self.current_part.write(data)
+                self.length += len(data)
+            self.current_part.close()

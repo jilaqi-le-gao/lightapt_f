@@ -84,7 +84,7 @@
                                             <div class="col-sm-12">
                                                 <div class="input-group input-group-sm">
                                                     <input type='text' class='form-control form-control-sm text-white text-center bg-dark'
-                                                            id='inputsearch' placeholder="客户端时间">
+                                                            id='time' placeholder="客户端时间">
                                                     <button id='get_time' class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-times-circle"></i>
                                                         获取
@@ -107,6 +107,24 @@
                                                             重置
                                                         </button>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-2">
+                                            <div class="col-sm-12">
+                                                <div id="time_error" hidden class=" alert alert-danger alert-dismissible">
+                                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                                    <h5><i class="icon fas fa-ban"></i>错误</h5>
+                                                    <p id="time_error_message"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-2">
+                                            <div class="col-sm-12">
+                                                <div id="time_info" hidden class="alert alert-info alert-dismissible">
+                                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                                    <h5><i class="icon fas fa-info"></i>提示</h5>
+                                                    <p id="time_info_message"></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -168,6 +186,24 @@
                                                             重置
                                                         </button>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-2">
+                                            <div class="col-sm-12">
+                                                <div id="location_error" hidden class=" alert alert-danger alert-dismissible">
+                                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                                    <h5><i class="icon fas fa-ban"></i>错误</h5>
+                                                    <p id="location_error_message"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row pt-2">
+                                            <div class="col-sm-12">
+                                                <div id="location_info" hidden class="alert alert-info alert-dismissible">
+                                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                                                    <h5><i class="icon fas fa-info"></i>提示</h5>
+                                                    <p id="location_info_message"></p>
                                                 </div>
                                             </div>
                                         </div>

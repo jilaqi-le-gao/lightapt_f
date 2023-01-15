@@ -12,11 +12,16 @@
         "cert" : null
     },
     "indiweb" : {
+        "enable" : true,
         "host" : "127.0.0.1",
         "port" : 7624,
         "data" : "/usr/share/indi",
         "fifo" : "/tmp/indiFIFO",
         "config" : ""
+    },
+    "webssh" : {
+        "sshport" : 22,
+        "enable" : true
     },
     "device" : {
         "camera" : "",
@@ -24,5 +29,8 @@
         "focuser" : "",
         "guider" : "",
         "solver" : ""
+    },
+    "solver" : {
+        "astrometry" : "/home/max/lightapt/test/data"
     }
 }

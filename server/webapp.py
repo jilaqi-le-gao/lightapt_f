@@ -29,13 +29,19 @@ import server.config as c
 
 from flask import Flask,render_template,redirect,Blueprint,request
 from flask_login import LoginManager,login_required,login_user,logout_user,UserMixin
+from flask_wtf import CSRFProtect,FlaskForm
 from werkzeug.security import check_password_hash,generate_password_hash
+from wtforms import StringField,PasswordField,SubmitField
+from wtforms.validators import DataRequired
 
 app = Flask(__name__,
     static_folder=os.path.join(os.getcwd(),"client","static"),
     template_folder=os.path.join(os.getcwd(),"client","templates")
 )
 app.secret_key = "lightapt"
+# Add form fields protection
+csrf = CSRFProtect(app)
+
 auth = Blueprint("auth",__name__)
 # Login system
 login_system = LoginManager()
@@ -45,9 +51,36 @@ login_system.login_message_category = "info"
 login_system.login_message = "Access denied."
 login_system.init_app(app)
 
-USERS = [
-    {"id" : 1 ,"username": "admin", "password": generate_password_hash("admin")},
-]
+USERS = None
+
+def load_password() -> None:
+    """
+        Load the password from the json file
+        Args : None
+        Returns : None
+    """
+    _path = os.path.join(os.getcwd(),"config","password.json")
+    if not os.path.exists(_path):
+        log.loge(_("Could not find password.json , try to create a new one with default password"))
+        if not os.path.exists(os.path.join(os.getcwd(),"config")):
+            os.mkdir(os.path.join(os.getcwd(),"config"))
+        try:
+            with open(_path,mode="w+",encoding="utf-8") as f:
+                f.write(json.dump([
+                    {"id" : 1 ,"username": "admin", "password": generate_password_hash("admin")},
+                ]))
+        except OSError as e:
+            log.loge(_("Failed to create password file : {}").format(str(e)))
+            return
+    try:
+        with open(_path,mode="r" , encoding="utf-8") as f:
+            global USERS
+            USERS = json.loads(f.read())
+    except OSError as e:
+        log.loge(_("Failed to load password from json file : {}").format(str(e)))
+    except json.JSONDecodeError as e:
+        log.loge(_("Failed to decode password from json file : {}").format(str(e)))
+load_password()
 
 def create_user(user_name : str, password : str) -> None:
     """
@@ -115,43 +148,108 @@ class User(UserMixin):
                 return User(user)
         return None
 
+class LoginForm(FlaskForm):
+    """
+        Login form for WTF
+    """
+    username = StringField("username",validators=[DataRequired()])
+    password = PasswordField("password",validators=[DataRequired()])
+    submit = SubmitField(label=_("登录"))
+
+class RegisterForm(FlaskForm):
+    """
+        Registration form for WTF
+    """
+    username = StringField("username",validators=[DataRequired()])
+    password = PasswordField("password",validators=[DataRequired()])
+    v_password = PasswordField("v_password",validators=[DataRequired()])
+
 @app.route("/login" , methods=["POST","GET"])
+@app.route("/login/" , methods=["POST","GET"])
+@app.route("/login.html", methods=["POST","GET"])
 def login():
     """
         Login
     """
+    login_form = LoginForm()
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        user_info = get_user(username)
+        username = login_form.username.data
+        password = login_form.password.data
         if username is None or password is None:
             log.loge(_("Empty username or password"))
-            return redirect("/login")
+            return render_template("login.html",error=_("Username and password is required"))
+        user_info = get_user(username)
         if user_info is None:
-            return redirect("/login")
+            return render_template("login.html" , error = _("User is not found in the database"))
         else:
             user = User(user_info)
             if user.verify_password(password):  # 校验密码
                 login_user(user)
                 log.log(_("User login successful"))
                 return redirect('/desktop')
-    return render_template('login.html')
-
-@app.route("/login/" , methods=["POST","GET"])
-def login_():
-    return redirect('/login')
+    return render_template('login.html',form=login_form)
 
 @app.route("/logout", methods=["GET"])
+@app.route("/logout/" , methods=["GET"])
+@app.route("/logout.html", methods=["GET"])
 @login_required
 def logout():
     logout_user()
     log.logd(_("User has been logged out"))
     return redirect('/')
 
-@app.route("/logout/" , methods=["GET"])
-@login_required
-def logout_():
-    return redirect('/logout')
+@app.route("/register", methods=["GET","POST"])
+@app.route("/register/", methods=["GET","POST"])
+@app.route("/register.html", methods=["GET","POST"])
+def register():
+    """
+        Register a new account and return a redirect
+    """
+    register_form = RegisterForm()
+    if request.method == 'POST':
+        username = register_form.username.data
+        password = register_form.password.data
+        v_password = register_form.v_password.data
+
+        error = ""
+        info = ""
+
+        if username is None:
+            log.loge(_("Username is required"))
+            error = _("Username is required")
+        else:
+            user_info = get_user(username)
+            # Check if the user is already existing
+            if user_info is not None:
+                return render_template("login.html", info = _("Username had already registered , try to login"))
+            # Check if the password is null
+            elif password is None or v_password is None:
+                error = _("Password is required")
+            elif password != v_password:
+                error = _("Password is not same")
+            global USERS
+            USERS.append({"id" : len(USERS) + 1 , "username" : username, "password" : generate_password_hash(password)})
+            info = _("User registered successfully")
+            # Save the password to a file right now to avoid overwriting
+            try:
+                with open(os.path.join(os.getcwd(), "config" , "password.json"),mode="w+",encoding="utf-8") as f:
+                    f.write(json.dump(USERS,indent=4))
+            except json.JSONDecodeError as e:
+                log.loge(_("Error decoding password to json file : {}").format(str(e)))
+            except OSError as e:
+                log.loge(_("Failed to save password to json file : {}").format(str(e)))
+            return render_template("register.html", error = error , info = info)
+    return render_template('register.html')
+
+@app.route("/forget-password",methods=["GET","POST"])
+@app.route("/forget-password/",methods=["GET","POST"])
+@app.route("/forget-password.html",methods=["GET","POST"])
+def forget_password():
+    return render_template("forget-password.html")
+
+@csrf.error_handler
+def csrf_error(reason):
+    return render_template('403.html')
 
 # Disable Flask logging system
 if not c.config.get('debug'):
@@ -165,9 +263,11 @@ import server.config as c
 from server.webpage import create_html_page
 create_html_page(app)
 from server.webindi import create_indiweb_manager
-create_indiweb_manager(app)
+create_indiweb_manager(app,csrf)
 from server.websys import create_web_sysinfo
 create_web_sysinfo(app)
+from server.webtools import create_web_tools
+create_web_tools(app)
 
 def run_server() -> None:
     """

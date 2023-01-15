@@ -20,7 +20,7 @@ Boston, MA 02110-1301, USA.
 
 import os,json
 from threading import Timer
-from flask import redirect,render_template,make_response,request
+from flask import render_template,make_response,request,Flask
 from flask_login import login_required
 
 from server.indi.indiserver import IndiServer
@@ -54,16 +54,20 @@ def start_profile(profile):
         t = Timer(3, indi_server.auto_connect)
         t.start()
         
-def create_indiweb_manager(app) -> None:
+def create_indiweb_manager(app : Flask,csrf) -> None:
     """
         Creates an IndiWebManager instance.
         Args : 
             app: The Flask application instance.
+            csfr : The CSRF context protection
         Returns :
             None
     """
-    @app.route('/indiweb')
+    @app.route('/indiweb',methods=['GET'])
+    @app.route("/indiweb/",methods=['GET'])
+    @app.route("/indiweb.html",methods=['GET'])
     @login_required
+    @csrf.exempt
     def indiweb():
         """Main page"""
         global saved_profile
@@ -76,45 +80,50 @@ def create_indiweb_manager(app) -> None:
         return render_template('indiweb.html', profiles=profiles,
                         drivers=drivers, saved_profile=saved_profile)
 
-    @app.route("/indiweb/",methods=['GET'])
-    @login_required
-    def indiweb_():
-        return redirect("/indiweb")
-
-    @app.route("/indiweb.html",methods=['GET'])
-    @login_required
-    def indiweb_html():
-        return redirect("/indiweb")
-
     ###############################################################################
     # Profile endpoints
     ###############################################################################
 
     @app.route('/indiweb/api/profiles', methods=['GET'])
+    @app.route('/indiweb/api/profiles/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_json_profiles():
         """Get all profiles (JSON)"""
         results = db.get_profiles()
         return json.dumps(results)
     
     @app.route('/indiweb/api/profiles/<item>', methods=['GET'])
+    @app.route('/indiweb/api/profiles/<item>/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_json_profile(item):
         """Get one profile info"""
         results = db.get_profile(item)
         return json.dumps(results)
 
     @app.route('/indiweb/api/profiles/<name>', methods=['POST'])
+    @app.route('/indiweb/api/profiles/<name>/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def add_profile(name):
         """Add new profile"""
         db.add_profile(name)
         return ''
 
     @app.route('/indiweb/api/profiles/<name>', methods=['DELETE'])
+    @app.route('/indiweb/api/profiles/<name>/', methods=['DELETE'])
+    @login_required
+    @csrf.exempt
     def delete_profile(name):
         """Delete Profile"""
         db.delete_profile(name)
         return ''
 
     @app.route('/indiweb/api/profiles/<name>', methods=['PUT'])
+    @app.route('/indiweb/api/profiles/<name>/', methods=['PUT'])
+    @login_required
+    @csrf.exempt
     def update_profile(name):
         """Update profile info (port & autostart & autoconnect)"""
         resp = make_response("set cookie")
@@ -127,6 +136,9 @@ def create_indiweb_manager(app) -> None:
         return ''
 
     @app.route('/indiweb/api/profiles/<name>/drivers', methods=['POST'])
+    @app.route('/indiweb/api/profiles/<name>/drivers/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def save_profile_drivers(name):
         """Add drivers to existing profile"""
         data = request.json
@@ -135,6 +147,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/profiles/custom', methods=['POST'])
+    @app.route('/indiweb/api/profiles/custom/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def save_profile_custom_driver():
         """Add custom driver to existing profile"""
         data = request.json(silent=False)
@@ -144,13 +159,17 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/profiles/<item>/labels', methods=['GET'])
+    @app.route('/indiweb/api/profiles/<item>/labels/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_json_profile_labels(item):
         """Get driver labels of specific profile"""
         results = db.get_profile_drivers_labels(item)
         return json.dumps(results)
 
-
     @app.route('/indiweb/api/profiles/<item>/remote', methods=['GET'])
+    @app.route('/indiweb/api/profiles/<item>/remote/', methods=['GET'])
+    @login_required
     def get_remote_drivers(item):
         """Get remote drivers of specific profile"""
         results = db.get_profile_remote_drivers(item)
@@ -164,6 +183,9 @@ def create_indiweb_manager(app) -> None:
     ###############################################################################
 
     @app.route('/indiweb/api/server/status', methods=['GET'])
+    @app.route('/indiweb/api/server/status/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_server_status():
         """
             Get server status information | 获取服务器状态
@@ -175,6 +197,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/server/drivers', methods=['GET'])
+    @app.route('/indiweb/api/server/drivers/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_server_drivers():
         """
             List all of the driver | 列出所有设备
@@ -189,6 +214,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/server/start/<profile>', methods=['POST'])
+    @app.route('/indiweb/api/server/start/<profile>/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def start_server(profile):
         """Start INDI server for a specific profile"""
         global saved_profile
@@ -202,6 +230,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/server/stop', methods=['POST'])
+    @app.route('/indiweb/api/server/stop/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def stop_server():
         """Stop INDI Server"""
         indi_server.stop()
@@ -221,6 +252,9 @@ def create_indiweb_manager(app) -> None:
     ###############################################################################
 
     @app.route('/indiweb/api/drivers/groups', methods=['GET'])
+    @app.route('/indiweb/api/drivers/groups/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_json_groups():
         """Get all driver families (JSON)"""
         response.content_type = 'application/json'
@@ -229,6 +263,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/drivers', methods=['GET'])
+    @app.route('/indiweb/api/drivers/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_json_drivers():
         """Get all drivers (JSON)"""
         response.content_type = 'application/json'
@@ -236,6 +273,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/drivers/start/<label>', methods=['POST'])
+    @app.route('/indiweb/api/drivers/start/<label>/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def start_driver(label):
         """Start INDI driver"""
         driver = collection.by_label(label)
@@ -243,9 +283,10 @@ def create_indiweb_manager(app) -> None:
         log.log('Driver "%s" started.' % label)
         return ''
 
-
-
     @app.route('/indiweb/api/drivers/stop/<label>', methods=['POST'])
+    @app.route('/indiweb/api/drivers/stop/<label>/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def stop_driver(label):
         """Stop INDI driver"""
         driver = collection.by_label(label)
@@ -255,6 +296,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/drivers/restart/<label>', methods=['POST'])
+    @app.route('/indiweb/api/drivers/restart/<label>/', methods=['POST'])
+    @login_required
+    @csrf.exempt
     def restart_driver(label):
         """Restart INDI driver"""
         driver = collection.by_label(label)
@@ -269,6 +313,9 @@ def create_indiweb_manager(app) -> None:
 
 
     @app.route('/indiweb/api/devices', methods=['GET'])
+    @app.route('/indiweb/api/devices/', methods=['GET'])
+    @login_required
+    @csrf.exempt
     def get_devices():
         return json.dumps(indi_device.get_devices())
 
