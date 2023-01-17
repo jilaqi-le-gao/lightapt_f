@@ -30,19 +30,23 @@
 
 <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>LightAPT WebUI</title>
+
+    <!-- Icon -->
+    <link rel="icon" sizes="16x16" type="image/icon" href="{{url_for('static',filename='textures/icon.ico')}}">
+
     <!-- Font Awesome 6.2.0 Pro -->
     <link rel="stylesheet" href="/static/css/fontawesome/fontawesome.min.css">
-    <link rel="stylesheet" href="/static/css/fontawesome/solid.min.css">
     <!-- AdminLTE Theme style -->
     <link rel="stylesheet" href="/static/css/adminlte.min.css">
     <!-- overlayScrollbars -->
     <link rel="stylesheet" href="/static/css/plugins/OverlayScrollbars.min.css">
     <!-- Loading animation -->
     <link rel="stylesheet" href="/static/css/client/loading.css">
-    <!-- Icon -->
-    <link rel="icon" sizes="16x16" type="image/icon" href="{{url_for('static',filename='textures/icon.ico')}}">
+    
 </head>
 <!-- Body Part -->
 
@@ -78,36 +82,6 @@
 
             <!-- Right navbar links -->
             <ul class="navbar-nav ml-auto">
-                <!-- Notifications Dropdown Menu -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link" data-toggle="dropdown" href="#">
-                        <i class="fa-solid fa-bell"></i>
-                        <!-- Show Notifications Type and Number -->
-                        <span class="badge badge-warning navbar-badge" id="#notifications_number"></span>
-                    </a>
-                    <!-- Dropdown Menu Show Notification Messages -->
-                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <span class="dropdown-item dropdown-header">15 Notifications</span>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fa-solid fa-envelope mr-2"></i> 4 new messages
-                            <span class="float-right text-muted text-sm">3 mins</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fa-solid fa-users mr-2"></i> 8 friend requests
-                            <span class="float-right text-muted text-sm">12 hours</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fa-solid fa-file mr-2"></i> 3 new reports
-                            <span class="float-right text-muted text-sm">2 days</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-                    </div>
-                </li>
-                <!-- Notifications Dropdown Menu -->
                 <!-- Fullscreen Toggle -->
                 <li class="nav-item">
                     <a class="nav-link" data-widget="fullscreen" href="#" role="button">
@@ -141,59 +115,109 @@
                         with font-awesome or any other icon font library -->
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                         data-accordion="false">
-                        <!-- Sidebar Item Camera -->
-                        <li class="nav-item">
-                            <a href="/camera" class="nav-link">
-                                <i class="nav-icon fa-solid fa-camera"></i>
-                                <p>
-                                    相机
-                                </p>
-                            </a>
-                        </li>
-                        <!-- ./ Sidebar Item Camera -->
 
-                        <!-- Sidebar Item Telescope -->
+                        <!-- Sidebar Item Device Hub -->
                         <li class="nav-item">
-                            <a href="/telescope" class="nav-link">
-                                <i class="nav-icon fa-solid fa-telescope"></i>
+                            <a href="/devicehub" id="devicehub" class="nav-link">
+                                <i class="nav-icon fas fa-plug"></i>
                                 <p>
-                                    赤道仪
+                                    设备管理
                                 </p>
                             </a>
                         </li>
-                        <!-- ./ Sidebar Item Telescope -->
+                        <!-- ./ Sidebar Item Device Hub -->
+                        
+                        <!-- Sidebar Item Tools -->
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-router"></i>
+                                <p>
+                                    设备
+                                    <i class="right fa-solid fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <!-- Items in Tools -->
+                            <ul class="nav nav-treeview">
+                                <!-- Sidebar Item Camera -->
+                                <li class="nav-item">
+                                    <a href="/camera" class="nav-link">
+                                        <i class="nav-icon fa-solid fa-camera"></i>
+                                        <p>
+                                            相机
+                                        </p>
+                                    </a>
+                                </li>
+                                <!-- ./ Sidebar Item Camera -->
 
-                        <!-- Sidebar Item Focuser -->
+                                <!-- Sidebar Item Telescope -->
+                                <li class="nav-item">
+                                    <a href="/telescope" class="nav-link">
+                                        <i class="nav-icon fa-solid fa-telescope"></i>
+                                        <p>
+                                            赤道仪
+                                        </p>
+                                    </a>
+                                </li>
+                                <!-- ./ Sidebar Item Telescope -->
+
+                                <!-- Sidebar Item Focuser -->
+                                <li class="nav-item">
+                                    <a href="/focuser" class="nav-link">
+                                        <i class="nav-icon fa-solid fa-camera-viewfinder"></i>
+                                        <p>
+                                            电调
+                                        </p>
+                                    </a>
+                                </li>
+
+                                <!-- Sidebar Item Guider -->
+                                <li class="nav-item">
+                                    <a href="/guider" class="nav-link">
+                                        <i class="nav-icon fa-solid fa-star"></i>
+                                        <p>
+                                            导星
+                                        </p>
+                                    </a>
+                                </li>
+                                <!-- ./ Sidebar Item Guider -->
+
+                                <!-- Sidebar Item Solver -->
+                                <li class="nav-item">
+                                    <a href="/solver" class="nav-link">
+                                        <i class="nav-icon fa-solid fa-planet-moon"></i>
+                                        <p>
+                                            解析
+                                        </p>
+                                    </a>
+                                </li>
+                                <!-- ./ Sidebar Item Solver -->
+                            </ul>
+                        </li>
+                        <!-- ./ Sidebar Item Devices -->
+
+                        <!-- Sky Object Search -->
                         <li class="nav-item">
-                            <a href="/focuser" class="nav-link">
-                                <i class="nav-icon fa-solid fa-camera-viewfinder"></i>
-                                <p>
-                                    电调
-                                </p>
+                            <a href="/search" class="nav-link">
+                                <i class="fa-solid fa-search nav-icon"></i>
+                                <p>天体搜索</p>
                             </a>
                         </li>
 
-                        <!-- Sidebar Item Guider -->
+                        <!-- Image Viewer -->
                         <li class="nav-item">
-                            <a href="/guider" class="nav-link">
-                                <i class="nav-icon fa-solid fa-star"></i>
-                                <p>
-                                    导星
-                                </p>
+                            <a href="/imageviewer" class="nav-link">
+                                <i class="fa-solid fa-image nav-icon"></i>
+                                <p>图像查看</p>
                             </a>
                         </li>
-                        <!-- ./ Sidebar Item Guider -->
 
-                        <!-- Sidebar Item Solver -->
+                        <!-- Online Skymap -->
                         <li class="nav-item">
-                            <a href="/solver" class="nav-link">
-                                <i class="nav-icon fa-solid fa-planet-moon"></i>
-                                <p>
-                                    解析
-                                </p>
+                            <a href="/scripteditor" class="nav-link">
+                                <i class="fa-solid fa-pen nav-icon"></i>
+                                <p>脚本编辑</p>
                             </a>
                         </li>
-                        <!-- ./ Sidebar Item Solver -->
 
                         <!-- Sidebar Item Tools -->
                         <li class="nav-item">

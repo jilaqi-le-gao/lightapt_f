@@ -53,11 +53,11 @@ class IndiServer(object):
             return True
         return False
 
-    def start_driver(self, driver : str) -> None:
+    def start_driver(self, driver : dict) -> None:
         """
             Start a driver and send the command to the server via FIFO connection
             Args : 
-                driver : str # name of the driver in INDI data(xml)
+                driver : dict # dict containing INDI driver information
             Returns : None
         """
         cmd = 'start %s' % driver.binary

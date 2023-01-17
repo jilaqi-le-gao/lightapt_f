@@ -17,7 +17,9 @@
         "port" : 7624,
         "data" : "/usr/share/indi",
         "fifo" : "/tmp/indiFIFO",
-        "config" : ""
+        "config" : "",
+        "saved_profile" : "",
+        "active_profile" : ""
     },
     "webssh" : {
         "sshport" : 22,
@@ -29,6 +31,35 @@
         "focuser" : "",
         "guider" : "",
         "solver" : ""
+    },
+    "indi" : {
+        "camera" : {
+            "name" : "CCD Simulator",
+            "exec" : ""
+        },
+        "telescope" : {
+            "name" : "Telescope Simulator",
+            "exec" : ""
+        },
+        "focuser" : { 
+            "name" : "Focuser Simulator",
+            "exec" : ""
+        },
+        "solver" : {
+            "name" : "",
+            "exec" : ""
+        },
+        "guider" : {
+            "name" : "",
+            "exec" : "" 
+        },
+        "filterwheel" : {
+            "name" : "Filter Simulator",
+            "exec" : ""
+        },
+        "plugins" : [
+            
+        ]
     },
     "solver" : {
         "astrometry" : "/home/max/lightapt/test/data"

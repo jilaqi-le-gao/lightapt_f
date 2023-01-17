@@ -2,7 +2,7 @@
 
 """
 
-Copyright(c) 2022 Max Qian  <astroair.cn>
+Copyright(c) 2022-2023 Max Qian  <astroair.cn>
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
@@ -247,27 +247,28 @@ def register():
 def forget_password():
     return render_template("forget-password.html")
 
-@csrf.error_handler
-def csrf_error(reason):
-    return render_template('403.html')
-
 # Disable Flask logging system
 if not c.config.get('debug'):
     logger = logging.getLogger('werkzeug')
     logger.setLevel(logging.ERROR)
+# Disable waitress logging system
 logger = logging.getLogger('waitress')
 logger.setLevel(logging.ERROR)
 
 import server.config as c
 
-from server.webpage import create_html_page
+from server.web.webpage import create_html_page
 create_html_page(app)
-from server.webindi import create_indiweb_manager
+from server.web.webindi import create_indiweb_manager
 create_indiweb_manager(app,csrf)
-from server.websys import create_web_sysinfo
+from server.web.websys import create_web_sysinfo
 create_web_sysinfo(app)
-from server.webtools import create_web_tools
+from server.web.webtools import create_web_tools
 create_web_tools(app)
+from server.web.webdevicehub import create_indimanager_html
+create_indimanager_html(app,csrf)
+from server.web.websearch import create_search_template
+create_search_template(app,csrf)
 
 def run_server() -> None:
     """

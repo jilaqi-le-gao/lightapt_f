@@ -1,3 +1,21 @@
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301, USA.
+ * 
+ */
+
 $(function () {
     $('[data-toggle="tooltip"]').tooltip();
 
@@ -29,7 +47,7 @@ function saveProfile() {
         },
         error: function () {
             $("#errorMessage").html("添加配置文件出错"),
-                $("#centralModalDanger").modal("show");
+            $("#centralModalDanger").modal("show");
         }
     });
 }
@@ -67,7 +85,7 @@ function saveProfileInfo() {
         },
         error: function () {
             $("#errorMessage").html("更新配置出错"),
-                $("#centralModalDanger").modal("show");
+            $("#centralModalDanger").modal("show");
         }
     });
 }
@@ -112,7 +130,7 @@ function saveProfileDrivers(profile, silent) {
         },
         error: function () {
             $("#errorMessage").html("无法添加设备"),
-                $("#centralModalDanger").modal("show");
+            $("#centralModalDanger").modal("show");
         }
     });
 }
@@ -214,7 +232,7 @@ function removeProfile() {
         },
         error: function () {
             $("#errorMessage").html("无法删除配置！"),
-                $("#centralModalDanger").modal("show");
+            $("#centralModalDanger").modal("show");
         }
     });
 }
@@ -235,7 +253,7 @@ function toggleServer() {
             },
             error: function () {
                 $("#errorMessage").html("无法启动INDI服务器"),
-                    $("#centralModalDanger").modal("show");
+                $("#centralModalDanger").modal("show");
             }
         });
     } else {
@@ -248,7 +266,7 @@ function toggleServer() {
             },
             error: function () {
                 $("#errorMessage").html("无法停止INDI服务器"),
-                    $("#centralModalDanger").modal("show");
+                $("#centralModalDanger").modal("show");
             }
         });
     }
@@ -304,36 +322,7 @@ function restartDriver(label) {
         },
         error: function () {
             $("#errorMessage").html("重启设备失败"),
-                $("#centralModalDanger").modal("show");
+            $("#centralModalDanger").modal("show");
         }
     });
-}
-
-function rebootSystem() {
-    $.ajax({
-        type: 'POST',
-        url: "/indiweb/api/system/reboot",
-        success: function () {
-            $("#notify_message").html('<br/><div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>系统重启成功</div>');
-        },
-        error: function () {
-            $("#errorMessage").html("重启系统失败"),
-                $("#centralModalDanger").modal("show");
-        }
-    });
-}
-
-function poweroffSystem() {
-    $.ajax(
-        {
-            type: 'POST',
-            url: "/indiweb/api/system/poweroff",
-            success: function () {
-                $("#notify_message").html('<br/><div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>系统已关机</div>');
-            },
-            error: function () {
-                $("#errorMessage").html("系统关机失败"),
-                    $("#centralModalDanger").modal("show");
-            }
-        });
 }

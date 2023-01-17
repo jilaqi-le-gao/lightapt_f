@@ -103,7 +103,8 @@
             $('.content-wrapper').removeClass('bg-dark'),
             $('.dropdown-toggle').removeClass('bg-danger').addClass('bg-info'),
             $('.main-footer').removeClass('dark-mode'),
-            $('.control-sidebar').removeClass('control-sidebar-dark')
+            $('.control-sidebar').removeClass('control-sidebar-dark'),
+            $('.card').removeClass('card-primary')
         }
     })
     var $dark_mode_container = $('<div />', { class: 'mb-4' }).append($dark_mode_checkbox).append('<label>暗色主题</lable>')

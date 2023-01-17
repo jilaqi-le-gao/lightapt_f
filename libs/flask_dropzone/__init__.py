@@ -10,7 +10,7 @@
 import warnings
 from flask import Blueprint, current_app, url_for, Markup, render_template_string
 
-from .utils import random_filename, get_url  # noqa
+from libs.flask_dropzone.utils import random_filename, get_url  # noqa
 
 # defined normal file type
 allowed_file_extensions = {
