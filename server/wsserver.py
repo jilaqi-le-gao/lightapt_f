@@ -23,6 +23,7 @@ import os
 from secrets import randbelow
 import threading
 from time import sleep
+import asyncio
 # Third party libraries
 from libs.websocket.websocket_server import WebsocketServer
 # Built-in libraries
@@ -203,7 +204,7 @@ class ws_server(object):
             Returns: None
             NOTE: This function can be overriden by subclasses
         """
-        logger.log(_("Disconnecting from the client , id : {} , on {}").format(client.id,client.address))
+        logger.log(_("Disconnecting from the client"))
         self.info.client_id -= 1
 
     def on_message(self, client, server, message) -> None:
@@ -216,7 +217,7 @@ class ws_server(object):
             Returns: None
             NOTE: This function can not be overriden by subclasses.And must call parser_json()
         """
-        threading.Thread(target=self.parser_json,kwargs={"message" : str(message)}).start()
+        asyncio.run(self.parser_json(str(message)))
         #self.parser_json(str(message))
 
     def on_send(self, message : dict) -> bool:
@@ -226,11 +227,9 @@ class ws_server(object):
                 message: dict
             Returns: True if message was sent successfully
             Message Example:
-                {
-                    "status" : int ,
-                    "message" : str,
-                    "params" : dict
-                }
+                status : int ,
+                message : str,
+                params : dict
         """
         if not isinstance(message, dict) or message.get("status") is None or message.get("message") is None:
             logger.loge(_("Unknown format of message"))
@@ -251,12 +250,10 @@ class ws_server(object):
                 message : str
                 params : dict
             Returns:
-                {
                     "event" : str
                     "status" : int,
                     "message" : str,
                     "params" : dict
-                }
         """
         return {
             "event" : event,
@@ -266,7 +263,7 @@ class ws_server(object):
             "params" : params
         }
 
-    def parser_json(self, message : str) -> None:
+    async def parser_json(self, message : str) -> None:
         """
             Parser JSON Message | 解析JSON字符串\n
             This function likes a manager of all other functions.
@@ -285,7 +282,7 @@ class ws_server(object):
         event = _message.get('event')
         event_type = _message.get('type')
         if event is None or event_type is None:
-            logger.loge(_("No event found in message , {}").format(message))
+            logger.loge(_("No event found in message , {}").format(message.replace("\n","")))
             self.on_send({"status" : 1 , "message" : _("No event found in message")})
             return
         for case in switch(event_type):
@@ -391,6 +388,12 @@ class ws_server(object):
                     logger.loge(_("Unknown telescope event received from remote client"))
                     break
                 break
+            if case("server"):
+                for _case in switch(event):
+                    if _case("RemoteDashboardSetup"):
+                        self.remote_dashboard_setup()
+                    break
+                break
             break
         
 
@@ -403,6 +406,22 @@ class ws_server(object):
     # #################################################################
     # Server Events
     # #################################################################
+
+    def remote_dashboard_setup(self) -> None:
+        """
+            Remote dashboard setup function | 初始化连接
+            Args : None
+            Returns : None
+        """
+        r = {
+            "event" : "RemoteDashboardSetup",
+            "id" : randbelow(1000),
+            "status" : 0,
+            "message" : "",
+            "params" : None
+        }
+        if self.on_send(r) is False:
+            logger.loge(_("Failed to send message while executing start_server command"))
 
     def remote_start_server(self , params : dict) -> None:
         """

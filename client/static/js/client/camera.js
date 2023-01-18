@@ -21,7 +21,6 @@ var ready=callback=>{
 };
 
 ready(()=>{
-    InitialSetBtnInactive();
     InitialSetBtnActive();
     // Bind connect event with connectBtn 
     document.getElementById("connectBtn").addEventListener("click",connect)

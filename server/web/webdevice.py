@@ -388,13 +388,14 @@ def create_indimanager_html(app : Flask,csrf) -> None:
         Returns : None
     """
 
-    @app.route('/devicehub',methods=['GET'])
-    @app.route("/devicehub/",methods=['GET'])
-    @app.route("/devicehub.html",methods=['GET'])
+    @app.route('/devices',methods=['GET'])
+    @app.route("/devices/",methods=['GET'])
+    @app.route("/devices.html",methods=['GET'])
     @login_required
-    def devicehub():
+    def devices():
         """
-            Render the devicehub template and give all device options
+            Render the device template and give all device options
+            All options are for devices connections and configuration
         """
         available_devices = indi_collection.get_families()
 
@@ -407,7 +408,7 @@ def create_indimanager_html(app : Flask,csrf) -> None:
         saved_guider = c.config.get("indi",{}).get("guider")
         saved_plugins = c.config.get("indi",{}).get("plugins")
 
-        return render_template('devicehub.html', 
+        return render_template('devices.html', 
                         cameras = available_devices.get("CCDs"),
                         telescopes = available_devices.get("Telescopes"),
                         focusers = available_devices.get("Focusers"), 
@@ -425,8 +426,8 @@ def create_indimanager_html(app : Flask,csrf) -> None:
                         saved_plugins = saved_plugins.get("name") if saved_plugins else None
                     )
     
-    @app.route('/devicehub/api/start',methods=["POST"])
-    @app.route('/devicehub/api/start/',methods=["POST"])
+    @app.route('/devices/api/start',methods=["POST"])
+    @app.route('/devices/api/start/',methods=["POST"])
     @login_required
     @csrf.exempt
     def api_start():
@@ -482,18 +483,18 @@ def create_indimanager_html(app : Flask,csrf) -> None:
 
         return ''
 
-    @app.route('/devicehub/api/stop', methods=['GET'])
-    @app.route('/devicehub/api/stop/', methods=['GET'])
+    @app.route('/devices/api/stop', methods=['GET'])
+    @app.route('/devices/api/stop/', methods=['GET'])
     @login_required
     def api_stop():
         """Stop INDI Server"""
         indi_server.stop_server()
         return ''
 
-    @app.route('/devicehub/api/status', methods=['GET'])
-    @app.route('/devicehub/api/status/', methods=['GET'])
+    @app.route('/devices/api/status', methods=['GET'])
+    @app.route('/devices/api/status/', methods=['GET'])
     @login_required
-    def devicehub_status():
+    def devices_status():
         """
             Get server status information | 获取服务器状态
             Args : None
@@ -501,10 +502,10 @@ def create_indimanager_html(app : Flask,csrf) -> None:
         """
         return json.dumps({'status': str(indi_server.is_running())})
 
-    @app.route('/devicehub/api/drivers', methods=['GET'])
-    @app.route('/devicehub/api/drivers/', methods=['GET'])
+    @app.route('/devices/api/drivers', methods=['GET'])
+    @app.route('/devices/api/drivers/', methods=['GET'])
     @login_required
-    def devicehub_drivers():
+    def devices_drivers():
         """
             List all of the driver | 列出所有设备
             Args : None
@@ -512,10 +513,10 @@ def create_indimanager_html(app : Flask,csrf) -> None:
         """
         return json.dumps(c.config.get('indi'))
 
-    @app.route('/devicehub/api/<device>/restart',methods=["GET"])
-    @app.route('/devicehub/api/<device>/restart/',methods=["GET"])
+    @app.route('/devices/api/<device>/restart',methods=["GET"])
+    @app.route('/devices/api/<device>/restart/',methods=["GET"])
     @login_required
-    def devicehub_device_restart(device):
+    def devices_device_restart(device):
         """
             Restart the device
         """
@@ -567,10 +568,10 @@ def create_indimanager_html(app : Flask,csrf) -> None:
             logger.loge(_("Unknown device type"))
             return json.dumps({"error" : _("Unknown device type")})
             
-    @app.route('/devicehub/api/<device>/disconnect',methods=["GET"])
-    @app.route('/devicehub/api/<device>/disconnect/',methods=["GET"])
+    @app.route('/devices/api/<device>/disconnect',methods=["GET"])
+    @app.route('/devices/api/<device>/disconnect/',methods=["GET"])
     @login_required
-    def devicehub_device_disconnect(device):
+    def devices_device_disconnect(device):
         """
             Disconnect the device
         """

@@ -151,6 +151,13 @@ def create_html_page(app) -> None:
     def bug_report():
         return render_template("bugreport.html")
 
+    @app.route("/debug",methods=['GET'])
+    @app.route("/debug/", methods=['GET'])
+    @app.route("/debug.html", methods=['GET'])
+    @login_required
+    def debug():
+        return render_template("debug.html")
+
     @app.errorhandler(403)
     def page_not_found(error):
         return render_template('error.html',error="403_FORBIDDEN_FORM_ERROR"), 403

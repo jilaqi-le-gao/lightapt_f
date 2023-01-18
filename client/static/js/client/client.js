@@ -78,7 +78,7 @@
     $container.append(
         '<h5>自定义LightAPT</h5><hr class="mb-2"/>'
     )
-    
+
     // switch light mode or dark mode
     var $dark_mode_checkbox = $('<input />', {
         type: 'checkbox',
@@ -88,23 +88,23 @@
     }).on('click', function () {
         if ($(this).is(':checked')) {
             $('body').addClass('dark-mode'),
-            $('.navbar').addClass('navbar-dark'),
-            $('.nav-link').addClass('bg-dark'),
-            $('.main-sidebar').addClass('sidebar-dark-primary'),
-            $('.content-wrapper').addClass('bg-dark'),
-            $('.dropdown-toggle').removeClass('bg-info').addClass('bg-danger'),
-            $('.main-footer').addClass('dark-mode'),
-            $('.control-sidebar').addClass('control-sidebar-dark')
+                $('.navbar').addClass('navbar-dark'),
+                $('.nav-link').addClass('bg-dark'),
+                $('.main-sidebar').addClass('sidebar-dark-primary'),
+                $('.content-wrapper').addClass('bg-dark'),
+                $('.dropdown-toggle').removeClass('bg-info').addClass('bg-danger'),
+                $('.main-footer').addClass('dark-mode'),
+                $('.control-sidebar').addClass('control-sidebar-dark')
         } else {
             $('body').removeClass('dark-mode'),
-            $('.navbar').removeClass('navbar-dark'),
-            $('.nav-link').removeClass('bg-dark')
+                $('.navbar').removeClass('navbar-dark'),
+                $('.nav-link').removeClass('bg-dark')
             $('.main-sidebar').removeClass('sidebar-dark-primary'),
-            $('.content-wrapper').removeClass('bg-dark'),
-            $('.dropdown-toggle').removeClass('bg-danger').addClass('bg-info'),
-            $('.main-footer').removeClass('dark-mode'),
-            $('.control-sidebar').removeClass('control-sidebar-dark'),
-            $('.card').removeClass('card-primary')
+                $('.content-wrapper').removeClass('bg-dark'),
+                $('.dropdown-toggle').removeClass('bg-danger').addClass('bg-info'),
+                $('.main-footer').removeClass('dark-mode'),
+                $('.control-sidebar').removeClass('control-sidebar-dark'),
+                $('.card').removeClass('card-primary')
         }
     })
     var $dark_mode_container = $('<div />', { class: 'mb-4' }).append($dark_mode_checkbox).append('<label>暗色主题</lable>')
@@ -391,13 +391,13 @@
     $container.append($sidebar_variants_dark)
     var $sidebar_dark_variants = createSkinBlock(sidebar_colors, function () {
         var color = $(this).find('option:selected').attr('class')
-        if($('body').hasClass('dark-mode')){
+        if ($('body').hasClass('dark-mode')) {
             var sidebar_class = 'sidebar-dark-' + color.replace('bg-', '')
         }
-        else{
+        else {
             var sidebar_class = 'sidebar-' + color.replace('bg-', '')
         }
-        
+
         var $sidebar = $('.main-sidebar')
         sidebar_skins.forEach(function (skin) {
             $sidebar.removeClass(skin)

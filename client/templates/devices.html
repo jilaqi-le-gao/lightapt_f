@@ -1,0 +1,1293 @@
+<!--
+
+   Copyright(c) 2022 Max Qian  <astroair.cn>
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+   MA 02110-1301, USA.
+   
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>设备</title>
+
+    <link rel='Shortcut Icon' type='image/x-icon' href='/static/textures/icon.ico'>
+
+    <!-- Font Awesome 6.2.0 Pro -->
+    <link rel="stylesheet" href="/static/css/fontawesome/fontawesome.min.css">
+    <!-- overlayScrollbars -->
+    <link rel="stylesheet" href="/static/css/plugins/OverlayScrollbars.min.css">
+    <!-- Bootstrap select -->
+    <link rel="stylesheet" href="/static/css/bootstrap/bootstrap-select.min.css">
+    <!-- Viewer -->
+    <link rel="stylesheet" href="/static/css/plugins/viewer.min.css">
+    <!-- AdminLTE Theme style -->
+    <link rel="stylesheet" href="/static/css/adminlte.min.css">
+    <!-- Loading animation -->
+    <link rel="stylesheet" href="/static/css/client/loading.css">
+    <!-- Device -->
+    <link rel="stylesheet" href="/static/css/client/device.css">
+</head>
+
+<body style="height: auto;" class="dark-mode">
+    <!-- loading开始 -->
+    <div id="loading-animation">
+        <div id="loading-animation-center">
+            <div id="loading-animation-center-absolute">
+                <div class="loading_object" id="loading_four"></div>
+                <div class="loading_object" id="loading_three"></div>
+                <div class="loading_object" id="loading_two"></div>
+                <div class="loading_object" id="loading_one"></div>
+            </div>
+        </div>
+    </div>
+    <script>!function () { function e() { setTimeout(() => { $("#loading-animation").fadeOut(540) }, 500) } window.jQuery ? $(document).ready(() => { e() }) : document.onreadystatechange = (() => { "interactive" === document.readyState && e() }) }();</script>
+    <div class="wrapper">
+        <!-- Main content -->
+        <section class="content" data-widget="iframe">
+            <div class="container-fluid">
+
+                <div class="card card-info card-outline card-tabs">
+                    <div class="card-header p-0 pb-1 border-bottom-0">
+                        <ul class="nav nav-tabs" id="tabs-devices-tab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="tab-device-tab" data-toggle="pill" href="#tab-device"
+                                    role="tab" aria-controls="tab-device" aria-selected="true">
+                                    <i class="fas fa-plug"></i>设备管理</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-camera-tab" data-toggle="pill" href="#tab-camera" role="tab"
+                                    aria-controls="tab-camera" aria-selected="false">
+                                    <i class="fas fa-camera"></i>相机</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-telescope-tab" data-toggle="pill" href="#tab-telescope"
+                                    role="tab" aria-controls="tab-telescope" aria-selected="false">
+                                    <i class="fas fa-telescope"></i>赤道仪</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-focuser-tab" data-toggle="pill" href="#tab-focuser"
+                                    role="tab" aria-controls="tab-focuser" aria-selected="false">
+                                    <i class="fas fa-camera-viewfinder"></i>电调</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-filterwheel-tab" data-toggle="pill" href="#tab-filterwheel"
+                                    role="tab" aria-controls="tab-filterwheel" aria-selected="false">
+                                    <i class="fas fa-stop"></i>滤镜轮</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-guider-tab" data-toggle="pill" href="#tab-guider" role="tab"
+                                    aria-controls="tab-guider" aria-selected="false">
+                                    <i class="fas fa-star"></i>导星</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-solver-tab" data-toggle="pill" href="#tab-solver" role="tab"
+                                    aria-controls="tab-solver" aria-selected="false">
+                                    <i class="fas fa-globe"></i>解析</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="tab-logger-tab" data-toggle="pill" href="#tab-logger" role="tab"
+                                    aria-controls="tab-logger" aria-selected="false">
+                                    <i class="fas fa-page"></i>日志</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="tabs-devices-tabContent">
+                            <div class="tab-pane fade show active" id="tab-device" role="tabpanel"
+                                aria-labelledby="tab-device-tab">
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card card-default card-primary">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    <i class="fas fa-shuffle"></i>
+                                                    设备连接与管理
+                                                </div>
+                                                <div class="card-tools">
+                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                        data-card-widget="collapse">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- /.card-header -->
+                                            <div class="card-body">
+
+                                                <!-- Device Connection -->
+                                                <div class="row">
+                                                    <div class="col-sm-6">
+                                                        <!-- Main Camera -->
+                                                        <div class="form-group form-group-sm">
+                                                            <label>主相机</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="camera"></label>
+                                                                <select id="camera"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for camera in cameras %}
+                                                                    {% if saved_camera == camera %}
+                                                                    <option selected>{{ camera }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ camera }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /. Main Camera -->
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>赤道仪</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="telescope"></label>
+                                                                <select id="telescope"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for telescope in telescopes %}
+                                                                    {% if saved_telescppe == telescope %}
+                                                                    <option selected>{{ telescope }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ telescope }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>滤镜轮</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="filterwheel"></label>
+                                                                <select id="filterwheel"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for filterwheel in filterwheels %}
+                                                                    {% if saved_filterwheel == filterwheel %}
+                                                                    <option selected>{{ filterwheel }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ filterwheel }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>电调</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="focuser"></label>
+                                                                <select id="focuser"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for focuser in focusers %}
+                                                                    {% if saved_focuser == focuser %}
+                                                                    <option selected>{{ focuser }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ focuser }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-4">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>导星</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="guider"></label>
+                                                                <select id="guider"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for guider in guiders %}
+                                                                    {% if saved_guider == guider %}
+                                                                    <option selected>{{ guider }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ guider }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>解析</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="solver"></label>
+                                                                <select id="solver"
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for solver in solvers %}
+                                                                    {% if saved_solver == solver %}
+                                                                    <option selected>{{ solver }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ solver }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group form-group-sm">
+                                                            <label>插件</label>
+                                                            <div class="input-group input-group-sm">
+                                                                <label for="plugins"></label>
+                                                                <select id="plugins" multiple
+                                                                    class="form-control form-control-sm selectpicker show-tick"
+                                                                    data-live-search="true">
+                                                                    {% for plugins in pluginss %}
+                                                                    {% if saved_plugins == plugins %}
+                                                                    <option selected>{{ plugins }}</option>
+                                                                    {% else %}
+                                                                    <option>{{ plugins }}</option>
+                                                                    {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-sm-12">
+                                                        <div class="form-group form-group-sm">
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <button id="server_command"
+                                                                        class="btn btn-default btn-outline-info btn-sm btn-block">
+                                                                        <i class="fas fa-light-switch-on"></i>
+                                                                        启动
+                                                                    </button>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <button id="client_command"
+                                                                        class="btn btn-default btn-outline-success btn-sm btn-block">
+                                                                        <i class="fas fa-user"></i>
+                                                                        连接
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div id="server_notify" class="info">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div id="client_notify" class="warning">
+                                                            <p class="alert alert-warning">客户端未连接</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- /. Device Connection -->
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="card card-default card-primary">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    <i class="fas fa-percentage"></i>
+                                                    进度
+                                                </div>
+                                                <div class="card-tools">
+                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                        data-card-widget="collapse">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- /.card-header -->
+                                            <div class="card-body">
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <!-- Camera Tab -->
+                            <div class="tab-pane fade active" id="tab-camera" role="tabpanel"
+                                aria-labelledby="tab-camera-tab">
+
+                                <div class="row">
+                                    <div class="col-4 col-sm-2">
+                                        <div class="nav flex-column nav-tabs h-100 text-center" id="camera-info-tab"
+                                            role="tablist" aria-orientation="vertical">
+                                            <a class="nav-link active" id="camera-info-status-tab" data-toggle="pill"
+                                                href="#camera-info-status" role="tab" aria-controls="camera-info-status"
+                                                aria-selected="true">
+                                                <i class="fas fa-info">状态</i>
+                                            </a>
+                                            <a class="nav-link" id="camera-info-control-tab" data-toggle="pill"
+                                                href="#camera-info-control" role="tab"
+                                                aria-controls="camera-info-control" aria-selected="false">
+                                                <i class="fas fa-gamepad">控制</i>
+
+                                            </a>
+                                            <a class="nav-link" id="camera-info-image-tab" data-toggle="pill"
+                                                href="#camera-info-image" role="tab" aria-controls="camera-info-image"
+                                                aria-selected="false">
+                                                <i class="fas fa-image-slash">图像</i>
+
+                                            </a>
+                                            <a class="nav-link" id="camera-info-settings-tab" data-toggle="pill"
+                                                href="#camera-info-settings" role="tab"
+                                                aria-controls="camera-info-settings" aria-selected="false">
+                                                <i class="fas fa-gear">设置</i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="col-8 col-sm-10">
+                                        <div class="tab-content" id="camera-info-tabContent">
+                                            <!-- Camera Info -->
+                                            <div class="tab-pane text-left fade active show" id="camera-info-status"
+                                                role="tabpanel" aria-labelledby="camera-info-status-tab">
+
+                                                <div class="row">
+                                                    <!-- Camera Status -->
+                                                    <div class="col-md-6">
+                                                        <div class="card card-default card-primary">
+                                                            <div class="card-header">
+                                                                <div class="card-title">
+                                                                    <i class="fas fa-info"></i>
+                                                                    相机状态
+                                                                </div>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <!-- /.card-header -->
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-12">
+
+                                                                        <ul class="list-group bg-dark">
+                                                                            <li
+                                                                                class="text-sm list-group-item d-flex align-items-center justify-content-between">
+                                                                                <span id="statGenText"
+                                                                                    class="text-muted info-data-item w-auto text-sm">
+                                                                                    <i class="fas fa-signal-bars"></i>
+                                                                                    状态
+                                                                                </span>
+                                                                                <span
+                                                                                    class="environmentField info-data-item text-right text-sm"
+                                                                                    id="generalStatusText"></span>
+                                                                            </li>
+                                                                            <li
+                                                                                class="text-sm list-group-item d-flex align-items-center justify-content-between">
+                                                                                <span id="remoteActionText"
+                                                                                    class="text-muted info-data-item w-auto text-sm">
+                                                                                    <i
+                                                                                        class="fa-solid fa-barcode-scan"></i>
+                                                                                    动作
+                                                                                </span>
+                                                                                <span
+                                                                                    class="environmentField info-data-item text-right text-sm"
+                                                                                    id="generalActionText"></span>
+                                                                            </li>
+                                                                            <li
+                                                                                class="text-sm list-group-item d-flex align-items-center justify-content-between">
+                                                                                <span id="remoteActionText"
+                                                                                    class="text-muted info-data-item w-auto text-sm">
+                                                                                    <i
+                                                                                        class="fa-solid fa-paper-plane"></i>
+                                                                                    日志
+                                                                                </span>
+                                                                                <span
+                                                                                    class="environmentField info-data-item text-right text-sm"
+                                                                                    id="generalLogText"></span>
+                                                                            </li>
+                                                                            <li
+                                                                                class="text-sm list-group-item d-flex align-items-center justify-content-between">
+                                                                                <span id="remoteCommand"
+                                                                                    class="text-muted info-data-item w-auto text-sm">
+                                                                                    <i class="fas fa-command"></i>
+                                                                                    指令
+                                                                                </span>
+                                                                                <span
+                                                                                    class="environmentField info-data-item text-right text-sm"
+                                                                                    id="remoteCommandText"></span>
+                                                                            </li>
+                                                                            <li
+                                                                                class="text-sm list-group-item d-flex align-items-center justify-content-between">
+                                                                                <span id="remotePercent"
+                                                                                    class="text-muted info-data-item w-auto text-sm">
+                                                                                    <i class="fas fa-percent"></i>
+                                                                                    进度
+                                                                                </span>
+                                                                                <span
+                                                                                    class="environmentField info-data-item text-right text-sm"
+                                                                                    id="remotePercentText"></span>
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- /. Camera Status -->
+                                                    <!-- Camera Log -->
+                                                    <div class="col-md-6">
+
+                                                        <div class="card card-secondary">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fas fa-clipboard-list"></i>
+                                                                    相机日志
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        id="clear_log">
+                                                                        <i class="fas fa-paint-brush-alt"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div id="logDivCamera" class="p-1 text-left"></div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                    <!-- /. Camera Log-->
+                                                </div>
+
+                                            </div>
+                                            <!-- /. Camera Info -->
+                                            <!-- Camera Control -->
+                                            <div class="tab-pane fade" id="camera-info-control" role="tabpanel"
+                                                aria-labelledby="camera-info-control-tab">
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <!-- Single Frame Exposure -->
+                                                        <div class="card">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fa-solid fa-timer"></i>
+                                                                    单张拍摄
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="input-group d-flex">
+                                                                    <div class="col m-1 p-0">
+                                                                        <label for="timeShot" class="text-sm">曝光
+                                                                            (秒)</label>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm text-center text-white border-sx-blue"
+                                                                            id="exposure" value="1"
+                                                                            placeholder="Exposure (s)">
+                                                                    </div>
+                                                                    <div class="col m-1 p-0">
+                                                                        <label for="filterSelect"
+                                                                            class="text-sm">滤镜</label>
+                                                                        <select
+                                                                            class="browser-default custom-select custom-select-sm text-white border-sx-blue"
+                                                                            id="filter">
+                                                                            <option value="" selected="">Filter</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col m-1 p-0">
+                                                                        <label for="binSelect"
+                                                                            class="text-sm">像素合并</label>
+                                                                        <select
+                                                                            class="browser-default custom-select custom-select-sm text-white border-sx-blue"
+                                                                            id="binning">
+                                                                            <option value="1" selected="">1x1</option>
+                                                                            <option value="2">2x2</option>
+                                                                            <option value="4">4x4</option>
+                                                                            <option value="8">8x8</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="input-group d-flex">
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm text-center text-white border-sx-blue m-1"
+                                                                        id="gain" placeholder="增益">
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm text-center text-white border-sx-blue m-1"
+                                                                        id="offset" placeholder="偏置">
+                                                                </div>
+                                                                <!-- Start & Abort Button -->
+                                                                <div class="d-flex">
+                                                                    <button id="remoteShotBtn"
+                                                                        class="btn btn-primary btn-sm m-1 btn-voy-item px-2 actBtn waves-effect waves-light">
+                                                                        <i class="fas fa-camera"></i> 拍摄
+                                                                    </button>
+                                                                    <button id="remoteShotAbortBtn"
+                                                                        class="btn btn-danger btn-sm m-1 btn-voy-item px-2 doubleConfirm waves-effect waves-light">
+                                                                        <i class="fas fa-times"></i> 中断
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /. Start & Abort Button-->
+                                                                <div class="progress progress-xxs active">
+                                                                    <div class="progress-bar bg-success progress-bar-striped"
+                                                                        role="progressbar" aria-valuenow="0"
+                                                                        aria-valuemin="0" aria-valuemax="100"
+                                                                        style="width: 0%">
+                                                                        <span class="sr-only">20% Complete</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /.Single Frame Exposure -->
+                                                        <!-- Sequence Exposure-->
+                                                        <div class="card">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fa-solid fa-calendar-week"></i>
+                                                                    计划拍摄
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        id="goto_seq"
+                                                                        onclick="window.open('/scripteditor')">
+                                                                        <i class="fas fa-arrow-alt-left"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="row" id="SequencePrograssBar">
+                                                                    <div class="col-md-12">
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <label>完成进度</label>
+                                                                                <div
+                                                                                    class="progress progress-sm active">
+                                                                                    <div class="progress-bar bg-success progress-bar-striped"
+                                                                                        role="progressbar"
+                                                                                        aria-valuenow="0"
+                                                                                        aria-valuemin="0"
+                                                                                        aria-valuemax="100"
+                                                                                        style="width: 0%">
+                                                                                        <span class="sr-only">20%
+                                                                                            Complete</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-md-12">
+                                                                                <div class="contProgDetail mt-3">
+                                                                                    <div
+                                                                                        class="text-center p-2 extraSmallText text-muted">
+                                                                                        计划拍摄信息
+                                                                                    </div>
+
+                                                                                    <ul
+                                                                                        class="list-group bg-dark text-small">
+                                                                                        <li
+                                                                                            class="list-group-item bg-dark d-flex mount-panel-item ">
+                                                                                            <div class="col-4 p-0">
+                                                                                                <div
+                                                                                                    class="text-center text-muted ">
+                                                                                                    开始时间</div>
+                                                                                                <div class="text-center"
+                                                                                                    id="seqStartTime">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-4 p-0">
+                                                                                                <div
+                                                                                                    class="text-center text-muted ">
+                                                                                                    剩余时间</div>
+                                                                                                <div class="text-center"
+                                                                                                    id="seqRemain">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-4 p-0">
+                                                                                                <div
+                                                                                                    class="text-center text-muted ">
+                                                                                                    结束时间</div>
+                                                                                                <div class="text-center"
+                                                                                                    id="seqEndTime">
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </li>
+                                                                                        <li
+                                                                                            class="list-group-item bg-dark mount-panel-item">
+                                                                                            <div class="text-center"
+                                                                                                id="runSeqText"></div>
+                                                                                        </li>
+                                                                                    </ul>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-12">
+                                                                        <div class="d-none" id="cont-seq-list">
+                                                                            <div
+                                                                                class="text-center p-2 text-small extraSmallText text-uppercase text-muted">
+                                                                                选择脚本
+                                                                            </div>
+                                                                            <ul class="list-group bg-dark d-flex scrollbar scrollbar-primary"
+                                                                                id="seqUl"></ul>
+                                                                        </div>
+                                                                        <div class="my-3">
+                                                                            <div
+                                                                                class="text-center p-2 text-small extraSmallText text-uppercase text-muted">
+                                                                                已选择的脚本
+                                                                            </div>
+                                                                            <div
+                                                                                class="list-group-item bg-dark text-center">
+                                                                                <span id="selectedSeq"></span>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div class="input-group d-flex">
+                                                                            <button id="seqListtBtn"
+                                                                                class="btn btn-sm btn-info m-1 flex-fill px-2 lev1active"
+                                                                                type="button">
+                                                                                <i class="fas fa-list"></i>
+                                                                                获取列表
+                                                                            </button>
+                                                                            <button id="seqStartBtn"
+                                                                                class="btn btn-sm btn-primary m-1 flex-fill seq-btns px-2 actBtn"
+                                                                                type="button">
+                                                                                <i class="fas fa-try"></i>
+                                                                                开始
+                                                                            </button>
+                                                                            <button id="seqAbortBtn"
+                                                                                class="btn btn-sm btn-danger m-1 flex-fill lev1active px-2 doubleConfirm"
+                                                                                value="Sequence Abort" type="button">
+                                                                                <i class="fas fa-stop"></i>
+                                                                                停止
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /.Sequence Exposure-->
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <!-- Cooling -->
+                                                        <div class="card">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fas fa-snowflake"></i>
+                                                                    制冷
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-md-12">
+                                                                        <ul class="list-group bg-dark mb-3">
+                                                                            <li
+                                                                                class="list-group-item bg-dark d-flex align-items-center justify-content-between">
+                                                                                <span id="coolerStatusText"
+                                                                                    class="text-muted info-data-item">制冷状态</span>
+                                                                                <span id="coolerStatus"
+                                                                                    class="info-data-item"></span>
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-12">
+                                                                        <div class="chart">
+                                                                            <canvas id="cooling_line"
+                                                                                style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row">
+                                                                    <div class="col-md-12">
+                                                                        <div class="input-group mt-3">
+                                                                            <button
+                                                                                class="btn btn-sm btn-primary m-1 flex-fill px-2"
+                                                                                type="button" id="coolerOnBtn">
+                                                                                <i
+                                                                                    class="fas fa-temperature-arrow-down"></i>
+                                                                                开始制冷
+                                                                            </button>
+                                                                            <button
+                                                                                class="btn btn-sm btn-danger m-1 flex-fill px-2"
+                                                                                type="button" id="coolerOffBtn">
+                                                                                <i
+                                                                                    class="fas fa-temperature-arrow-up"></i>
+                                                                                停止制冷
+                                                                            </button>
+                                                                        </div>
+                                                                        <div class="input-group d-flex">
+                                                                            <input type="number"
+                                                                                class="form-control form-control-sm text-center bg-dark text-white border-sx-blueVoy m-1"
+                                                                                min="-60" max="40" id="cameraTemp"
+                                                                                aria-describedby="timeShot" value="-15"
+                                                                                placeholder="insert temp">
+                                                                            <button
+                                                                                class="btn btn-sm btn-outline-info m-1 flex-fill px-2"
+                                                                                type="button" id="setTempBtn">
+                                                                                <i class="fas fa-temperature-low"></i>
+                                                                                设置温度 [C°]
+                                                                            </button>
+                                                                        </div>
+                                                                        <div class="input-group d-flex">
+                                                                            <button
+                                                                                class="btn btn-sm btn-warning m-1 flex-fill px-2"
+                                                                                type="button" id="warmupBtn">
+                                                                                <i class="fas fa-temperature-up"></i>
+                                                                                升温
+                                                                            </button>
+                                                                            <button
+                                                                                class="btn btn-sm btn-info m-1 flex-fill px-2"
+                                                                                type="button" id="coolDownBtn">
+                                                                                <i class="fas fa-temperature-down"></i>
+                                                                                降温
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- ./ Cooling-->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- /. Camera Control -->
+                                            <!-- Image Viewer -->
+                                            <div class="tab-pane fade" id="camera-info-image" role="tabpanel"
+                                                aria-labelledby="camera-info-image-tab">
+                                                <div class="row">
+                                                    <!-- Show Image -->
+                                                    <div class="col-md-6">
+                                                        <!-- Image -->
+                                                        <div class="card card-light">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fas fa-folder-image"></i>
+                                                                    图像
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool"
+                                                                        id="refresh_image">
+                                                                        <i class="fas fa-redo"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div class="docs-galley mb-3">
+                                                                    <ul class="docs-pictures clearfix">
+                                                                        <li>
+                                                                            <img data-original="/static/textures/background.png"
+                                                                                src="/static/textures/background.png"
+                                                                                alt="LightAPT">
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /. Image -->
+
+                                                    </div>
+                                                    <!-- /. Show Image -->
+                                                    <!-- Image Info  -->
+                                                    <div class="col-md-6">
+                                                        <!-- HFD -->
+                                                        <div class="card card-primary">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fas fa-image-polaroid"></i>
+                                                                    图像信息
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool"
+                                                                        id="refresh_hfd_line">
+                                                                        <i class="fas fa-redo"></i>
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <ul class="list-group bg-dark text-sm">
+                                                                    <li
+                                                                        class="list-group-item bg-dark d-flex mount-panel-item ">
+                                                                        <div class="col-2 p-0 text-muted text-left">
+                                                                            目标</div>
+                                                                        <div class="col-4 text-right"
+                                                                            id="SequenceTarget"></div>
+                                                                        <div class="col-2 p-0 text-muted text-left"
+                                                                            id="">
+                                                                            滤镜
+                                                                        </div>
+                                                                        <div class="col-4 text-right" id="Filter">
+                                                                        </div>
+                                                                    </li>
+                                                                    <li
+                                                                        class="list-group-item bg-dark d-flex mount-panel-item ">
+                                                                        <div class="col-2 p-0 text-muted text-left">
+                                                                            时间 (s)</div>
+                                                                        <div class="col-4 text-right" id="Expo">
+                                                                        </div>
+                                                                        <div class="col-2 p-0 text-muted text-left">
+                                                                            Binning</div>
+                                                                        <div class="col-4 text-right" id="Bin">
+                                                                        </div>
+                                                                    </li>
+                                                                    <li
+                                                                        class="list-group-item bg-dark d-flex mount-panel-item ">
+                                                                        <div class="col-2 p-0 text-muted text-left">
+                                                                            星点
+                                                                        </div>
+                                                                        <div class="col-4 text-right" id="StarIndex">
+                                                                        </div>
+                                                                        <div class="col-2 p-0 text-muted text-left">
+                                                                            HFD</div>
+                                                                        <div class="col-4 text-right" id="HFD">
+                                                                        </div>
+                                                                    </li>
+                                                                </ul>
+                                                                <canvas id="hfd_line"
+                                                                    style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                                                            </div>
+                                                        </div>
+                                                        <!-- /. HFR -->
+                                                    </div>
+                                                    <!-- /. Image Info -->
+                                                </div>
+                                            </div>
+                                            <!-- /. Image Viewer -->
+                                            <!-- Camera Settings -->
+                                            <div class="tab-pane fade" id="camera-info-settings" role="tabpanel"
+                                                aria-labelledby="camera-info-settings-tab">
+
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="card card-success">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fas fa-scanner"></i>
+                                                                    相机信息
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <ul class="list-group">
+                                                                    <li
+                                                                        class="list-group-item d-flex align-items-center justify-content-between">
+                                                                        <div class="statusLed" id="cameraStatLed"></div>
+                                                                        <span id="cameraConnText"
+                                                                            class="text-sm">相机信息</span>
+                                                                    </li>
+
+                                                                    <ul class="list-group text-sm" id="cameraStatusBar">
+                                                                    </ul>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <!-- Camera Params Setting-->
+                                                        <div class="card card-info">
+                                                            <div class="card-header">
+                                                                <h3 class="card-title">
+                                                                    <i class="fa-solid fa-gears"></i>
+                                                                    参数设置
+                                                                </h3>
+                                                                <div class="card-tools">
+                                                                    <button type="button" class="btn btn-tool btn-sm"
+                                                                        data-card-widget="collapse">
+                                                                        <i class="fas fa-minus"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <!-- /.card-tools -->
+                                                            </div>
+                                                            <div class="card-body">
+                                                            </div>
+                                                        </div>
+                                                        <!-- /. Camera Params Setting -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- /. Camera Settings -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-telescope" role="tabpanel"
+                                aria-labelledby="tab-telescope-tab">
+
+                                <div class="row">
+                                    <div class="col-4 col-sm-2">
+                                        <div class="nav flex-column nav-tabs h-100 text-center" id="telescope-info-tab"
+                                            role="tablist" aria-orientation="vertical">
+                                            <a class="nav-link active" id="telescope-info-status-tab" data-toggle="pill"
+                                                href="#telescope-info-status" role="tab"
+                                                aria-controls="telescope-info-status" aria-selected="true">
+                                                <i class="fas fa-info">状态</i>
+                                            </a>
+                                            <a class="nav-link" id="telescope-info-control-tab" data-toggle="pill"
+                                                href="#telescope-info-control" role="tab"
+                                                aria-controls="telescope-info-control" aria-selected="false">
+                                                <i class="fas fa-gamepad">控制</i>
+                                            </a>
+                                            <a class="nav-link" id="telescope-info-settings-tab" data-toggle="pill"
+                                                href="#telescope-info-settings" role="tab"
+                                                aria-controls="telescope-info-settings" aria-selected="false">
+                                                <i class="fas fa-gear">设置</i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="col-8 col-sm-10">
+                                        <div class="tab-content" id="telescope-info-tabContent">
+                                            <!-- Telescope Info -->
+                                            <div class="tab-pane text-left fade active show" id="telescope-info-status"
+                                                role="tabpanel" aria-labelledby="telescope-info-status-tab">
+
+                                            </div>
+                                            <!-- /. Telescope Info -->
+                                            <!-- Telescope Control -->
+                                            <div class="tab-pane text-left fade" id="telescope-control-status"
+                                                role="tabpanel" aria-labelledby="telescope-info-control-tab">
+
+                                            </div>
+                                            <!-- /. Telescope Control-->
+                                            <!-- Telescope Settings -->
+                                            <div class="tab-pane text-left fade" id="telescope-info-settings"
+                                                role="tabpanel" aria-labelledby="telescope-info-settings-tab">
+
+                                            </div>
+                                            <!-- /. Telescope Settings -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-focuser" role="tabpanel"
+                                aria-labelledby="tab-focuser-tab">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card card-indigo">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    解析
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-filterwheel" role="tabpanel"
+                                aria-labelledby="tab-filterwheel-tab">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card card-indigo">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    解析
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-guider" role="tabpanel" aria-labelledby="tab-guider-tab">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card card-indigo">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    解析
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="tab-solver" role="tabpanel" aria-labelledby="tab-solver-tab">
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card card-indigo">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    解析
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="tab-logger" role="tabpanel" aria-labelledby="tab-logger-tab">
+
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="card card-info">
+                                            <div class="card-header">
+                                                <div class="card-title">
+                                                    活动日志
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="logDiv" class="p-1 text-left"></div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card -->
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <div class="container">
+        <!-- Central Modal Medium Danger -->
+        <div class="modal fade" id="centralModalDanger" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-notify modal-danger" role="document">
+                <!--Content-->
+                <div class="modal-content">
+                    <!--Header-->
+                    <div class="modal-header">
+                        <p class="heading lead" id="errorModalTitle">错误信息</p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" class="white-text">&times;</span>
+                        </button>
+                    </div>
+
+                    <!--Body-->
+                    <div class="modal-body">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle fa-4x mb-3 animated bounceIn"></i>
+                            <p id="errorMessage" class="note note-danger">
+                                未知错误
+                            </p>
+                            <p id="contactMessage" class="text-muted">
+                                <small>如果你有任何问题，请将详细细节告知开发者</small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!--Footer-->
+                    <div class="modal-footer justify-content-center">
+                        <a class="btn btn-outline-danger" href="mailto:astro_air@126.com,fran.dibiase@gmail.com">
+                            <i class="fas fa-envelope mr-1"></i>联系我们</a>
+                        <button type="button" class="btn btn-danger waves-effect" data-dismiss="modal">
+                            Ok
+                        </button>
+                    </div>
+                </div>
+                <!--/.Content-->
+            </div>
+        </div>
+    </div>
+    <!-- Modal container end -->
+
+    <div class="container">
+        <!-- Central Modal Medium Warning -->
+        <div class="modal fade" id="modalDoubleWarning" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-notify modal-warning modal-lg" role="document">
+                <!--Content-->
+                <div class="modal-content">
+                    <!--Header-->
+                    <div class="modal-header">
+                        <p class="heading lead" id="modalWarnTit">确认操作?</p>
+
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" class="white-text">&times;</span>
+                        </button>
+                    </div>
+
+                    <!--Body-->
+                    <div class="modal-body">
+                        <div class="text-center">
+                            <i class="fas fa-question fa-4x mb-3 animated rotateIn text-danger"></i>
+                            <p id="contWarnModal" class="text-warning"></p>
+                            <p>你确定要执行这步操作吗?</p>
+                        </div>
+                    </div>
+
+                    <!--Footer-->
+                    <div class="modal-footer justify-content-center">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <a type="button" id="confirmDoubleWarn" class="btn btn-sm btn-warning btn-block">
+                                    确认
+                                    <i class="fas fa-check"></i>
+                                </a>
+                            </div>
+                            <div class="col-sm-6">
+                                <a type="button" class="btn btn-sm btn-outline-warning waves-effect btn-block"
+                                    data-dismiss="modal">
+                                    Nope
+                                </a>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+                <!--/.Content-->
+            </div>
+        </div>
+        <!-- Central Modal Medium Warning-->
+    </div>
+
+    <div class="container">
+        <!-- Central Modal Medium Generic info -->
+        <div class="modal fade" id="infoModalGeneric" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2"
+            aria-hidden="true">
+            <div class="modal-dialog modal-notify modal-info" role="document">
+                <!--Content-->
+                <div class="modal-content">
+                    <!--Header-->
+                    <div class="modal-header">
+                        <p class="heading lead">信息</p>
+                        <button type="button" id="closeModalInfo" class="close modal-voy-btn" data-dismiss="modal"
+                            aria-label="Close">
+                            <span aria-hidden="true" class="white-text">&times;</span>
+                        </button>
+                    </div>
+
+                    <!--Body-->
+                    <div class="modal-body">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary m-5" role="status">
+                                <span class="sr-only">常规信息</span>
+                            </div>
+                            <p id="infoModalMessage" class="note note-info">
+                                常规消息...
+                            </p>
+                            <p id="genericMessageinfo" class="text-muted">
+                                <small></small>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!--Footer-->
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-primary modal-voy-btn" data-dismiss="modal">
+                            Ok
+                        </button>
+                    </div>
+                </div>
+                <!--/.Content-->
+            </div>
+        </div>
+        <!-- Central Modal Medium Danger-->
+    </div>
+    <!-- Container Modal end -->
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="/static/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <!-- overlayScrollbars -->
+    <script src="/static/js/jquery/jquery.overlayScrollbars.min.js"></script>
+    <!-- Bootstrap select -->
+    <script src="/static/js/bootstrap/bootstrap-select.min.js"></script>
+    <!-- Bootstrap select I18n -->
+    <script src="/static/js/bootstrap/bootstrap-select-zh_CN.min.js"></script>
+    <!-- Chart Js -->
+    <script src="/static/js/plugins/chart.min.js"></script>
+    <!-- Viewer -->
+    <script src="/static/js/plugins/viewer.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/static/js/adminlte.min.js"></script>
+    <!-- Device JS -->
+    <script src="/static/js/client/devices.js"></script>
+</body>

@@ -265,7 +265,7 @@ from server.web.websys import create_web_sysinfo
 create_web_sysinfo(app)
 from server.web.webtools import create_web_tools
 create_web_tools(app)
-from server.web.webdevicehub import create_indimanager_html
+from server.web.webdevice import create_indimanager_html
 create_indimanager_html(app,csrf)
 from server.web.websearch import create_search_template
 create_search_template(app,csrf)
