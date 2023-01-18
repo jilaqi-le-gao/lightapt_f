@@ -1,9 +1,11 @@
 astropy
 Flask
 Flask-Login
+Flask_wtf
 numpy
 paramiko
 psutil
 requests
 tornado
 waitress
+webssh
